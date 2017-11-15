@@ -1,0 +1,540 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.ThirdParty.Gnuplot.test &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../../PyFoam.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.ThirdParty.Gnuplot.test</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.ThirdParty.Gnuplot.test</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env python</span>
+
+<span class="c1"># $Id: test.py 302 2008-01-14 22:15:19Z bmcage $</span>
+
+<span class="c1"># Copyright (C) 1999-2003 Michael Haggerty &lt;mhagger@alum.mit.edu&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># This file is licensed under the GNU Lesser General Public License</span>
+<span class="c1"># (LGPL).  See LICENSE.txt for details.</span>
+
+<span class="sd">&quot;&quot;&quot;test.py -- Exercise the Gnuplot.py module.</span>
+
+<span class="sd">This module is not meant to be a flashy demonstration; rather it is a</span>
+<span class="sd">thorough test of many combinations of Gnuplot.py features.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">tempfile</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># assume this is pypy and retry</span>
+    <span class="kn">import</span> <span class="nn">numpypy</span>
+    <span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="nb">input</span> <span class="k">as</span> <span class="n">rinput</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">PyFoam.ThirdParty</span> <span class="kn">import</span> <span class="n">Gnuplot</span>
+    <span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.Gnuplot</span> <span class="kn">import</span> <span class="n">PlotItems</span>
+    <span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.Gnuplot</span> <span class="kn">import</span> <span class="n">funcutils</span>
+    <span class="n">Gnuplot</span><span class="o">.</span><span class="n">funcutils</span> <span class="o">=</span> <span class="n">funcutils</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># kludge in case Gnuplot hasn&#39;t been installed as a module yet:</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">__init__</span>
+    <span class="n">Gnuplot</span> <span class="o">=</span> <span class="n">__init__</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">PlotItems</span>
+    <span class="n">Gnuplot</span><span class="o">.</span><span class="n">PlotItems</span> <span class="o">=</span> <span class="n">PlotItems</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">funcutils</span>
+    <span class="n">Gnuplot</span><span class="o">.</span><span class="n">funcutils</span> <span class="o">=</span> <span class="n">funcutils</span>
+
+
+<div class="viewcode-block" id="wait"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.test.html#PyFoam.ThirdParty.Gnuplot.test.wait">[docs]</a><span class="k">def</span> <span class="nf">wait</span><span class="p">(</span><span class="nb">str</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;Press return to show results...</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">str</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">print_</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span></div>
+        <span class="c1">#    rinput(prompt)</span>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.test.html#PyFoam.ThirdParty.Gnuplot.test.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Exercise the Gnuplot module.&quot;&quot;&quot;</span>
+
+    <span class="n">print_</span> <span class="p">(</span>
+        <span class="s1">&#39;This program exercises many of the features of Gnuplot.py.  The</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;commands that are actually sent to gnuplot are printed for your</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;enjoyment.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Popping up a blank gnuplot window on your screen.&#39;</span><span class="p">)</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">Gnuplot</span><span class="o">.</span><span class="n">Gnuplot</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">g</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+    <span class="c1"># Make two temporary files:</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">tempfile</span><span class="p">,</span> <span class="s1">&#39;mkstemp&#39;</span><span class="p">):</span>
+        <span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">filename1</span><span class="p">,)</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">fdopen</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">filename2</span><span class="p">,)</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">filename1</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mktemp</span><span class="p">()</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">filename2</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mktemp</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">100.</span><span class="p">)</span><span class="o">/</span><span class="mf">5.</span> <span class="o">-</span> <span class="mf">10.</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;############### test Func ###################################&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Plot a gnuplot-generated function&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Func</span><span class="p">(</span><span class="s1">&#39;sin(x)&#39;</span><span class="p">))</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Set title and axis labels and try replot()&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Title&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">replot</span><span class="p">()</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Style linespoints&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Func</span><span class="p">(</span><span class="s1">&#39;sin(x)&#39;</span><span class="p">,</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;linespoints&#39;</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;title=None&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Func</span><span class="p">(</span><span class="s1">&#39;sin(x)&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;title=&quot;Sine of x&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Func</span><span class="p">(</span><span class="s1">&#39;sin(x)&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Sine of x&#39;</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;axes=x2y2&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Func</span><span class="p">(</span><span class="s1">&#39;sin(x)&#39;</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="s1">&#39;x2y2&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Sine of x&#39;</span><span class="p">))</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;Change Func attributes after construction:&#39;</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">Gnuplot</span><span class="o">.</span><span class="n">Func</span><span class="p">(</span><span class="s1">&#39;sin(x)&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Original&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Style linespoints&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="n">with_</span><span class="o">=</span><span class="s1">&#39;linespoints&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;title=None&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;title=&quot;Sine of x&quot;&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Sine of x&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;axes=x2y2&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="s1">&#39;x2y2&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;############### test File ###################################&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Generate a File from a filename&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">))</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Style lines&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">))</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;using=1, using=(1,)&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">using</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">),</span>
+               <span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">using</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;points&#39;</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;using=(1,2), using=&quot;1:3&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">using</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)),</span>
+               <span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">using</span><span class="o">=</span><span class="s1">&#39;1:3&#39;</span><span class="p">))</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;every=5, every=(5,)&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">every</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">),</span>
+               <span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">every</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,),</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;points&#39;</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;every=(10,None,0), every=&quot;10::5&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">),</span>
+               <span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">every</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="bp">None</span><span class="p">,</span><span class="mi">0</span><span class="p">)),</span>
+               <span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">every</span><span class="o">=</span><span class="s1">&#39;10::5&#39;</span><span class="p">))</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;title=None&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;title=&quot;title&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;title&#39;</span><span class="p">))</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;Change File attributes after construction:&#39;</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Original&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Style linespoints&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="n">with_</span><span class="o">=</span><span class="s1">&#39;linespoints&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;using=(1,3)&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="n">using</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;title=None&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;############### test Data ###################################&#39;</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span><span class="o">/</span><span class="mf">5.</span> <span class="o">-</span> <span class="mf">10.</span>
+        <span class="n">y1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">y2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y1</span><span class="p">,</span><span class="n">y2</span><span class="p">))</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Plot Data against its index&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">y2</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Plot Data, specified column-by-column&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y2</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, saved to a file&#39;</span><span class="p">)</span>
+        <span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y2</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename1</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, inline data&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y2</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Plot Data, specified by an array&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, saved to a file&#39;</span><span class="p">)</span>
+        <span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename1</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, inline data&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;with_=&quot;lp lw 4 ps 4&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;lp lw 4 ps 4&#39;</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;cols=0&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;cols=(0,1), cols=(0,2)&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+               <span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, saved to files&#39;</span><span class="p">)</span>
+        <span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename1</span><span class="p">)</span>
+        <span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename2</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">),</span> <span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename2</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, inline data&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+               <span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Change title and replot()&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;New title&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">replot</span><span class="p">()</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;title=None&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;title=&quot;Cosine of x&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Cosine of x&#39;</span><span class="p">))</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;############### test compute_Data ###########################&#39;</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span><span class="o">/</span><span class="mf">5.</span> <span class="o">-</span> <span class="mf">10.</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Plot Data, computed by Gnuplot.py&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">Gnuplot</span><span class="o">.</span><span class="n">funcutils</span><span class="o">.</span><span class="n">compute_Data</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, saved to a file&#39;</span><span class="p">)</span>
+        <span class="n">Gnuplot</span><span class="o">.</span><span class="n">funcutils</span><span class="o">.</span><span class="n">compute_Data</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename1</span>
+            <span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, inline data&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">funcutils</span><span class="o">.</span><span class="n">compute_Data</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;with_=&quot;lp 4 4&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">funcutils</span><span class="o">.</span><span class="n">compute_Data</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">,</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;lp 4 4&#39;</span><span class="p">))</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;############### test hardcopy ###############################&#39;</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;******** Generating postscript file &quot;gp_test.ps&quot; ********&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">()</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Func</span><span class="p">(</span><span class="s1">&#39;cos(0.5*x*x)&#39;</span><span class="p">,</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;linespoints lw 2 ps 2&#39;</span><span class="p">,</span>
+                       <span class="n">title</span><span class="o">=</span><span class="s1">&#39;cos(0.5*x^2)&#39;</span><span class="p">))</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">)</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: mode=&quot;eps&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;eps&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: mode=&quot;landscape&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;landscape&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: mode=&quot;portrait&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;portrait&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: eps=1&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: mode=&quot;default&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: enhanced=1&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">enhanced</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: enhanced=0&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">enhanced</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: color=1&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># For some reason,</span>
+        <span class="c1">#    g.hardcopy(&#39;gp_test.ps&#39;, color=0, solid=1)</span>
+        <span class="c1"># doesn&#39;t work here (it doesn&#39;t activate the solid option), even</span>
+        <span class="c1"># though the command sent to gnuplot looks correct.  I&#39;ll</span>
+        <span class="c1"># tentatively conclude that it is a gnuplot bug. ###</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: color=0&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: solid=1&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">solid</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: duplexing=&quot;duplex&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">solid</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">duplexing</span><span class="o">=</span><span class="s1">&#39;duplex&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: duplexing=&quot;defaultplex&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">duplexing</span><span class="o">=</span><span class="s1">&#39;defaultplex&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: fontname=&quot;Times-Italic&quot;&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">fontname</span><span class="o">=</span><span class="s1">&#39;Times-Italic&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy options: fontsize=20&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;******** Generating svg file &quot;gp_test.svg&quot; ********&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">()</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Func</span><span class="p">(</span><span class="s1">&#39;cos(0.5*x*x)&#39;</span><span class="p">,</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;linespoints lw 2 ps 2&#39;</span><span class="p">,</span>
+                       <span class="n">title</span><span class="o">=</span><span class="s1">&#39;cos(0.5*x^2)&#39;</span><span class="p">))</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.svg&#39;</span><span class="p">,</span> <span class="n">terminal</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">)</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Testing hardcopy svg options: enhanced&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="s1">&#39;gp_test.ps&#39;</span><span class="p">,</span> <span class="n">terminal</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">,</span> <span class="n">enhanced</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+
+
+        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;############### test shortcuts ##############################&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;plot Func and Data using shortcuts&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;sin(x)&#39;</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;############### test splot ##################################&#39;</span><span class="p">)</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;a 3-d curve&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">splot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;linesp&#39;</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, saved to a file&#39;</span><span class="p">)</span>
+        <span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename1</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">splot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;linesp&#39;</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, inline data&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">splot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">with_</span><span class="o">=</span><span class="s1">&#39;linesp&#39;</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s1">&#39;############### test GridData and compute_GridData ##########&#39;</span><span class="p">)</span>
+        <span class="c1"># set up x and y values at which the function will be tabulated:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">35</span><span class="p">)</span><span class="o">/</span><span class="mf">2.0</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span><span class="o">/</span><span class="mf">10.0</span> <span class="o">-</span> <span class="mf">1.5</span>
+        <span class="c1"># Make a 2-d array containing a function of x and y.  First create</span>
+        <span class="c1"># xm and ym which contain the x and y values in a matrix form that</span>
+        <span class="c1"># can be `broadcast&#39; into a matrix of the appropriate shape:</span>
+        <span class="n">xm</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span><span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="n">ym</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,:]</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">xm</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">xm</span><span class="p">)</span> <span class="o">-</span> <span class="n">ym</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;a function of two variables from a GridData file&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="p">(</span><span class="s1">&#39;set parametric&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="p">(</span><span class="s1">&#39;set style data lines&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="p">(</span><span class="s1">&#39;set hidden&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="p">(</span><span class="s1">&#39;set contour base&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">splot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">GridData</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, saved to a file&#39;</span><span class="p">)</span>
+        <span class="n">Gnuplot</span><span class="o">.</span><span class="n">GridData</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename1</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">splot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, inline data&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">splot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">GridData</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;The same thing using binary mode&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">splot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">GridData</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, using binary mode and an intermediate file&#39;</span><span class="p">)</span>
+        <span class="n">Gnuplot</span><span class="o">.</span><span class="n">GridData</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename1</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">splot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;The same thing using compute_GridData to tabulate function&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">splot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">funcutils</span><span class="o">.</span><span class="n">compute_GridData</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, with an intermediate file&#39;</span><span class="p">)</span>
+        <span class="n">Gnuplot</span><span class="o">.</span><span class="n">funcutils</span><span class="o">.</span><span class="n">compute_GridData</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="n">filename1</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">splot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Use compute_GridData in ufunc and binary mode&#39;</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">splot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">funcutils</span><span class="o">.</span><span class="n">compute_GridData</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">ufunc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="p">))</span>
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;Same thing, with an intermediate file&#39;</span><span class="p">)</span>
+        <span class="n">Gnuplot</span><span class="o">.</span><span class="n">funcutils</span><span class="o">.</span><span class="n">compute_GridData</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">ufunc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="n">filename1</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">splot</span><span class="p">(</span><span class="n">Gnuplot</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename1</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="s1">&#39;And now rotate it a bit&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">view</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">35</span><span class="p">,</span><span class="mi">70</span><span class="p">,</span><span class="mi">5</span><span class="p">):</span>
+            <span class="n">g</span><span class="p">(</span><span class="s1">&#39;set view 60, </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">view</span><span class="p">)</span>
+            <span class="n">g</span><span class="o">.</span><span class="n">replot</span><span class="p">()</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="n">wait</span><span class="p">(</span><span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;Press return to end the test.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">filename1</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">filename2</span><span class="p">)</span></div>
+
+
+<span class="c1"># when executed, just run main():</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

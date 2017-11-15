@@ -1,0 +1,223 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Infrastructure.ServerBase &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Infrastructure.ServerBase</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Infrastructure.ServerBase</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Basis for the XMLRPC-Servers in PyFoam</span>
+
+<span class="sd">Based on 15.5 in &quot;Python Cookbook&quot; for faster restarting&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">PY3</span>
+
+<span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">xmlrpc.server</span> <span class="kn">import</span> <span class="n">SimpleXMLRPCServer</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">SimpleXMLRPCServer</span> <span class="kn">import</span> <span class="n">SimpleXMLRPCServer</span>
+
+<span class="kn">import</span> <span class="nn">socket</span>
+
+<div class="viewcode-block" id="ServerBase"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ServerBase.html#PyFoam.Infrastructure.ServerBase.ServerBase">[docs]</a><span class="k">class</span> <span class="nc">ServerBase</span><span class="p">(</span><span class="n">SimpleXMLRPCServer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The Base class for the servers&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ServerBase.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ServerBase.html#PyFoam.Infrastructure.ServerBase.ServerBase.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">addr</span><span class="p">,</span><span class="n">logRequests</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param addr: the (server address,port)-tuple)</span>
+<span class="sd">        :param logRequests: patched thru to the base class&quot;&quot;&quot;</span>
+        <span class="n">SimpleXMLRPCServer</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">addr</span><span class="p">,</span><span class="n">logRequests</span><span class="o">=</span><span class="n">logRequests</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ServerBase.server_bind"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ServerBase.html#PyFoam.Infrastructure.ServerBase.ServerBase.server_bind">[docs]</a>    <span class="k">def</span> <span class="nf">server_bind</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Should allow a fast restart after the server was killed&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">socket</span><span class="o">.</span><span class="n">setsockopt</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">SOL_SOCKET</span><span class="p">,</span><span class="n">socket</span><span class="o">.</span><span class="n">SO_REUSEADDR</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">SimpleXMLRPCServer</span><span class="o">.</span><span class="n">server_bind</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ServerBase.verify_request"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ServerBase.html#PyFoam.Infrastructure.ServerBase.ServerBase.verify_request">[docs]</a>    <span class="k">def</span> <span class="nf">verify_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">request</span><span class="p">,</span><span class="n">client_addr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To be overriden later&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">True</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

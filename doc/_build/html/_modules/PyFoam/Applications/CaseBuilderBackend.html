@@ -1,0 +1,609 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.CaseBuilderBackend &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.CaseBuilderBackend</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.CaseBuilderBackend</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Represents the actual CaseBuilder-File and other things that have to do with the Casebuilder</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">xml.dom.minidom</span> <span class="kn">import</span> <span class="n">parse</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span><span class="p">,</span><span class="n">FoamStringParser</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Execution.BasicRunner</span> <span class="kn">import</span> <span class="n">BasicRunner</span>
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">oldAppConvention</span> <span class="k">as</span> <span class="n">oldApp</span>
+<span class="kn">from</span> <span class="nn">.CreateBoundaryPatches</span> <span class="kn">import</span> <span class="n">CreateBoundaryPatches</span>
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">config</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.DataStructures</span> <span class="kn">import</span> <span class="n">Vector</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">exec_</span>
+
+<div class="viewcode-block" id="CaseBuilderDescriptionList"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList">[docs]</a><span class="k">class</span> <span class="nc">CaseBuilderDescriptionList</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Gets a list of the case-builder files found in the current path&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CaseBuilderDescriptionList.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dirList</span><span class="o">=</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CaseBuilder&quot;</span><span class="p">,</span><span class="s2">&quot;descriptionpath&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dirList</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="s2">&quot;*.pfcb&quot;</span><span class="p">)):</span>
+                <span class="n">nm</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="n">cb</span><span class="o">=</span><span class="n">CaseBuilderFile</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">nm</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">cb</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span><span class="n">cb</span><span class="o">.</span><span class="n">description</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="CaseBuilderDescriptionList.__iter__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__iter__">[docs]</a>    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">f</span></div>
+
+<div class="viewcode-block" id="CaseBuilderDescriptionList.__len__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__len__">[docs]</a>    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseBuilderDescriptionList.__getitem__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">i</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></div></div>
+
+<div class="viewcode-block" id="ArgWrapper"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.ArgWrapper">[docs]</a><span class="k">class</span> <span class="nc">ArgWrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wraps the argument element for convenient access&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ArgWrapper.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.ArgWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">el</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">el</span><span class="o">=</span><span class="n">el</span></div>
+
+<div class="viewcode-block" id="ArgWrapper.__getattr__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.ArgWrapper.__getattr__">[docs]</a>    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">==</span><span class="s2">&quot;type&quot;</span><span class="p">:</span>
+            <span class="n">tmp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">el</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;verify&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">!=</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="n">val</span><span class="o">=</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;validator&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">!=</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">name</span><span class="o">==</span><span class="s2">&quot;values&quot;</span><span class="p">:</span>
+            <span class="n">tmp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">el</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;verify&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">!=</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="n">val</span><span class="o">=</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;validator&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">!=</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;values&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">el</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="CaseBuilderFile"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile">[docs]</a><span class="k">class</span> <span class="nc">CaseBuilderFile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This class reads an XML-file that describes how to build a case</span>
+<span class="sd">and gives information about the case and if asked to builds the actual case</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CaseBuilderFile.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param fName: the XML-file that describes how to build the case&quot;&quot;&quot;</span>
+
+        <span class="n">dom</span><span class="o">=</span><span class="n">parse</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">=</span><span class="n">dom</span><span class="o">.</span><span class="n">documentElement</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">tagName</span><span class="o">!=</span><span class="s1">&#39;casebuilder&#39;</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong root-element&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">tagName</span><span class="p">,</span><span class="s2">&quot;Expected: &#39;casebuilder&#39;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.name"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.description"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.description">[docs]</a>    <span class="k">def</span> <span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.helpText"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.helpText">[docs]</a>    <span class="k">def</span> <span class="nf">helpText</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ht</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">,</span><span class="s2">&quot;helptext&quot;</span><span class="p">,</span><span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ht</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ht</span><span class="o">.</span><span class="n">firstChild</span><span class="o">.</span><span class="n">nodeValue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&lt;No help text&gt;&quot;</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.argTree"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argTree">[docs]</a>    <span class="k">def</span> <span class="nf">argTree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">,</span><span class="s2">&quot;arguments&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.varTree"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.varTree">[docs]</a>    <span class="k">def</span> <span class="nf">varTree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">,</span><span class="s2">&quot;variables&quot;</span><span class="p">,</span><span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.filesTree"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.filesTree">[docs]</a>    <span class="k">def</span> <span class="nf">filesTree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">,</span><span class="s2">&quot;files&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.boundaryTree"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaryTree">[docs]</a>    <span class="k">def</span> <span class="nf">boundaryTree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filesTree</span><span class="p">(),</span><span class="s2">&quot;boundaries&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.fieldTree"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.fieldTree">[docs]</a>    <span class="k">def</span> <span class="nf">fieldTree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filesTree</span><span class="p">(),</span><span class="s2">&quot;fieldfiles&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.parameterTree"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.parameterTree">[docs]</a>    <span class="k">def</span> <span class="nf">parameterTree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filesTree</span><span class="p">(),</span><span class="s2">&quot;parameterfiles&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.templatePath"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.templatePath">[docs]</a>    <span class="k">def</span> <span class="nf">templatePath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">expandVars</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.initialDir"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.initialDir">[docs]</a>    <span class="k">def</span> <span class="nf">initialDir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tmp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;initialdir&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tmp</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">tmp</span><span class="o">=</span><span class="s2">&quot;0&quot;</span>
+        <span class="k">return</span> <span class="n">tmp</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.expandVars"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.expandVars">[docs]</a>    <span class="k">def</span> <span class="nf">expandVars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">orig</span><span class="p">,</span><span class="n">keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">orig</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">orig</span><span class="p">)</span>
+        <span class="n">orig</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">orig</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">keys</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">orig</span><span class="o">=</span><span class="n">orig</span> <span class="o">%</span> <span class="n">keys</span>
+        <span class="k">return</span> <span class="n">orig</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.boundaries"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaries">[docs]</a>    <span class="k">def</span> <span class="nf">boundaries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">bounds</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaryTree</span><span class="p">()</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;boundary&quot;</span><span class="p">):</span>
+            <span class="n">bounds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">bounds</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.boundaryPatterns"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaryPatterns">[docs]</a>    <span class="k">def</span> <span class="nf">boundaryPatterns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">bounds</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaryTree</span><span class="p">()</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;boundary&quot;</span><span class="p">):</span>
+            <span class="n">bounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">),</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;pattern&quot;</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">bounds</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.boundaryPatternDict"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaryPatternDict">[docs]</a>    <span class="k">def</span> <span class="nf">boundaryPatternDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">res</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">nm</span><span class="p">,</span><span class="n">pat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaryPatterns</span><span class="p">():</span>
+            <span class="n">res</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span><span class="o">=</span><span class="n">pat</span>
+        <span class="k">return</span> <span class="n">res</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.boundaryDescriptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaryDescriptions">[docs]</a>    <span class="k">def</span> <span class="nf">boundaryDescriptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">bounds</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaryTree</span><span class="p">()</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;boundary&quot;</span><span class="p">):</span>
+            <span class="n">bounds</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)]</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">bounds</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.argumentGroups"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentGroups">[docs]</a>    <span class="k">def</span> <span class="nf">argumentGroups</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">args</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">argTree</span><span class="p">()</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;argumentgroup&quot;</span><span class="p">):</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">args</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.argumentGroupDescription"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentGroupDescription">[docs]</a>    <span class="k">def</span> <span class="nf">argumentGroupDescription</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">args</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">argTree</span><span class="p">()</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;argumentgroup&quot;</span><span class="p">):</span>
+            <span class="n">args</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)]</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">args</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.arguments"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.arguments">[docs]</a>    <span class="k">def</span> <span class="nf">arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">args</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">argTree</span><span class="p">()</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;arg&quot;</span><span class="p">):</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">args</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.argumentDict"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentDict">[docs]</a>    <span class="k">def</span> <span class="nf">argumentDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">args</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">argTree</span><span class="p">()</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;arg&quot;</span><span class="p">):</span>
+            <span class="n">args</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)]</span><span class="o">=</span><span class="n">ArgWrapper</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">args</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.groupArguments"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.groupArguments">[docs]</a>    <span class="k">def</span> <span class="nf">groupArguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a list with the arguments belongin to a specific group</span>
+<span class="sd">        :param name: Name of the group. If none is given, then all the arguments</span>
+<span class="sd">        belonging to no group are returned&quot;&quot;&quot;</span>
+
+        <span class="n">result</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">argTree</span><span class="p">()</span><span class="o">.</span><span class="n">childNodes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;tagName&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">tagName</span><span class="o">==</span><span class="s2">&quot;arg&quot;</span> <span class="ow">and</span> <span class="n">name</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="n">c</span><span class="o">.</span><span class="n">tagName</span><span class="o">==</span><span class="s2">&quot;argumentgroup&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="o">==</span><span class="n">name</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;arg&quot;</span><span class="p">):</span>
+                            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.argumentDescriptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentDescriptions">[docs]</a>    <span class="k">def</span> <span class="nf">argumentDescriptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">args</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">argTree</span><span class="p">()</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;arg&quot;</span><span class="p">):</span>
+            <span class="n">args</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)]</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">args</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.argumentDefaults"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentDefaults">[docs]</a>    <span class="k">def</span> <span class="nf">argumentDefaults</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">args</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">argTree</span><span class="p">()</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;arg&quot;</span><span class="p">):</span>
+            <span class="n">args</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)]</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;default&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">args</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.getSingleElement"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.getSingleElement">[docs]</a>    <span class="k">def</span> <span class="nf">getSingleElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">optional</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get an element and check that it is the only one</span>
+<span class="sd">        :param parent: the parent element</span>
+<span class="sd">        :param name: The name of the element&quot;&quot;&quot;</span>
+
+        <span class="n">tmp</span><span class="o">=</span><span class="n">parent</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">optional</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Element&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;does not exist&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;More than one element&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;does exist&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.makeBC"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.makeBC">[docs]</a>    <span class="k">def</span> <span class="nf">makeBC</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">node</span><span class="p">,</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">result</span><span class="o">=</span><span class="s2">&quot;&#39;type&#39;:&#39;&quot;</span><span class="o">+</span><span class="n">node</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;&#39;&quot;</span>
+        <span class="n">para</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">expandVars</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;parameters&quot;</span><span class="p">),</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">para</span><span class="o">!=</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;,&quot;</span><span class="o">+</span><span class="n">para</span>
+        <span class="k">return</span> <span class="s2">&quot;{&quot;</span><span class="o">+</span><span class="n">result</span><span class="o">+</span><span class="s2">&quot;}&quot;</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.verifyArguments"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.verifyArguments">[docs]</a>    <span class="k">def</span> <span class="nf">verifyArguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Validate the arguments with the provided code (if it exists)&quot;&quot;&quot;</span>
+        <span class="n">totalMsg</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">argTree</span><span class="p">()</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;arg&quot;</span><span class="p">):</span>
+            <span class="n">msg</span><span class="o">=</span><span class="bp">None</span>
+            <span class="n">nm</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+            <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s2">&quot;verify&quot;</span><span class="p">,</span><span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verify</span><span class="p">:</span>
+                <span class="n">valid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="n">verify</span><span class="p">,</span><span class="s2">&quot;validator&quot;</span><span class="p">,</span><span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">script</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="n">verify</span><span class="p">,</span><span class="s2">&quot;script&quot;</span><span class="p">,</span><span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">valid</span> <span class="ow">and</span> <span class="n">script</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Variable&quot;</span><span class="p">,</span><span class="n">nm</span><span class="p">,</span><span class="s2">&quot;has script and validator. Only one of them supported&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">valid</span><span class="p">:</span>
+                    <span class="n">typ</span><span class="o">=</span><span class="n">valid</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+                    <span class="n">arg</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span>
+                    <span class="n">isNumeric</span><span class="o">=</span><span class="bp">False</span>
+                    <span class="k">if</span> <span class="n">typ</span><span class="o">==</span><span class="s2">&quot;float&quot;</span><span class="p">:</span>
+                        <span class="n">isNumeric</span><span class="o">=</span><span class="bp">True</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">tmp</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                            <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Not a floating point number&quot;</span>
+                    <span class="k">elif</span> <span class="n">typ</span><span class="o">==</span><span class="s2">&quot;integer&quot;</span><span class="p">:</span>
+                        <span class="n">isNumeric</span><span class="o">=</span><span class="bp">True</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">tmp</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                            <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Not an integer number&quot;</span>
+                    <span class="k">elif</span> <span class="n">typ</span><span class="o">==</span><span class="s2">&quot;file&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
+                            <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;File &quot;</span><span class="o">+</span><span class="n">arg</span><span class="o">+</span><span class="s2">&quot; does not exist&quot;</span>
+                    <span class="k">elif</span> <span class="n">typ</span><span class="o">==</span><span class="s2">&quot;selection&quot;</span><span class="p">:</span>
+                            <span class="n">vals</span><span class="o">=</span><span class="n">valid</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;values&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">:</span>
+                                <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Not in list of possible values: &quot;</span><span class="o">+</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">typ</span><span class="o">==</span><span class="s2">&quot;vector&quot;</span><span class="p">:</span>
+                        <span class="n">tmp</span><span class="o">=</span><span class="n">FoamStringParser</span><span class="p">(</span><span class="s2">&quot;a &quot;</span><span class="o">+</span><span class="n">arg</span><span class="o">+</span><span class="s2">&quot;;&quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">])</span><span class="o">!=</span><span class="n">Vector</span><span class="p">:</span>
+                            <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Is not a valid vector&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No validator implemented for type&quot;</span><span class="p">,</span><span class="n">typ</span><span class="p">,</span><span class="s2">&quot;in variable&quot;</span><span class="p">,</span><span class="n">nm</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">isNumeric</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">msg</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">valid</span><span class="o">.</span><span class="n">hasAttribute</span><span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="o">&lt;</span><span class="nb">float</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">)):</span>
+                                <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Must be bigger than &quot;</span><span class="o">+</span><span class="n">valid</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">valid</span><span class="o">.</span><span class="n">hasAttribute</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="o">&gt;</span><span class="nb">float</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">)):</span>
+                                <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Must be smaller than &quot;</span><span class="o">+</span><span class="n">valid</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">script</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">script</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;plugin&quot;</span><span class="p">)</span><span class="o">!=</span><span class="s2">&quot;python&quot;</span><span class="p">:</span>
+                        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Only plugin-type &#39;python&#39; is supported for variable&quot;</span><span class="p">,</span><span class="n">nm</span><span class="p">)</span>
+                    <span class="n">code</span><span class="o">=</span><span class="n">script</span><span class="o">.</span><span class="n">firstChild</span><span class="o">.</span><span class="n">nodeValue</span>
+                    <span class="n">arg</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span>
+                    <span class="n">exec_</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">msg</span><span class="p">:</span>
+                    <span class="n">totalMsg</span><span class="o">+=</span><span class="n">nm</span><span class="o">+</span><span class="s2">&quot;: &quot;</span><span class="o">+</span><span class="n">msg</span><span class="o">+</span><span class="s2">&quot;   &quot;</span>
+
+        <span class="k">if</span> <span class="n">totalMsg</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">totalMsg</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="k">return</span> <span class="n">totalMsg</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.calculateVariables"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.calculateVariables">[docs]</a>    <span class="k">def</span> <span class="nf">calculateVariables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">_args_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add derived variables to the argument dictionary&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">_a_</span> <span class="ow">in</span> <span class="n">_args_</span><span class="p">:</span>
+            <span class="n">exec_</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_a_</span><span class="p">,</span><span class="n">_args_</span><span class="p">[</span><span class="n">_a_</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">varTree</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">_a_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">varTree</span><span class="p">()</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;var&quot;</span><span class="p">):</span>
+                <span class="n">_nm_</span><span class="o">=</span><span class="n">_a_</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">_nm_</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;_args_&quot;</span><span class="p">,</span><span class="s2">&quot;_a_&quot;</span><span class="p">,</span><span class="s2">&quot;_nm_&quot;</span><span class="p">]:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Variable&quot;</span><span class="p">,</span><span class="n">_nm_</span><span class="p">,</span><span class="s2">&quot;is needed for this routine to work&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_a_</span><span class="o">.</span><span class="n">firstChild</span><span class="o">.</span><span class="n">nodeValue</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">exec_</span><span class="p">(</span><span class="n">_a_</span><span class="o">.</span><span class="n">firstChild</span><span class="o">.</span><span class="n">nodeValue</span><span class="p">)</span>
+                    <span class="n">exec_</span><span class="p">(</span><span class="s2">&quot;_args_[&#39;&quot;</span><span class="o">+</span><span class="n">_nm_</span><span class="o">+</span><span class="s2">&quot;&#39;]=str(&quot;</span><span class="o">+</span><span class="n">_nm_</span><span class="o">+</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_args_</span></div>
+
+<div class="viewcode-block" id="CaseBuilderFile.buildCase"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseBuilderBackend.html#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.buildCase">[docs]</a>    <span class="k">def</span> <span class="nf">buildCase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cName</span><span class="p">,</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Builds the case</span>
+<span class="sd">        :param cName: The name of the case directory</span>
+<span class="sd">        :param args: The arguments (as a dictionary)&quot;&quot;&quot;</span>
+
+        <span class="n">args</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">calculateVariables</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">cName</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameterTree</span><span class="p">()</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;directory&quot;</span><span class="p">):</span>
+            <span class="n">dName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cName</span><span class="p">,</span><span class="n">d</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dName</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">dName</span><span class="p">)</span>
+            <span class="n">sName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">templatePath</span><span class="p">(),</span><span class="n">d</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;file&quot;</span><span class="p">):</span>
+                <span class="n">dFile</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dName</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sName</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)),</span><span class="n">dFile</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;parameter&quot;</span><span class="p">))</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">pf</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">dFile</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;parameter&quot;</span><span class="p">):</span>
+                        <span class="n">pName</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+                        <span class="n">pValue</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">expandVars</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">),</span><span class="n">args</span><span class="p">)</span>
+                        <span class="n">exec_</span><span class="p">(</span><span class="s2">&quot;pf&quot;</span><span class="o">+</span><span class="n">pName</span><span class="o">+</span><span class="s2">&quot;=&quot;</span><span class="o">+</span><span class="n">pValue</span><span class="p">)</span>
+                    <span class="n">pf</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span>
+
+        <span class="n">prep</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">,</span><span class="s2">&quot;meshpreparation&quot;</span><span class="p">)</span>
+        <span class="n">util</span><span class="o">=</span><span class="n">prep</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;utility&quot;</span><span class="p">)</span>
+        <span class="n">copy</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="n">prep</span><span class="p">,</span><span class="s2">&quot;copy&quot;</span><span class="p">,</span><span class="n">optional</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">util</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">copy</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Copy and utilitiy mesh preparation specified&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">util</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">util</span><span class="p">:</span>
+                <span class="n">app</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;command&quot;</span><span class="p">)</span>
+                <span class="n">arg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">expandVars</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;arguments&quot;</span><span class="p">),</span><span class="n">args</span><span class="p">)</span>
+                <span class="n">argv</span><span class="o">=</span><span class="p">[</span><span class="n">app</span><span class="p">,</span><span class="s2">&quot;-case&quot;</span><span class="p">,</span><span class="n">cName</span><span class="p">]</span><span class="o">+</span><span class="n">arg</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">oldApp</span><span class="p">():</span>
+                    <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;.&quot;</span>
+                <span class="n">run</span><span class="o">=</span><span class="n">BasicRunner</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="n">argv</span><span class="p">,</span><span class="n">silent</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">logname</span><span class="o">=</span><span class="s2">&quot;CaseBuilder.prepareMesh.&quot;</span><span class="o">+</span><span class="n">app</span><span class="p">)</span>
+                <span class="n">run</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">run</span><span class="o">.</span><span class="n">runOK</span><span class="p">():</span>
+                    <span class="n">error</span><span class="p">(</span><span class="n">app</span><span class="p">,</span><span class="s2">&quot;failed. Check the logs&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">copy</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">expandVars</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">),</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">expandVars</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">),</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">time</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="n">time</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="s2">&quot;polyMesh&quot;</span><span class="p">),</span>
+                             <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cName</span><span class="p">,</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span><span class="s2">&quot;polyMesh&quot;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Neither copy nor utilitiy mesh preparation specified&quot;</span><span class="p">)</span>
+
+        <span class="n">dName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cName</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">initialDir</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dName</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">dName</span><span class="p">)</span>
+        <span class="n">sName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">templatePath</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">initialDir</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fieldTree</span><span class="p">()</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;field&quot;</span><span class="p">):</span>
+            <span class="n">dFile</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dName</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sName</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)),</span><span class="n">dFile</span><span class="p">)</span>
+            <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeBC</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="s2">&quot;defaultbc&quot;</span><span class="p">),</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">CreateBoundaryPatches</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--fix-types&quot;</span><span class="p">,</span>
+                                        <span class="s2">&quot;--overwrite&quot;</span><span class="p">,</span>
+                                        <span class="s2">&quot;--clear&quot;</span><span class="p">,</span>
+                                        <span class="s2">&quot;--default=&quot;</span><span class="o">+</span><span class="n">default</span><span class="p">,</span>
+                                        <span class="n">dFile</span><span class="p">])</span>
+            <span class="n">bcDict</span><span class="o">=</span><span class="p">{}</span>
+            <span class="n">bounds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;bc&quot;</span><span class="p">):</span>
+                <span class="n">nm</span><span class="o">=</span><span class="n">b</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">nm</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bounds</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Boundary&quot;</span><span class="p">,</span><span class="n">nm</span><span class="p">,</span><span class="s2">&quot;not in list&quot;</span><span class="p">,</span><span class="n">bounds</span><span class="p">,</span><span class="s2">&quot;for field&quot;</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+                <span class="n">bcDict</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span><span class="o">=</span><span class="n">b</span>
+
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span><span class="n">pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaryPatterns</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">bcDict</span><span class="p">:</span>
+                    <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeBC</span><span class="p">(</span><span class="n">bcDict</span><span class="p">[</span><span class="n">name</span><span class="p">],</span><span class="n">args</span><span class="p">)</span>
+                    <span class="n">CreateBoundaryPatches</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--filter=&quot;</span><span class="o">+</span><span class="n">pattern</span><span class="p">,</span>
+                                                <span class="s2">&quot;--overwrite&quot;</span><span class="p">,</span>
+                                                <span class="s2">&quot;--default=&quot;</span><span class="o">+</span><span class="n">default</span><span class="p">,</span>
+                                                <span class="n">dFile</span><span class="p">])</span>
+
+            <span class="n">ic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">expandVars</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getSingleElement</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="s2">&quot;ic&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">),</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">pf</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">dFile</span><span class="p">)</span>
+            <span class="n">pf</span><span class="p">[</span><span class="s2">&quot;internalField&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;uniform &quot;</span><span class="o">+</span><span class="n">ic</span>
+            <span class="n">pf</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

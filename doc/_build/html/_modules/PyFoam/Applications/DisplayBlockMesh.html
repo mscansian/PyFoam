@@ -1,0 +1,613 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.DisplayBlockMesh &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.DisplayBlockMesh</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.DisplayBlockMesh</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Old implementation using Tkinter. This is no longer supported.</span>
+<span class="sd">If possible use the Qt-Variant</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedBlockMeshDict</span> <span class="kn">import</span> <span class="n">ParsedBlockMeshDict</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<div class="viewcode-block" id="doImports"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.doImports">[docs]</a><span class="k">def</span> <span class="nf">doImports</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">global</span> <span class="n">tkinter</span>
+        <span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="n">tkinter</span>
+        <span class="k">global</span> <span class="n">vtk</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">vtk</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Using system-VTK&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Trying VTK implementation from Paraview&quot;</span><span class="p">)</span>
+            <span class="kn">from</span> <span class="nn">paraview</span> <span class="kn">import</span> <span class="n">vtk</span>
+        <span class="k">global</span> <span class="n">vtkTkRenderWindowInteractor</span>
+        <span class="kn">from</span> <span class="nn">vtk.tk.vtkTkRenderWindowInteractor</span> <span class="kn">import</span> <span class="n">vtkTkRenderWindowInteractor</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error while importing modules:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh">[docs]</a><span class="k">class</span> <span class="nc">DisplayBlockMesh</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="DisplayBlockMesh.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Reads the contents of a blockMeshDict-file and displays the vertices</span>
+<span class="s2">as spheres (with numbers). The blocks are sketched by lines. One block</span>
+<span class="s2">can be seceted with a slider. It will be displayed as a green cube</span>
+<span class="s2">with the local directions x1,x2 and x3. Also a patch that is selected</span>
+<span class="s2">by a slider will be sketched by blue squares.  This implementation</span>
+<span class="s2">uses Tkinter and is no longer activly developed.  Use the QT-version.</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] &lt;blockMeshDict&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">doImports</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">renWin</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkRenderWindow</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkRenderer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renWin</span><span class="o">.</span><span class="n">AddRenderer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renWin</span><span class="o">.</span><span class="n">SetSize</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">SetBackground</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">ResetCamera</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">GetActiveCamera</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">axes</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkCubeAxesActor2D</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">SetCamera</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">GetActiveCamera</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">undefinedActor</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkTextActor</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">undefinedActor</span><span class="o">.</span><span class="n">GetPositionCoordinate</span><span class="p">()</span><span class="o">.</span><span class="n">SetCoordinateSystemToNormalizedDisplay</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">undefinedActor</span><span class="o">.</span><span class="n">GetPositionCoordinate</span><span class="p">()</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">0.2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">undefinedActor</span><span class="o">.</span><span class="n">GetTextProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetColor</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">undefinedActor</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">readFile</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;While reading&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span><span class="s2">&quot;this happened:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">ResetCamera</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">Tk</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">withdraw</span><span class="p">()</span>
+
+        <span class="c1"># Create the toplevel window</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">Toplevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;blockMesh-Viewer&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">protocol</span><span class="p">(</span><span class="s2">&quot;WM_DELETE_WINDOW&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">quit</span><span class="p">)</span>
+
+        <span class="c1"># Create some frames</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f1</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f2</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">f1</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;top&quot;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f2</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Create the Tk render widget, and bind the events</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rw</span> <span class="o">=</span> <span class="n">vtkTkRenderWindowInteractor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f1</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">rw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">renWin</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rw</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">expand</span><span class="o">=</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">blockHigh</span><span class="o">=</span><span class="n">tkinter</span><span class="o">.</span><span class="n">IntVar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blockHigh</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">oldBlock</span><span class="o">=-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blockActor</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blockTextActor</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">patchHigh</span><span class="o">=</span><span class="n">tkinter</span><span class="o">.</span><span class="n">IntVar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patchHigh</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">oldPatch</span><span class="o">=-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patchActor</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patchTextActor</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkTextActor</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patchTextActor</span><span class="o">.</span><span class="n">GetPositionCoordinate</span><span class="p">()</span><span class="o">.</span><span class="n">SetCoordinateSystemToNormalizedDisplay</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patchTextActor</span><span class="o">.</span><span class="n">GetPositionCoordinate</span><span class="p">()</span><span class="o">.</span><span class="n">SetValue</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patchTextActor</span><span class="o">.</span><span class="n">GetTextProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetColor</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patchTextActor</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="s2">&quot;Patch: &lt;none&gt;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">scroll</span><span class="o">=</span><span class="n">tkinter</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f2</span><span class="p">,</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;horizontal&#39;</span><span class="p">,</span>
+                                  <span class="n">from_</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span><span class="n">to</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">tickinterval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                  <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Block (-1 is none)&quot;</span><span class="p">,</span>
+                                  <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">blockHigh</span><span class="p">,</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">colorBlock</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">scroll</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;top&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">scroll2</span><span class="o">=</span><span class="n">tkinter</span><span class="o">.</span><span class="n">Scale</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f2</span><span class="p">,</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;horizontal&#39;</span><span class="p">,</span>
+                                   <span class="n">from_</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span><span class="n">to</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">resolution</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">tickinterval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                   <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Patch (-1 is none)&quot;</span><span class="p">,</span>
+                                   <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">patchHigh</span><span class="p">,</span><span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">colorPatch</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">scroll2</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;top&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">f3</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f3</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">b1</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f3</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Quit&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b1</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b2</span> <span class="o">=</span> <span class="n">tkinter</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f3</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Reread blockMeshDict&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reread</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b2</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">iren</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">renWin</span><span class="o">.</span><span class="n">GetInteractor</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">istyle</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkInteractorStyleSwitch</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">iren</span><span class="o">.</span><span class="n">SetInteractorStyle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">istyle</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">istyle</span><span class="o">.</span><span class="n">SetCurrentStyleToTrackballCamera</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addProps</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">iren</span><span class="o">.</span><span class="n">Initialize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renWin</span><span class="o">.</span><span class="n">Render</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iren</span><span class="o">.</span><span class="n">Start</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.readFile"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.readFile">[docs]</a>    <span class="k">def</span> <span class="nf">readFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blockMesh</span><span class="o">=</span><span class="n">ParsedBlockMeshDict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">blockMesh</span><span class="o">.</span><span class="n">vertices</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vActors</span><span class="o">=</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">blockMesh</span><span class="o">.</span><span class="n">blocks</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patches</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">blockMesh</span><span class="o">.</span><span class="n">patches</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">blockMesh</span><span class="o">.</span><span class="n">typicalLength</span><span class="p">()</span><span class="o">/</span><span class="mi">50</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addVertex</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setAxes</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">undefined</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addBlock</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blockMesh</span><span class="o">.</span><span class="n">arcs</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">makeArc</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">undefined</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">undefinedActor</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="s2">&quot;Undefined vertices: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">undefined</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">undefinedActor</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.addUndefined"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.addUndefined">[docs]</a>    <span class="k">def</span> <span class="nf">addUndefined</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">i</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">undefined</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">undefined</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.addProps"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.addProps">[docs]</a>    <span class="k">def</span> <span class="nf">addProps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddViewProp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor2D</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patchTextActor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor2D</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">undefinedActor</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.addPoint"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.addPoint">[docs]</a>    <span class="k">def</span> <span class="nf">addPoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">coord</span><span class="p">,</span><span class="n">factor</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">sphere</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkSphereSource</span><span class="p">()</span>
+        <span class="n">sphere</span><span class="o">.</span><span class="n">SetRadius</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="o">*</span><span class="n">factor</span><span class="p">)</span>
+        <span class="n">sphere</span><span class="o">.</span><span class="n">SetCenter</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
+        <span class="n">mapper</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyDataMapper</span><span class="p">()</span>
+        <span class="n">mapper</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="n">sphere</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+        <span class="n">actor</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkActor</span><span class="p">()</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">SetMapper</span><span class="p">(</span><span class="n">mapper</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="n">actor</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">actor</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.addVertex"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.addVertex">[docs]</a>    <span class="k">def</span> <span class="nf">addVertex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index</span><span class="p">):</span>
+        <span class="n">coord</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vActors</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">addPoint</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkVectorText</span><span class="p">()</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">SetText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="n">tMapper</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyDataMapper</span><span class="p">()</span>
+        <span class="n">tMapper</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">())</span>
+        <span class="n">tActor</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkFollower</span><span class="p">()</span>
+        <span class="n">tActor</span><span class="o">.</span><span class="n">SetMapper</span><span class="p">(</span><span class="n">tMapper</span><span class="p">)</span>
+        <span class="n">tActor</span><span class="o">.</span><span class="n">SetScale</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="p">)</span>
+        <span class="n">tActor</span><span class="o">.</span><span class="n">AddPosition</span><span class="p">(</span><span class="n">coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="p">,</span><span class="n">coord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="p">,</span><span class="n">coord</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="p">)</span>
+        <span class="n">tActor</span><span class="o">.</span><span class="n">SetCamera</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cam</span><span class="p">)</span>
+        <span class="n">tActor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetColor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="n">tActor</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.addLine"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.addLine">[docs]</a>    <span class="k">def</span> <span class="nf">addLine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index1</span><span class="p">,</span><span class="n">index2</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">c1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span>
+            <span class="n">c2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">index1</span><span class="o">&gt;=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addUndefined</span><span class="p">(</span><span class="n">index1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">index2</span><span class="o">&gt;=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addUndefined</span><span class="p">(</span><span class="n">index2</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="n">line</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkLineSource</span><span class="p">()</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">SetPoint1</span><span class="p">(</span><span class="n">c1</span><span class="p">)</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">SetPoint2</span><span class="p">(</span><span class="n">c2</span><span class="p">)</span>
+        <span class="n">mapper</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyDataMapper</span><span class="p">()</span>
+        <span class="n">mapper</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+        <span class="n">actor</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkActor</span><span class="p">()</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">SetMapper</span><span class="p">(</span><span class="n">mapper</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="n">actor</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">actor</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.makeDirection"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.makeDirection">[docs]</a>    <span class="k">def</span> <span class="nf">makeDirection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index1</span><span class="p">,</span><span class="n">index2</span><span class="p">,</span><span class="n">label</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">c1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span>
+            <span class="n">c2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="n">index2</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span><span class="p">,</span><span class="bp">None</span>
+        <span class="n">line</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkLineSource</span><span class="p">()</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">SetPoint1</span><span class="p">(</span><span class="n">c1</span><span class="p">)</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">SetPoint2</span><span class="p">(</span><span class="n">c2</span><span class="p">)</span>
+        <span class="n">tube</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkTubeFilter</span><span class="p">()</span>
+        <span class="n">tube</span><span class="o">.</span><span class="n">SetRadius</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="o">*</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">tube</span><span class="o">.</span><span class="n">SetNumberOfSides</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">tube</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">())</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkVectorText</span><span class="p">()</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">SetText</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">tMapper</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyDataMapper</span><span class="p">()</span>
+        <span class="n">tMapper</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">())</span>
+        <span class="n">tActor</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkFollower</span><span class="p">()</span>
+        <span class="n">tActor</span><span class="o">.</span><span class="n">SetMapper</span><span class="p">(</span><span class="n">tMapper</span><span class="p">)</span>
+        <span class="n">tActor</span><span class="o">.</span><span class="n">SetScale</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="p">)</span>
+        <span class="n">tActor</span><span class="o">.</span><span class="n">AddPosition</span><span class="p">((</span><span class="n">c1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">c2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="p">,(</span><span class="n">c1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">c2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="p">,(</span><span class="n">c1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">c2</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">vRadius</span><span class="p">)</span>
+        <span class="n">tActor</span><span class="o">.</span><span class="n">SetCamera</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cam</span><span class="p">)</span>
+        <span class="n">tActor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetColor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tube</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">(),</span><span class="n">tActor</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.makeSpline"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.makeSpline">[docs]</a>    <span class="k">def</span> <span class="nf">makeSpline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lst</span><span class="p">):</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPoints</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)):</span>
+            <span class="n">v</span><span class="o">=</span><span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">points</span><span class="o">.</span><span class="n">InsertPoint</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">spline</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkParametricSpline</span><span class="p">()</span>
+        <span class="n">spline</span><span class="o">.</span><span class="n">SetPoints</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+        <span class="n">spline</span><span class="o">.</span><span class="n">ClosedOff</span><span class="p">()</span>
+        <span class="n">splineSource</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkParametricFunctionSource</span><span class="p">()</span>
+        <span class="n">splineSource</span><span class="o">.</span><span class="n">SetParametricFunction</span><span class="p">(</span><span class="n">spline</span><span class="p">)</span>
+        <span class="n">mapper</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyDataMapper</span><span class="p">()</span>
+        <span class="n">mapper</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="n">splineSource</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+        <span class="n">actor</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkActor</span><span class="p">()</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">SetMapper</span><span class="p">(</span><span class="n">mapper</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="n">actor</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.makeArc"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.makeArc">[docs]</a>    <span class="k">def</span> <span class="nf">makeArc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">makeSpline</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]]])</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addUndefined</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&gt;=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addUndefined</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addPoint</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">factor</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.makeFace"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.makeFace">[docs]</a>    <span class="k">def</span> <span class="nf">makeFace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lst</span><span class="p">):</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPoints</span><span class="p">()</span>
+        <span class="n">side</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkCellArray</span><span class="p">()</span>
+        <span class="n">side</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">v</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addUndefined</span><span class="p">(</span><span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="n">points</span><span class="o">.</span><span class="n">InsertPoint</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">side</span><span class="o">.</span><span class="n">InsertCellPoint</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyData</span><span class="p">()</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">SetPoints</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">SetPolys</span><span class="p">(</span><span class="n">side</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.addBlock"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.addBlock">[docs]</a>    <span class="k">def</span> <span class="nf">addBlock</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index</span><span class="p">):</span>
+        <span class="n">b</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">b</span><span class="p">[</span> <span class="mi">0</span><span class="p">],</span><span class="n">b</span><span class="p">[</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">b</span><span class="p">[</span> <span class="mi">3</span><span class="p">],</span><span class="n">b</span><span class="p">[</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">b</span><span class="p">[</span> <span class="mi">7</span><span class="p">],</span><span class="n">b</span><span class="p">[</span> <span class="mi">6</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">b</span><span class="p">[</span> <span class="mi">4</span><span class="p">],</span><span class="n">b</span><span class="p">[</span> <span class="mi">5</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">b</span><span class="p">[</span> <span class="mi">0</span><span class="p">],</span><span class="n">b</span><span class="p">[</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">b</span><span class="p">[</span> <span class="mi">1</span><span class="p">],</span><span class="n">b</span><span class="p">[</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">b</span><span class="p">[</span> <span class="mi">5</span><span class="p">],</span><span class="n">b</span><span class="p">[</span> <span class="mi">6</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">b</span><span class="p">[</span> <span class="mi">4</span><span class="p">],</span><span class="n">b</span><span class="p">[</span> <span class="mi">7</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">b</span><span class="p">[</span> <span class="mi">0</span><span class="p">],</span><span class="n">b</span><span class="p">[</span> <span class="mi">4</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">b</span><span class="p">[</span> <span class="mi">1</span><span class="p">],</span><span class="n">b</span><span class="p">[</span> <span class="mi">5</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">b</span><span class="p">[</span> <span class="mi">2</span><span class="p">],</span><span class="n">b</span><span class="p">[</span> <span class="mi">6</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">b</span><span class="p">[</span> <span class="mi">3</span><span class="p">],</span><span class="n">b</span><span class="p">[</span> <span class="mi">7</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.setAxes"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.setAxes">[docs]</a>    <span class="k">def</span> <span class="nf">setAxes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">append</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkAppendPolyData</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vActors</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">a</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">append</span><span class="o">.</span><span class="n">AddInput</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">GetMapper</span><span class="p">()</span><span class="o">.</span><span class="n">GetInput</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="n">append</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">())</span></div>
+
+
+    <span class="c1"># Define a quit method that exits cleanly.</span>
+<div class="viewcode-block" id="DisplayBlockMesh.quit"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.quit">[docs]</a>    <span class="k">def</span> <span class="nf">quit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.reread"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.reread">[docs]</a>    <span class="k">def</span> <span class="nf">reread</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">RemoveAllViewProps</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patchActor</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blockActor</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blockTextActor</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addProps</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">readFile</span><span class="p">()</span>
+
+        <span class="n">tmpBlock</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blockHigh</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tmpBlock</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">):</span>
+            <span class="n">tmpBlock</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scroll</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">to</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blockHigh</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">tmpBlock</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorBlock</span><span class="p">(</span><span class="n">tmpBlock</span><span class="p">)</span>
+
+        <span class="n">tmpPatch</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patchHigh</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tmpPatch</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
+            <span class="n">tmpPatch</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span><span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scroll2</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">to</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patchHigh</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">tmpPatch</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorPatch</span><span class="p">(</span><span class="n">tmpPatch</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">renWin</span><span class="o">.</span><span class="n">Render</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.colorBlock"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.colorBlock">[docs]</a>    <span class="k">def</span> <span class="nf">colorBlock</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="n">newBlock</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">oldBlock</span><span class="o">&gt;=</span><span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">blockActor</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">RemoveActor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blockActor</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ta</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blockTextActor</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">RemoveActor</span><span class="p">(</span><span class="n">ta</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blockActor</span><span class="o">=</span><span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blockTextActor</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="n">newBlock</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">append</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkAppendPolyData</span><span class="p">()</span>
+            <span class="n">append2</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkAppendPolyData</span><span class="p">()</span>
+            <span class="n">b</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="n">newBlock</span><span class="p">]</span>
+            <span class="n">append</span><span class="o">.</span><span class="n">AddInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">makeFace</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">3</span><span class="p">]]))</span>
+            <span class="n">append</span><span class="o">.</span><span class="n">AddInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">makeFace</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">7</span><span class="p">]]))</span>
+            <span class="n">append</span><span class="o">.</span><span class="n">AddInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">makeFace</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">4</span><span class="p">]]))</span>
+            <span class="n">append</span><span class="o">.</span><span class="n">AddInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">makeFace</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">7</span><span class="p">]]))</span>
+            <span class="n">append</span><span class="o">.</span><span class="n">AddInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">makeFace</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">7</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">4</span><span class="p">]]))</span>
+            <span class="n">append</span><span class="o">.</span><span class="n">AddInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">makeFace</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">5</span><span class="p">]]))</span>
+            <span class="n">d</span><span class="p">,</span><span class="n">t1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeDirection</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="s2">&quot;x1&quot;</span><span class="p">)</span>
+            <span class="n">append</span><span class="o">.</span><span class="n">AddInput</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="n">t1</span><span class="p">)</span>
+            <span class="n">d</span><span class="p">,</span><span class="n">t2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeDirection</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="s2">&quot;x2&quot;</span><span class="p">)</span>
+            <span class="n">append</span><span class="o">.</span><span class="n">AddInput</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
+            <span class="n">d</span><span class="p">,</span><span class="n">t3</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeDirection</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">b</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span><span class="s2">&quot;x3&quot;</span><span class="p">)</span>
+            <span class="n">append</span><span class="o">.</span><span class="n">AddInput</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="n">t3</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blockTextActor</span><span class="o">=</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span><span class="n">t2</span><span class="p">,</span><span class="n">t3</span><span class="p">)</span>
+            <span class="n">mapper</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyDataMapper</span><span class="p">()</span>
+            <span class="n">mapper</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="n">append</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blockActor</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkActor</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blockActor</span><span class="o">.</span><span class="n">SetMapper</span><span class="p">(</span><span class="n">mapper</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blockActor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetColor</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blockActor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetOpacity</span><span class="p">(</span><span class="mf">0.3</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blockActor</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">oldBlock</span><span class="o">=</span><span class="n">newBlock</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renWin</span><span class="o">.</span><span class="n">Render</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DisplayBlockMesh.colorPatch"><a class="viewcode-back" href="../../../api/PyFoam.Applications.DisplayBlockMesh.html#PyFoam.Applications.DisplayBlockMesh.DisplayBlockMesh.colorPatch">[docs]</a>    <span class="k">def</span> <span class="nf">colorPatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="n">newPatch</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">oldPatch</span><span class="o">&gt;=</span><span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">patchActor</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">RemoveActor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patchActor</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">patchActor</span><span class="o">=</span><span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">patchTextActor</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="s2">&quot;Patch: &lt;none&gt;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">newPatch</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">name</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">newPatch</span><span class="p">]</span>
+            <span class="n">subs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">patches</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="n">append</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkAppendPolyData</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">subs</span><span class="p">:</span>
+                <span class="n">append</span><span class="o">.</span><span class="n">AddInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">makeFace</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+            <span class="n">mapper</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyDataMapper</span><span class="p">()</span>
+            <span class="n">mapper</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="n">append</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">patchActor</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkActor</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">patchActor</span><span class="o">.</span><span class="n">SetMapper</span><span class="p">(</span><span class="n">mapper</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">patchActor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetColor</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">patchActor</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">()</span><span class="o">.</span><span class="n">SetOpacity</span><span class="p">(</span><span class="mf">0.3</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patchActor</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">patchTextActor</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="s2">&quot;Patch: &quot;</span><span class="o">+</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">oldPatch</span><span class="o">=</span><span class="n">newPatch</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renWin</span><span class="o">.</span><span class="n">Render</span><span class="p">()</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

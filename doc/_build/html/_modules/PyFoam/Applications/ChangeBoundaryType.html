@@ -1,0 +1,269 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.ChangeBoundaryType &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.ChangeBoundaryType</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.ChangeBoundaryType</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application class that implements pyFoamChangeBoundaryType.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span>
+<span class="kn">from</span> <span class="nn">.CommonChangeBoundary</span> <span class="kn">import</span> <span class="n">CommonChangeBoundary</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">string_types</span>
+
+<div class="viewcode-block" id="ChangeBoundaryType"><a class="viewcode-back" href="../../../api/PyFoam.Applications.ChangeBoundaryType.html#PyFoam.Applications.ChangeBoundaryType.ChangeBoundaryType">[docs]</a><span class="k">class</span> <span class="nc">ChangeBoundaryType</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">,</span>
+                         <span class="n">CommonChangeBoundary</span><span class="p">):</span>
+<div class="viewcode-block" id="ChangeBoundaryType.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.ChangeBoundaryType.html#PyFoam.Applications.ChangeBoundaryType.ChangeBoundaryType.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Changes the type of a boundary in the boundary-file</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+        <span class="n">CommonChangeBoundary</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog &lt;caseDirectory&gt; &lt;boundaryName&gt; &lt;new type&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ChangeBoundaryType.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.ChangeBoundaryType.html#PyFoam.Applications.ChangeBoundaryType.ChangeBoundaryType.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">CommonChangeBoundary</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">change</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Change&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;Change specific options&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">change</span><span class="p">)</span>
+
+        <span class="n">change</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--additional-values&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;additionalValues&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Dictionary in Python-format with additional values to add to the boundary&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ChangeBoundaryType.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.ChangeBoundaryType.html#PyFoam.Applications.ChangeBoundaryType.ChangeBoundaryType.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">bName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">tName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">changeType</span><span class="p">(</span><span class="n">bnd</span><span class="p">,</span><span class="n">target</span><span class="p">):</span>
+            <span class="n">found</span><span class="o">=</span><span class="bp">False</span>
+
+            <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">bnd</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">val</span><span class="o">==</span><span class="n">bName</span><span class="p">:</span>
+                    <span class="n">found</span><span class="o">=</span><span class="bp">True</span>
+                <span class="k">elif</span> <span class="n">found</span><span class="p">:</span>
+                    <span class="n">val</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">tName</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">additionalValues</span><span class="p">:</span>
+                        <span class="n">vals</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">additionalValues</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+                            <span class="c1"># we&#39;re called from the command line. Convert string to usable format</span>
+                            <span class="n">vals</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">:</span>
+                            <span class="n">val</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Boundary&quot;</span><span class="p">,</span><span class="n">bName</span><span class="p">,</span><span class="s2">&quot;not found in&quot;</span><span class="p">,</span><span class="n">bnd</span><span class="p">[::</span><span class="mi">2</span><span class="p">])</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">bnd</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">processBoundaryFiles</span><span class="p">(</span><span class="n">changeType</span><span class="p">,</span><span class="n">fName</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

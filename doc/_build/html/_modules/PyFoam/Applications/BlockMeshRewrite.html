@@ -1,0 +1,402 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.BlockMeshRewrite &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.BlockMeshRewrite</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.BlockMeshRewrite</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application-class that implements pyFoamBlockMeshRewrite.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.RestructuredTextHelper</span> <span class="kn">import</span> <span class="n">RestructuredTextHelper</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.FoamOptionParser</span> <span class="kn">import</span> <span class="n">Subcommand</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.BlockMesh</span> <span class="kn">import</span> <span class="n">BlockMesh</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<div class="viewcode-block" id="BlockMeshRewrite"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BlockMeshRewrite.html#PyFoam.Applications.BlockMeshRewrite.BlockMeshRewrite">[docs]</a><span class="k">class</span> <span class="nc">BlockMeshRewrite</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="BlockMeshRewrite.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BlockMeshRewrite.html#PyFoam.Applications.BlockMeshRewrite.BlockMeshRewrite.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">This utility manipulates blockMeshDict. Manipulation happens on a textual basis .</span>
+<span class="s2">This means that the utility assumes that the blockMeshDict is sensibly formated</span>
+<span class="s2">(this means for instance that there is only one block/vertex per line and they only</span>
+<span class="s2">go over one line</span>
+<span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog COMMAND &lt;blockMeshDict&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">subcommands</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BlockMeshRewrite.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BlockMeshRewrite.html#PyFoam.Applications.BlockMeshRewrite.BlockMeshRewrite.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Building the subcommands</span>
+        <span class="n">refineCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;refine&#39;</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Refine the blocks in the blockMesh by multiplying them with a fixed factor&quot;</span><span class="p">,</span>
+                             <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;resolution&quot;</span><span class="p">,),</span>
+                             <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                             <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span><span class="n">refineCmd</span><span class="p">)</span>
+        <span class="n">refineGrp</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">refineCmd</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                              <span class="s2">&quot;Refinement&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;Parameters for refining the mesh&quot;</span><span class="p">)</span>
+        <span class="n">refineCmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">refineGrp</span><span class="p">)</span>
+        <span class="n">refineGrp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--factor&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;factor&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Factor to scale the mesh with. Either a single scalar to multiply all directions with or three comma-separated scalars (one for each direction). This option is required&quot;</span><span class="p">)</span>
+        <span class="n">refineGrp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--offsets&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;offsets&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Offset to add to the scaling. Three comma-separated scalars (one for each direction). Not required&quot;</span><span class="p">)</span>
+
+        <span class="n">numberCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;number&#39;</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Add comments with the vertex numbers to the mesh-file&quot;</span><span class="p">,</span>
+                             <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;count&quot;</span><span class="p">,),</span>
+                             <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                             <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span><span class="n">numberCmd</span><span class="p">)</span>
+        <span class="n">numberGrp</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">numberCmd</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                              <span class="s2">&quot;Numbering&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;Parameters for the numbering of the vertices&quot;</span><span class="p">)</span>
+        <span class="n">numberCmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">numberGrp</span><span class="p">)</span>
+        <span class="n">numberGrp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--prefix&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;numberPrefix&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="s2">&quot;Vertex Nr.&quot;</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Text to be added before the vertex number. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+
+        <span class="n">stripCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;stripNumber&#39;</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Remove comments after the vertex number&quot;</span><span class="p">,</span>
+                             <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;strip&quot;</span><span class="p">,),</span>
+                             <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                             <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span><span class="n">stripCmd</span><span class="p">)</span>
+
+        <span class="n">mergeCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;mergeVertices&#39;</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Merge&quot;</span><span class="p">,</span>
+                            <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;add&quot;</span><span class="p">,),</span>
+                            <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                            <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span><span class="n">mergeCmd</span><span class="p">)</span>
+        <span class="n">mergeGrp</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">mergeCmd</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                              <span class="s2">&quot;Merging&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;Parameters for the merging of vertices&quot;</span><span class="p">)</span>
+        <span class="n">mergeCmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">mergeGrp</span><span class="p">)</span>
+        <span class="n">mergeGrp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--other-mesh&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;otherMesh&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The blockMeshDict from which vertexes are to be added&quot;</span><span class="p">)</span>
+
+        <span class="n">renumberCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;renumberVertices&#39;</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Renumber vertices so that they match the vertices of another blockMeshDict&quot;</span><span class="p">,</span>
+                            <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;add&quot;</span><span class="p">,),</span>
+                            <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                            <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span><span class="n">renumberCmd</span><span class="p">)</span>
+        <span class="n">renumberGrp</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">renumberCmd</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                              <span class="s2">&quot;Merging&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;Parameters for the merging of vertices&quot;</span><span class="p">)</span>
+        <span class="n">renumberCmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">renumberGrp</span><span class="p">)</span>
+        <span class="n">renumberGrp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--other-mesh&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;otherMesh&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The blockMeshDict from which numbers are to be taken and renumbered&quot;</span><span class="p">)</span>
+
+        <span class="n">normalizeCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;normalizePatches&#39;</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Normalize patches by rotating the vertices in the patch so that the smalles number comes first&quot;</span><span class="p">,</span>
+                            <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;rotate&quot;</span><span class="p">,),</span>
+                            <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                            <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span><span class="n">normalizeCmd</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="p">[</span><span class="n">refineCmd</span><span class="p">,</span><span class="n">numberCmd</span><span class="p">,</span><span class="n">stripCmd</span><span class="p">,</span><span class="n">mergeCmd</span><span class="p">,</span><span class="n">renumberCmd</span><span class="p">,</span>
+                    <span class="n">normalizeCmd</span><span class="p">]:</span>
+            <span class="n">inputGrp</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                                 <span class="s2">&quot;blockMeshDict In&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;Where the blockMeshDict is read from&quot;</span><span class="p">)</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">inputGrp</span><span class="p">)</span>
+
+            <span class="n">inputGrp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--from-stdin&quot;</span><span class="p">,</span>
+                                <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;stdin&quot;</span><span class="p">,</span>
+                                <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Instead of reading from file read from stdin (used for piping into other commands)&quot;</span><span class="p">)</span>
+
+            <span class="n">outputGrp</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                                  <span class="s2">&quot;blockMeshDict Out&quot;</span><span class="p">,</span>
+                                  <span class="s2">&quot;Where the processed blockMeshDict is written to&quot;</span><span class="p">)</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">outputGrp</span><span class="p">)</span>
+            <span class="n">outputGrp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--to-stdout&quot;</span><span class="p">,</span>
+                                 <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                 <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;stdout&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Instead of writing to file write to stdout (used for piping into other commands)&quot;</span><span class="p">)</span>
+            <span class="n">outputGrp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--overwrite&quot;</span><span class="p">,</span>
+                                 <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                 <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;overwrite&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Overwrite the original file&quot;</span><span class="p">)</span>
+            <span class="n">outputGrp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--outfile&quot;</span><span class="p">,</span>
+                                 <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                                 <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outfile&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;File to write the result to&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BlockMeshRewrite.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BlockMeshRewrite.html#PyFoam.Applications.BlockMeshRewrite.BlockMeshRewrite.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stdin</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;If --from-stdin specified no arguments are allowed but we have&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">())</span><span class="o">!=</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Only one blockMeshDict can be specified&quot;</span><span class="p">)</span>
+
+        <span class="n">outOptNr</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stdout</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">overwrite</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outfile</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">outOptNr</span><span class="o">!=</span><span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Specify one (and only one) of the options &#39;--to-stdout&#39;, &#39;--overwrite&#39;, &#39;--outfile&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stdin</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">overwrite</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;&#39;--from-stdin&#39; and &#39;--overwrite&#39; are incompatible&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stdin</span><span class="p">:</span>
+            <span class="n">srcMesh</span><span class="o">=</span><span class="n">BlockMesh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stdin</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">srcMesh</span><span class="o">=</span><span class="n">BlockMesh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;refine&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">factor</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unspecified option &#39;--factor&#39;&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">factor</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">factor</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">factor</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">factor</span><span class="o">+</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span><span class="o">!=</span><span class="mi">3</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;--factor must either be a scalar or 3 comma-separated values&quot;</span><span class="p">)</span>
+            <span class="n">offset</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">offsets</span><span class="p">:</span>
+                <span class="n">offset</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">offsets</span><span class="o">+</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+            <span class="n">srcMesh</span><span class="o">.</span><span class="n">refineMesh</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span><span class="n">offset</span><span class="p">,</span><span class="n">getContent</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">addOld</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;number&quot;</span><span class="p">:</span>
+            <span class="n">srcMesh</span><span class="o">.</span><span class="n">numberVertices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">numberPrefix</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;stripNumber&quot;</span><span class="p">:</span>
+            <span class="n">srcMesh</span><span class="o">.</span><span class="n">stripVertexNumber</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;mergeVertices&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">otherMesh</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;&#39;--other-mesh&#39; has to be specified for this&quot;</span><span class="p">)</span>
+            <span class="n">srcMesh</span><span class="o">.</span><span class="n">mergeVertices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">otherMesh</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;renumberVertices&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">otherMesh</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;&#39;--other-mesh&#39; has to be specified for this&quot;</span><span class="p">)</span>
+            <span class="n">srcMesh</span><span class="o">.</span><span class="n">renumberVertices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">otherMesh</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;normalizePatches&quot;</span><span class="p">:</span>
+            <span class="n">srcMesh</span><span class="o">.</span><span class="n">normalizePatches</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unimplemented sub-command&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">srcMesh</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">overwrite</span><span class="p">:</span>
+            <span class="n">srcMesh</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">srcMesh</span><span class="o">.</span><span class="n">writeFileAs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outfile</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

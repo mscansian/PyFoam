@@ -1,0 +1,587 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.FoamInformation &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../index.html"/>
+        <link rel="up" title="PyFoam" href="../PyFoam.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.FoamInformation</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.FoamInformation</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Getting Information about the Foam-Installation (like the installation directory)&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">environ</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">listdir</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">popen2</span> <span class="kn">import</span> <span class="n">popen4</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span><span class="n">PIPE</span><span class="p">,</span><span class="n">STDOUT</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">config</span>
+
+<div class="viewcode-block" id="getPathFromEnviron"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.getPathFromEnviron">[docs]</a><span class="k">def</span> <span class="nf">getPathFromEnviron</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Gets a path from an environment variable</span>
+<span class="sd">    :return: the path</span>
+<span class="sd">    :rtype: string</span>
+<span class="sd">    :param name: the name of the environment variable&quot;&quot;&quot;</span>
+
+    <span class="n">tmp</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+        <span class="n">tmp</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">tmp</span></div>
+
+<div class="viewcode-block" id="foamTutorials"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.foamTutorials">[docs]</a><span class="k">def</span> <span class="nf">foamTutorials</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: directory in which the tutorials reside&quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">getPathFromEnviron</span><span class="p">(</span><span class="s2">&quot;FOAM_TUTORIALS&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="foamEtc"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.foamEtc">[docs]</a><span class="k">def</span> <span class="nf">foamEtc</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: the etc-directory of the distro&quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">getPathFromEnviron</span><span class="p">(</span><span class="s2">&quot;WM_PROJECT_DIR&quot;</span><span class="p">),</span><span class="s2">&quot;etc&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="foamMPI"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.foamMPI">[docs]</a><span class="k">def</span> <span class="nf">foamMPI</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: the used MPI-Implementation&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;WM_MPLIB&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vStr</span><span class="o">=</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_MPLIB&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">vStr</span></div>
+
+<div class="viewcode-block" id="foamVersionString"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.foamVersionString">[docs]</a><span class="k">def</span> <span class="nf">foamVersionString</span><span class="p">(</span><span class="n">useConfigurationIfNoInstallation</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;:return: string for the  Foam-version as found</span>
+<span class="sd">    in $WM_PROJECT_VERSION&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="s2">&quot;WM_PROJECT_VERSION&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">environ</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">useConfigurationIfNoInstallation</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;WM_PROJECT_VERSION&quot;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+            <span class="n">vStr</span><span class="o">=</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_PROJECT_VERSION&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vStr</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">vStr</span><span class="o">==</span><span class="s2">&quot;&quot;</span> <span class="ow">and</span>  <span class="n">useConfigurationIfNoInstallation</span><span class="p">:</span>
+            <span class="n">vStr</span><span class="o">=</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;OpenFOAM&quot;</span><span class="p">,</span><span class="s2">&quot;Version&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">vStr</span></div>
+
+<div class="viewcode-block" id="VersionTuple"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.VersionTuple">[docs]</a><span class="k">class</span> <span class="nc">VersionTuple</span><span class="p">(</span><span class="nb">tuple</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrapper around the regular tuple that is printed in a way that</span>
+<span class="sd">    can be parsed as a tuple in a OF-dictionary</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Python3 doesn&#39;t like this. But it was only here out of courtesy</span>
+<span class="c1">#    def __init__(self,data):</span>
+<span class="c1">#        tuple.__init__(self,data)</span>
+
+<div class="viewcode-block" id="VersionTuple.__str__"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.VersionTuple.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">])</span></div></div>
+
+<div class="viewcode-block" id="foamVersion"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.foamVersion">[docs]</a><span class="k">def</span> <span class="nf">foamVersion</span><span class="p">(</span><span class="n">useConfigurationIfNoInstallation</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;:return: tuple that represents the Foam-version as found</span>
+<span class="sd">    in $WM_PROJECT_VERSION&quot;&quot;&quot;</span>
+
+    <span class="n">vStr</span><span class="o">=</span><span class="n">foamVersionString</span><span class="p">(</span><span class="n">useConfigurationIfNoInstallation</span><span class="o">=</span><span class="n">useConfigurationIfNoInstallation</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vStr</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">vStr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;v&quot;</span> <span class="ow">and</span> <span class="n">vStr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;+&quot;</span><span class="p">:</span>
+        <span class="n">vStr</span><span class="o">=</span><span class="n">vStr</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">vStr</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">res</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">vStr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">VersionTuple</span><span class="p">(</span><span class="n">res</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="foamVersionNumber"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.foamVersionNumber">[docs]</a><span class="k">def</span> <span class="nf">foamVersionNumber</span><span class="p">(</span><span class="n">useConfigurationIfNoInstallation</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;:return: tuple that represents the Foam-Version-Number (without</span>
+<span class="sd">    strings&quot;&quot;&quot;</span>
+
+    <span class="n">ver</span><span class="o">=</span><span class="n">foamVersion</span><span class="p">(</span><span class="n">useConfigurationIfNoInstallation</span><span class="o">=</span><span class="n">useConfigurationIfNoInstallation</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ver</span><span class="o">==</span><span class="p">(</span><span class="s2">&quot;dev&quot;</span><span class="p">,)</span> <span class="ow">or</span> <span class="n">ver</span><span class="o">==</span><span class="p">(</span><span class="s2">&quot;plus&quot;</span><span class="p">,):</span>
+        <span class="k">return</span> <span class="n">VersionTuple</span><span class="p">((</span><span class="mi">9</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">9</span><span class="p">))</span>
+    <span class="n">nr</span><span class="o">=</span><span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ver</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">==</span><span class="nb">int</span><span class="p">:</span>
+            <span class="n">nr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">break</span>
+
+    <span class="k">return</span> <span class="n">VersionTuple</span><span class="p">(</span><span class="n">nr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="oldAppConvention"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.oldAppConvention">[docs]</a><span class="k">def</span> <span class="nf">oldAppConvention</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Returns true if the version of OpenFOAM is older than 1.5 and</span>
+<span class="sd">    it therefor uses the &#39;old&#39; convention to call utilities (&quot;dot, case&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">foamVersionNumber</span><span class="p">()</span><span class="o">&gt;</span><span class="p">()</span> <span class="ow">and</span> <span class="n">foamVersionNumber</span><span class="p">()</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="oldTutorialStructure"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.oldTutorialStructure">[docs]</a><span class="k">def</span> <span class="nf">oldTutorialStructure</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Returns true if the version of OpenFOAM is older than 1.6 and</span>
+<span class="sd">    it therefor uses the &#39;old&#39; (flat) structure for the tutorials</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">foamVersionNumber</span><span class="p">()</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="installationPath"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.installationPath">[docs]</a><span class="k">def</span> <span class="nf">installationPath</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Path to the installation&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_PROJECT_DIR&quot;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="findInstalledVersions"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.findInstalledVersions">[docs]</a><span class="k">def</span> <span class="nf">findInstalledVersions</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span><span class="n">valid</span><span class="p">,</span><span class="n">forkName</span><span class="o">=</span><span class="s2">&quot;openfoam&quot;</span><span class="p">):</span>
+    <span class="n">versions</span><span class="o">=</span><span class="p">{}</span>
+
+    <span class="n">basedir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">basedir</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">candidates</span><span class="o">=</span><span class="n">listdir</span><span class="p">(</span><span class="n">basedir</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">versions</span>
+
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+        <span class="n">m</span><span class="o">=</span><span class="n">valid</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+            <span class="n">dname</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dname</span><span class="p">):</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">m</span><span class="o">.</span><span class="n">groups</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">dotDir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dname</span><span class="p">,</span><span class="s2">&quot;.OpenFOAM-&quot;</span><span class="o">+</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">etcDir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dname</span><span class="p">,</span><span class="s2">&quot;etc&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">etcDir</span><span class="p">)</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">etcDir</span><span class="p">,</span><span class="s2">&quot;bashrc&quot;</span><span class="p">)):</span>
+                    <span class="n">versions</span><span class="p">[(</span><span class="n">forkName</span><span class="p">,</span><span class="n">m</span><span class="o">.</span><span class="n">groups</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])]</span><span class="o">=</span><span class="n">dname</span>
+                <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dotDir</span><span class="p">)</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dotDir</span><span class="p">,</span><span class="s2">&quot;bashrc&quot;</span><span class="p">)):</span>
+                    <span class="n">versions</span><span class="p">[(</span><span class="n">forkName</span><span class="p">,</span><span class="n">m</span><span class="o">.</span><span class="n">groups</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])]</span><span class="o">=</span><span class="n">dname</span>
+
+    <span class="k">return</span> <span class="n">versions</span></div>
+
+<span class="n">__foamInstallations</span><span class="o">=</span><span class="bp">None</span>
+
+<div class="viewcode-block" id="findInstallationDir"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.findInstallationDir">[docs]</a><span class="k">def</span> <span class="nf">findInstallationDir</span><span class="p">(</span><span class="n">newVersion</span><span class="p">):</span>
+    <span class="n">installed</span><span class="o">=</span><span class="n">foamInstalledVersions</span><span class="p">()</span>
+    <span class="n">found</span><span class="o">=</span><span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">fork</span><span class="p">,</span><span class="n">version</span> <span class="ow">in</span> <span class="n">installed</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">newVersion</span><span class="o">==</span><span class="n">version</span><span class="p">:</span>
+            <span class="n">found</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fork</span><span class="p">,</span><span class="n">version</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">newVersion</span><span class="o">==</span><span class="p">(</span><span class="n">fork</span><span class="o">+</span><span class="s2">&quot;-&quot;</span><span class="o">+</span><span class="n">version</span><span class="p">):</span>
+            <span class="n">found</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fork</span><span class="p">,</span><span class="n">version</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">found</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Can&#39;t find basedir for OpenFOAM-version&quot;</span><span class="p">,</span><span class="n">newVersion</span><span class="p">,</span><span class="s2">&quot;in&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;-&quot;</span><span class="o">+</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">installed</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="p">]))</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">found</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">found</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">found</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">installed</span><span class="p">[</span><span class="n">found</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Requested version:&quot;</span><span class="p">,</span><span class="n">newVersion</span><span class="p">,</span><span class="s2">&quot;Matches found:&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;-&quot;</span><span class="o">+</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">found</span> <span class="p">]))</span></div>
+
+<div class="viewcode-block" id="foamInstalledVersions"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.foamInstalledVersions">[docs]</a><span class="k">def</span> <span class="nf">foamInstalledVersions</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: A list with the installed versions of OpenFOAM&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">__foamInstallations</span>
+
+    <span class="k">if</span> <span class="n">__foamInstallations</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">__foamInstallations</span>
+
+    <span class="n">__foamInstallations</span><span class="o">=</span><span class="p">{}</span>
+
+    <span class="n">forks</span><span class="o">=</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getList</span><span class="p">(</span><span class="s2">&quot;OpenFOAM&quot;</span><span class="p">,</span><span class="s2">&quot;Forks&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">fork</span> <span class="ow">in</span> <span class="n">forks</span><span class="p">:</span>
+        <span class="n">currentFork</span><span class="o">=</span><span class="n">foamFork</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="s2">&quot;WM_PROJECT_INST_DIR&quot;</span> <span class="ow">in</span> <span class="n">environ</span> <span class="ow">and</span> <span class="n">currentFork</span><span class="o">==</span><span class="n">fork</span><span class="p">:</span>
+            <span class="n">basedir</span><span class="o">=</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_PROJECT_INST_DIR&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">basedir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;OpenFOAM&quot;</span><span class="p">,</span><span class="s2">&quot;Installation-&quot;</span><span class="o">+</span><span class="n">fork</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">basedir</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">basedir</span><span class="p">):</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Basedir&quot;</span><span class="p">,</span><span class="n">basedir</span><span class="p">,</span><span class="s2">&quot;for fork&quot;</span><span class="p">,</span><span class="n">fork</span><span class="p">,</span><span class="s2">&quot;does not exist or is not a directory&quot;</span><span class="p">)</span>
+            <span class="c1"># continue</span>
+
+        <span class="k">for</span> <span class="n">bdir</span> <span class="ow">in</span> <span class="p">[</span><span class="n">basedir</span><span class="p">]</span><span class="o">+</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getList</span><span class="p">(</span><span class="s2">&quot;OpenFOAM&quot;</span><span class="p">,</span><span class="s2">&quot;AdditionalInstallation-&quot;</span><span class="o">+</span><span class="n">fork</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getList</span><span class="p">(</span><span class="s2">&quot;OpenFOAM&quot;</span><span class="p">,</span><span class="s2">&quot;DirPatterns-&quot;</span><span class="o">+</span><span class="n">fork</span><span class="p">)]:</span>
+                <span class="n">__foamInstallations</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">findInstalledVersions</span><span class="p">(</span><span class="n">bdir</span><span class="p">,</span><span class="n">val</span><span class="p">,</span><span class="n">fork</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">__foamInstallations</span></div>
+
+<div class="viewcode-block" id="foamFork"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.foamFork">[docs]</a><span class="k">def</span> <span class="nf">foamFork</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;The currently used fork of OpenFOAM/Foam&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_FORK&quot;</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">vStr</span><span class="o">=</span><span class="n">foamVersionString</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vStr</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">vStr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;v&quot;</span> <span class="ow">and</span> <span class="n">vStr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;+&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;openfoamplus&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;openfoam&quot;</span></div>
+
+<div class="viewcode-block" id="ensureDynamicLibraries"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.ensureDynamicLibraries">[docs]</a><span class="k">def</span> <span class="nf">ensureDynamicLibraries</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Ensure that the dynamic library path is set for systems where it</span>
+<span class="sd">    was erased for security rasons (for instance Mac OS X 10.11)&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">makeLdPath</span><span class="p">():</span>
+        <span class="n">pth</span><span class="o">=</span><span class="p">[</span><span class="n">environ</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;FOAM_LIBBIN&quot;</span><span class="p">,</span>
+                                  <span class="s2">&quot;FOAM_USER_LIBBIN&quot;</span><span class="p">,</span>
+                                  <span class="s2">&quot;FOAM_SITE_LIBBIN&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;FOAM_MPI&quot;</span> <span class="ow">in</span> <span class="n">environ</span> <span class="ow">and</span> <span class="s2">&quot;FOAM_LIBBIN&quot;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+            <span class="n">pth</span><span class="o">=</span><span class="p">[</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;FOAM_LIBBIN&quot;</span><span class="p">],</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;FOAM_MPI&quot;</span><span class="p">])]</span><span class="o">+</span><span class="n">pth</span>
+
+        <span class="k">return</span> <span class="n">pth</span>
+
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;darwin&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="s2">&quot;DYLD_LIBRARY_PATH&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+            <span class="n">environ</span><span class="p">[</span><span class="s2">&quot;DYLD_LIBRARY_PATH&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">makeLdPath</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="s2">&quot;LD_LIBRARY_PATH&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+        <span class="n">environ</span><span class="p">[</span><span class="s2">&quot;LD_LIBRARY_PATH&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">makeLdPath</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="shellExecutionPrefix"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.shellExecutionPrefix">[docs]</a><span class="k">def</span> <span class="nf">shellExecutionPrefix</span><span class="p">(</span><span class="n">ensureDynamic</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">asList</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Stuff to prefix to a call that is passed to the shell. Main</span>
+<span class="sd">    application is currently to work around a security feature of Mac OS X</span>
+<span class="sd">    10.11 that doesn&#39;t pass the load paths for the dynamic libraries to a</span>
+<span class="sd">    shell&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ensureDynamic</span><span class="p">:</span>
+        <span class="n">ensureDynamicLibraries</span><span class="p">()</span>
+    <span class="n">prefix</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;darwin&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;LD_LIBRARY_PATH&quot;</span><span class="p">,</span><span class="s2">&quot;DYLD_LIBRARY_PATH&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+                <span class="n">prefix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;export &quot;</span><span class="o">+</span><span class="n">v</span><span class="o">+</span><span class="s2">&quot;=&quot;</span><span class="o">+</span><span class="n">environ</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;; &quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">asList</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">prefix</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="changeFoamVersion"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.changeFoamVersion">[docs]</a><span class="k">def</span> <span class="nf">changeFoamVersion</span><span class="p">(</span><span class="n">new</span><span class="p">,</span>
+                      <span class="n">force64</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="n">force32</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="n">compileOption</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">foamCompiler</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">wmCompiler</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Changes the used FoamVersion. Only valid during the runtime of</span>
+<span class="sd">    the interpreter (the script or the Python session)</span>
+<span class="sd">    :param new: The new Version</span>
+<span class="sd">    :param force64: Forces the 64-bit-version to be chosen</span>
+<span class="sd">    :param force32: Forces the 32-bit-version to be chosen</span>
+<span class="sd">    :param compileOption: Forces Debug or Opt</span>
+<span class="sd">    :param wmCompiler: Force new value for WM_COMPILER</span>
+<span class="sd">    :param foamCompiler: Force system or OpenFOAM-Compiler&quot;&quot;&quot;</span>
+
+    <span class="n">newFork</span><span class="p">,</span><span class="n">newVersion</span><span class="p">,</span><span class="n">basedir</span><span class="o">=</span><span class="n">findInstallationDir</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+
+    <span class="n">old</span><span class="o">=</span><span class="bp">None</span>
+    <span class="n">oldFork</span><span class="o">=</span><span class="n">foamFork</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s2">&quot;WM_PROJECT_VERSION&quot;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+        <span class="n">old</span><span class="o">=</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_PROJECT_VERSION&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">newVersion</span><span class="o">==</span><span class="n">old</span> <span class="ow">and</span> <span class="n">newFork</span><span class="o">==</span><span class="n">oldFork</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="n">old</span><span class="o">+</span><span class="s2">&quot;-&quot;</span><span class="o">+</span><span class="n">foamFork</span><span class="p">(),</span><span class="s2">&quot;is already being used&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No OpenFOAM-Version installed&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span><span class="s2">&quot;etc&quot;</span><span class="p">)):</span>
+        <span class="n">script</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span><span class="s2">&quot;etc&quot;</span><span class="p">,</span><span class="s2">&quot;bashrc&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">script</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span><span class="s2">&quot;.OpenFOAM-&quot;</span><span class="o">+</span><span class="n">new</span><span class="p">,</span><span class="s2">&quot;bashrc&quot;</span><span class="p">)</span>
+
+    <span class="n">forceArchOption</span><span class="o">=</span><span class="bp">None</span>
+    <span class="k">if</span> <span class="n">force64</span><span class="p">:</span>
+       <span class="n">forceArchOption</span><span class="o">=</span><span class="s2">&quot;64&quot;</span>
+    <span class="k">elif</span> <span class="n">force32</span><span class="p">:</span>
+       <span class="n">forceArchOption</span><span class="o">=</span><span class="s2">&quot;32&quot;</span>
+
+    <span class="n">injectVariables</span><span class="p">(</span><span class="n">script</span><span class="p">,</span>
+                    <span class="n">forceArchOption</span><span class="o">=</span><span class="n">forceArchOption</span><span class="p">,</span>
+                    <span class="n">compileOption</span><span class="o">=</span><span class="n">compileOption</span><span class="p">,</span>
+                    <span class="n">foamCompiler</span><span class="o">=</span><span class="n">foamCompiler</span><span class="p">,</span>
+                    <span class="n">wmCompiler</span><span class="o">=</span><span class="n">wmCompiler</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">old</span><span class="o">==</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_PROJECT_VERSION&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">oldFork</span><span class="o">==</span><span class="n">foamFork</span><span class="p">():</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem while changing to version&quot;</span><span class="p">,</span><span class="n">new</span><span class="p">,</span><span class="s2">&quot;old version still used:&quot;</span><span class="p">,</span><span class="n">foamFork</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;-&quot;</span><span class="o">+</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_PROJECT_VERSION&quot;</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="injectVariables"><a class="viewcode-back" href="../../api/PyFoam.FoamInformation.html#PyFoam.FoamInformation.injectVariables">[docs]</a><span class="k">def</span> <span class="nf">injectVariables</span><span class="p">(</span><span class="n">script</span><span class="p">,</span>
+                    <span class="n">forceArchOption</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">compileOption</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">foamCompiler</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">wmCompiler</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Executes a script in a subshell and changes the current</span>
+<span class="sd">    environment with the enivironment after the execution</span>
+<span class="sd">    :param script: the script that is executed</span>
+<span class="sd">    :param forceArchOption: To which architecture Option should be forced</span>
+<span class="sd">    :param compileOption: to which value the WM_COMPILE_OPTION should be forced</span>
+<span class="sd">    :param wmCompiler: Force new value for WM_COMPILER</span>
+<span class="sd">    :param foamCompiler: Force system or OpenFOAM-Compiler&quot;&quot;&quot;</span>
+
+    <span class="c1"># Certan bashrc-s fail if these are set</span>
+    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;FOAM_INST_DIR&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;WM_THIRD_PARTY_DIR&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;WM_PROJECT_USER_DIR&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;OPAL_PREFIX&quot;</span><span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">environ</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">script</span><span class="p">):</span>
+        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Can not execute&quot;</span><span class="p">,</span><span class="n">script</span><span class="p">,</span><span class="s2">&quot;it does not exist&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;SHELL&quot;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+            <span class="n">shell</span><span class="o">=</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;SHELL&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">shell</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;python&quot;</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+            <span class="c1"># this assumes that the &#39;shell&#39; is a PyFoam-Script on a cluster</span>
+            <span class="n">shell</span><span class="o">=</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Paths&quot;</span><span class="p">,</span><span class="s2">&quot;bash&quot;</span><span class="p">)</span>
+            <span class="n">environ</span><span class="p">[</span><span class="s2">&quot;SHELL&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">shell</span>
+
+        <span class="n">allowedShells</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;bash&quot;</span><span class="p">,</span> <span class="s2">&quot;zsh&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">shell</span><span class="p">)</span> <span class="ow">in</span> <span class="n">allowedShells</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Currently only implemented for the shells&quot;</span><span class="p">,</span><span class="n">allowedShells</span><span class="p">,</span><span class="s2">&quot;, not for&quot;</span><span class="p">,</span><span class="n">shell</span><span class="p">)</span>
+
+        <span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="n">postCmd</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">forceArchOption</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">cmd</span><span class="o">+=</span><span class="s2">&quot;export WM_ARCH_OPTION=&quot;</span><span class="o">+</span><span class="n">forceArchOption</span><span class="o">+</span><span class="s2">&quot;; &quot;</span>
+            <span class="n">postCmd</span><span class="o">+=</span><span class="s2">&quot; WM_ARCH_OPTION=&quot;</span><span class="o">+</span><span class="n">forceArchOption</span>
+        <span class="k">if</span> <span class="n">compileOption</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">cmd</span><span class="o">+=</span><span class="s2">&quot;export WM_COMPILE_OPTION=&quot;</span><span class="o">+</span><span class="n">compileOption</span><span class="o">+</span><span class="s2">&quot;; &quot;</span>
+            <span class="n">postCmd</span><span class="o">+=</span><span class="s2">&quot; WM_COMPILE_OPTION=&quot;</span><span class="o">+</span><span class="n">compileOption</span>
+        <span class="k">if</span> <span class="n">foamCompiler</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">cmd</span><span class="o">+=</span><span class="s2">&quot;export foamCompiler=&quot;</span><span class="o">+</span><span class="n">foamCompiler</span><span class="o">+</span><span class="s2">&quot;; &quot;</span>
+            <span class="n">postCmd</span><span class="o">+=</span><span class="s2">&quot; foamCompiler=&quot;</span><span class="o">+</span><span class="n">foamCompiler</span>
+        <span class="k">if</span> <span class="n">wmCompiler</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">cmd</span><span class="o">+=</span><span class="s2">&quot;export WM_COMPILER=&quot;</span><span class="o">+</span><span class="n">wmCompiler</span><span class="o">+</span><span class="s2">&quot;; &quot;</span>
+            <span class="n">postCmd</span><span class="o">+=</span><span class="s2">&quot; WM_COMPILER=&quot;</span><span class="o">+</span><span class="n">wmCompiler</span>
+        <span class="n">cmd</span><span class="o">+=</span><span class="s2">&quot;. &quot;</span><span class="o">+</span><span class="n">script</span><span class="o">+</span><span class="n">postCmd</span><span class="o">+</span><span class="s1">&#39;; echo &quot;Starting The Dump Of Variables&quot;; export&#39;</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="c1"># Instead of &#39;KeyError as name&#39;. This is compatible with 2.4-3.2</span>
+        <span class="c1"># http://docs.pythonsprints.com/python3_porting/py-porting.html#handling-exceptions</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Can&#39;t do it, because shell variable&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;is undefined&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
+        <span class="n">raus</span><span class="p">,</span><span class="n">rein</span> <span class="o">=</span> <span class="n">popen4</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                  <span class="n">stdin</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">STDOUT</span><span class="p">,</span> <span class="n">close_fds</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">rein</span><span class="p">,</span><span class="n">raus</span><span class="p">)</span><span class="o">=</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">stdin</span><span class="p">,</span><span class="n">p</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+
+    <span class="n">lines</span><span class="o">=</span><span class="p">[</span><span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">raus</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+    <span class="n">rein</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">raus</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># clumsy but avoids more complicated expressions</span>
+    <span class="n">exp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;export (.+)=&quot;(.*)&quot;$&#39;</span><span class="p">)</span>
+    <span class="n">exp2</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;export (.+)=&#39;(.*)&#39;$&quot;</span><span class="p">)</span>
+
+    <span class="n">cnt</span><span class="o">=</span><span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="n">m</span><span class="o">=</span><span class="n">exp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span>
+            <span class="n">m</span><span class="o">=</span><span class="n">exp2</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+            <span class="n">cnt</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="n">environ</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">0</span><span class="p">]]</span><span class="o">=</span><span class="n">m</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

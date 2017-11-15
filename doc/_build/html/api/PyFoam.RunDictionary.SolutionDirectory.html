@@ -1,0 +1,934 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.RunDictionary.SolutionDirectory module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.RunDictionary package" href="PyFoam.RunDictionary.html"/>
+        <link rel="next" title="PyFoam.RunDictionary.SolutionFile module" href="PyFoam.RunDictionary.SolutionFile.html"/>
+        <link rel="prev" title="PyFoam.RunDictionary.SampleDirectory module" href="PyFoam.RunDictionary.SampleDirectory.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a> &raquo;</li>
+      
+    <li>PyFoam.RunDictionary.SolutionDirectory module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.RunDictionary.SolutionDirectory.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.RunDictionary.SolutionDirectory">
+<span id="pyfoam-rundictionary-solutiondirectory-module"></span><h1>PyFoam.RunDictionary.SolutionDirectory module<a class="headerlink" href="#module-PyFoam.RunDictionary.SolutionDirectory" title="Permalink to this headline">¶</a></h1>
+<p>Working with a solution directory</p>
+<dl class="class">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.ChemkinSolutionDirectory">
+<em class="property">class </em><code class="descclassname">PyFoam.RunDictionary.SolutionDirectory.</code><code class="descname">ChemkinSolutionDirectory</code><span class="sig-paren">(</span><em>name</em>, <em>archive='ArchiveDir'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#ChemkinSolutionDirectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.ChemkinSolutionDirectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory" title="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory</span></code></a></p>
+<p>Solution directory with a directory for the Chemkin-files</p>
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.ChemkinSolutionDirectory.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>archive='ArchiveDir'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#ChemkinSolutionDirectory.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.ChemkinSolutionDirectory.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.ChemkinSolutionDirectory.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.RunDictionary.SolutionDirectory'</em><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.ChemkinSolutionDirectory.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.ChemkinSolutionDirectory.chemkinDir">
+<code class="descname">chemkinDir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#ChemkinSolutionDirectory.chemkinDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.ChemkinSolutionDirectory.chemkinDir" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The directory with the Chemkin-Files</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.ChemkinSolutionDirectory.chemkinName">
+<code class="descname">chemkinName</code><em class="property"> = 'chemkin'</em><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.ChemkinSolutionDirectory.chemkinName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.NoTouchSolutionDirectory">
+<em class="property">class </em><code class="descclassname">PyFoam.RunDictionary.SolutionDirectory.</code><code class="descname">NoTouchSolutionDirectory</code><span class="sig-paren">(</span><em>name</em>, <em>region=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#NoTouchSolutionDirectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.NoTouchSolutionDirectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory" title="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory</span></code></a></p>
+<p>Convenience class that makes sure that nothing new is created</p>
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.NoTouchSolutionDirectory.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>region=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#NoTouchSolutionDirectory.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.NoTouchSolutionDirectory.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.NoTouchSolutionDirectory.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.RunDictionary.SolutionDirectory'</em><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.NoTouchSolutionDirectory.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory">
+<em class="property">class </em><code class="descclassname">PyFoam.RunDictionary.SolutionDirectory.</code><code class="descname">SolutionDirectory</code><span class="sig-paren">(</span><em>name</em>, <em>archive=None</em>, <em>paraviewLink=True</em>, <em>parallel=False</em>, <em>addLocalConfig=False</em>, <em>tolerant=False</em>, <em>region=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities" title="PyFoam.Basics.Utilities.Utilities"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Basics.Utilities.Utilities</span></code></a></p>
+<p>Represents a solution directory</p>
+<p>In the solution directory subdirectories whose names are numbers
+are assumed to be solutions for a specific time-step</p>
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory._SolutionDirectory__classifyDirectory">
+<code class="descname">_SolutionDirectory__classifyDirectory</code><span class="sig-paren">(</span><em>dPath</em><span class="sig-paren">)</span><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory._SolutionDirectory__classifyDirectory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory._SolutionDirectory__scanForPostproc">
+<code class="descname">_SolutionDirectory__scanForPostproc</code><span class="sig-paren">(</span><em>dirName</em><span class="sig-paren">)</span><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory._SolutionDirectory__scanForPostproc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory._SolutionDirectory__scanPostproc">
+<code class="descname">_SolutionDirectory__scanPostproc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory._SolutionDirectory__scanPostproc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory._SolutionDirectory__symlinkDir">
+<code class="descname">_SolutionDirectory__symlinkDir</code><span class="sig-paren">(</span><em>src</em>, <em>dest</em>, <em>toProcess</em>, <em>maxLevel</em>, <em>relPath</em>, <em>polyDirs</em>, <em>symlinks</em><span class="sig-paren">)</span><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory._SolutionDirectory__symlinkDir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__contains__">
+<code class="descname">__contains__</code><span class="sig-paren">(</span><em>item</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.__contains__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__contains__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__delitem__">
+<code class="descname">__delitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.__delitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__delitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>archive=None</em>, <em>paraviewLink=True</em>, <em>parallel=False</em>, <em>addLocalConfig=False</em>, <em>tolerant=False</em>, <em>region=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; Name of the solution directory</li>
+<li><strong>archive</strong> &#8211; name of the directory where the lastToArchive-method</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>should copy files, if None no archive is created. Deprecated as it was never used
+:param paraviewLink: Create a symbolic link controlDict.foam for paraview
+:param tolerant: do not fail for minor inconsistencies
+:param parallel: use the first processor-subdirectory for the authorative information
+:param region: Mesh region for multi-region cases</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__iter__">
+<code class="descname">__iter__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.__iter__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__len__">
+<code class="descname">__len__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__len__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.RunDictionary.SolutionDirectory'</em><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__setitem__">
+<code class="descname">__setitem__</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.__setitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.addBackup">
+<code class="descname">addBackup</code><span class="sig-paren">(</span><em>pth</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.addBackup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.addBackup" title="Permalink to this definition">¶</a></dt>
+<dd><p>add file to list of files that are to be copied to the
+archive</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.addLocalConfig">
+<code class="descname">addLocalConfig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.addLocalConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.addLocalConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the local configuration file of the case to the configuration</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.addPostprocDir">
+<code class="descname">addPostprocDir</code><span class="sig-paren">(</span><em>dirName</em>, <em>fail=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.addPostprocDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.addPostprocDir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.addToClone">
+<code class="descname">addToClone</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.addToClone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.addToClone" title="Permalink to this definition">¶</a></dt>
+<dd><p>add directory to the list that is needed to clone this case
+:param name: name of the subdirectory (the case directory is prepended)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.addToHistory">
+<code class="descname">addToHistory</code><span class="sig-paren">(</span><em>*text</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.addToHistory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.addToHistory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a line with date and username to a file &#8216;PyFoamHistory&#8217;
+that resides in the local directory</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.addToTar">
+<code class="descname">addToTar</code><span class="sig-paren">(</span><em>tar</em>, <em>pattern</em>, <em>exclude=[]</em>, <em>base=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.addToTar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.addToTar" title="Permalink to this definition">¶</a></dt>
+<dd><p>The workhorse for the packCase-method</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.blockMesh">
+<code class="descname">blockMesh</code><span class="sig-paren">(</span><em>region=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.blockMesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.blockMesh" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>region</strong> &#8211; Specify the region for cases with more than 1 mesh</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the name of the C{blockMeshDict} if it exists. Returns</td>
+</tr>
+</tbody>
+</table>
+<p>an empty string if it doesn&#8217;t
+:rtype: str</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.boundaryDict">
+<code class="descname">boundaryDict</code><span class="sig-paren">(</span><em>region=None</em>, <em>time=None</em>, <em>processor=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.boundaryDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.boundaryDict" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>region</strong> &#8211; Specify the region for cases with more than 1 mesh</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">name of the C{boundary}-file</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>after=None</em>, <em>processor=True</em>, <em>pyfoam=True</em>, <em>keepLast=False</em>, <em>vtk=True</em>, <em>verbose=False</em>, <em>keepRegular=False</em>, <em>keepParallel=False</em>, <em>keepInterval=None</em>, <em>removeAnalyzed=False</em>, <em>clearHistory=False</em>, <em>clearParameters=False</em>, <em>functionObjectData=False</em>, <em>additional=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>One-stop-shop to remove data
+:param after: time after which directories ar to be removed
+:param processor: remove the processorXX directories
+:param pyfoam: rremove all directories typically created by PyFoam
+:param keepLast: Keep the last time-step
+:param additional: list with additional patterns to clear</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.clearOther">
+<code class="descname">clearOther</code><span class="sig-paren">(</span><em>pyfoam=True</em>, <em>removeAnalyzed=False</em>, <em>verbose=False</em>, <em>clearHistory=False</em>, <em>clearParameters=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.clearOther"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.clearOther" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove additional directories
+:param pyfoam: rremove all directories typically created by PyFoam</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.clearPattern">
+<code class="descname">clearPattern</code><span class="sig-paren">(</span><em>globPat</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.clearPattern"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.clearPattern" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear all files that fit a certain shell (glob) pattern
+:param glob: the pattern which the files are going to fit</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.clearResults">
+<code class="descname">clearResults</code><span class="sig-paren">(</span><em>after=None</em>, <em>removeProcs=False</em>, <em>keepLast=False</em>, <em>vtk=True</em>, <em>keepRegular=False</em>, <em>keepParallel=False</em>, <em>keepInterval=None</em>, <em>functionObjectData=False</em>, <em>verbose=False</em>, <em>additional=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.clearResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.clearResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>remove all time-directories after a certain time. If not time ist
+set the initial time is used
+:param after: time after which directories ar to be removed
+:param removeProcs: if True the processorX-directories are removed.
+Otherwise the timesteps after last are removed from the
+processor-directories
+:param keepLast: Keep the data from the last timestep
+:param keepInterval: if set: keep timesteps that are this far apart
+:param vtk: Remove the VTK-directory if it exists
+:param keepRegular: keep all the times (only remove processor and other stuff)
+:param functionObjectData: tries do determine which data was written by function obejects and removes it
+:param additional: List with glob-patterns that are removed too</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.cloneCase">
+<code class="descname">cloneCase</code><span class="sig-paren">(</span><em>name</em>, <em>svnRemove=True</em>, <em>followSymlinks=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.cloneCase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.cloneCase" title="Permalink to this definition">¶</a></dt>
+<dd><p>create a clone of this case directory. Remove the target directory, if it already exists</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> &#8211; Name of the new case directory</li>
+<li><strong>svnRemove</strong> &#8211; Look for .svn-directories and remove them</li>
+<li><strong>followSymlinks</strong> &#8211; Follow symbolic links instead of just copying them</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory" title="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory"><code class="xref py py-class docutils literal"><span class="pre">SolutionDirectory</span></code></a> or correct subclass</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The target directory</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.constantDir">
+<code class="descname">constantDir</code><span class="sig-paren">(</span><em>region=None</em>, <em>processor=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.constantDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.constantDir" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>region</strong> &#8211; Specify the region for cases with more than 1 mesh</li>
+<li><strong>processor</strong> &#8211; name of the processor directory</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the name of the C{constant}-directory</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.controlDict">
+<code class="descname">controlDict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.controlDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.controlDict" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the name of the C{controlDict}</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.determineVCS">
+<code class="descname">determineVCS</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.determineVCS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.determineVCS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find out whether this directory is controlled by a VCS and
+return the abbreviation of that VCS</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.distributions">
+<code class="descname">distributions</code><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.distributions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return sub-directories that contain distribution-data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.fullPath">
+<code class="descname">fullPath</code><span class="sig-paren">(</span><em>time</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.fullPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.fullPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getDictionaryContents">
+<code class="descname">getDictionaryContents</code><span class="sig-paren">(</span><em>directory</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.getDictionaryContents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getDictionaryContents" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>directory</strong> &#8211; Sub-directory of the case</li>
+<li><strong>name</strong> &#8211; name of the dictionary file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the contents of the file as a python data-structure</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getDictionaryText">
+<code class="descname">getDictionaryText</code><span class="sig-paren">(</span><em>directory</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.getDictionaryText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getDictionaryText" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>directory</strong> &#8211; Sub-directory of the case</li>
+<li><strong>name</strong> &#8211; name of the dictionary file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the contents of the file as a big string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getFirst">
+<code class="descname">getFirst</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.getFirst"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getFirst" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the first time for which a solution exists</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getLast">
+<code class="descname">getLast</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.getLast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getLast" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the last time for which a solution exists</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getParallelTimes">
+<code class="descname">getParallelTimes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.getParallelTimes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getParallelTimes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of the times in the processor0-directory</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getParametersFromFile">
+<code class="descname">getParametersFromFile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.getParametersFromFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getParametersFromFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get Parameters from the file created by PrepareCase</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getRegions">
+<code class="descname">getRegions</code><span class="sig-paren">(</span><em>defaultRegion=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.getRegions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getRegions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a list of all the available mesh regions by checking all
+directories in constant and using all those that have a polyMesh-subdirectory
+:param defaultRegion: should the default region also be added (as None)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getTimes">
+<code class="descname">getTimes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.getTimes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.getTimes" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of all the available times</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.initialDir">
+<code class="descname">initialDir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.initialDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.initialDir" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the name of the first time-directory (==initial</td>
+</tr>
+</tbody>
+</table>
+<p>conditions)
+:rtype: str</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.isValid">
+<code class="descname">isValid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.isValid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.isValid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether this is a valid case directory by looking for
+the system- and constant-directories and the controlDict-file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.lastToArchive">
+<code class="descname">lastToArchive</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.lastToArchive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.lastToArchive" title="Permalink to this definition">¶</a></dt>
+<dd><p>copy the last solution (plus the backup-files to the
+archive)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; name of the sub-directory in the archive</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.latestDir">
+<code class="descname">latestDir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.latestDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.latestDir" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the name of the first last-directory (==simulation</td>
+</tr>
+</tbody>
+</table>
+<p>results)
+:rtype: str</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.listFiles">
+<code class="descname">listFiles</code><span class="sig-paren">(</span><em>directory=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.listFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.listFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>List all the plain files (not directories) in a subdirectory
+of the case
+:param directory: the subdirectory. If unspecified the
+case-directory itself is used
+:return: List with the plain filenames</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.makeFile">
+<code class="descname">makeFile</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.makeFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.makeFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>create a file in the solution directory and return a
+corresponding BasicFile-object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; Name of the file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">BasicFile</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.missingFiles">
+<code class="descname">missingFiles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.missingFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.missingFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of all the missing files and directories that
+are needed for a valid case</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.nrProcs">
+<code class="descname">nrProcs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.nrProcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.nrProcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of directories with processor-data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.packCase">
+<code class="descname">packCase</code><span class="sig-paren">(</span><em>tarname</em>, <em>last=False</em>, <em>exclude=[]</em>, <em>additional=[]</em>, <em>base=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.packCase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.packCase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Packs all the important files into a compressed tarfile.
+Uses the essential-list and excludes the .svn-directories.
+Also excludes files ending with ~
+:param tarname: the name of the tar-file
+:param last: add the last directory to the list of directories to be added
+:param exclude: List with additional glob filename-patterns to be excluded
+:param additional: List with additional glob filename-patterns
+that are to be added
+:param base: Different name that is to be used as the baseName for the case inside the tar</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.pickledData">
+<code class="descname">pickledData</code><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.pickledData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the pickled data files. Newest first</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.pickledPlots">
+<code class="descname">pickledPlots</code><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.pickledPlots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the pickled plot files. Newest first</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.polyMeshDir">
+<code class="descname">polyMeshDir</code><span class="sig-paren">(</span><em>region=None</em>, <em>time=None</em>, <em>processor=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.polyMeshDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.polyMeshDir" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>region</strong> &#8211; Specify the region for cases with more than 1 mesh</li>
+<li><strong>time</strong> &#8211; Time for which the  mesh should be looked at</li>
+<li><strong>processor</strong> &#8211; Name of the processor directory for decomposed cases</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the name of the C{polyMesh}</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.processorDirs">
+<code class="descname">processorDirs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.processorDirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.processorDirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>List with the processor directories</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.regions">
+<code class="descname">regions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.regions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detect sub-region cases by looking through constant and finding
+directories with polyMesh-directories</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.reread">
+<code class="descname">reread</code><span class="sig-paren">(</span><em>force=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.reread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.reread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rescan the directory for the time directories</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.samples">
+<code class="descname">samples</code><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return sub-directories that contain sample-data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.setToParallel">
+<code class="descname">setToParallel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.setToParallel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.setToParallel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the parallel times instead of the serial.</p>
+<p>Used to reset the behaviour after it has been set by the constructor</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.surfaces">
+<code class="descname">surfaces</code><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.surfaces" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.symlinkCase">
+<code class="descname">symlinkCase</code><span class="sig-paren">(</span><em>name</em>, <em>followSymlinks=False</em>, <em>maxLevel=1</em>, <em>relPath=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.symlinkCase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.symlinkCase" title="Permalink to this definition">¶</a></dt>
+<dd><p>create a clone of this case directory by creating a
+directory with symbolic links</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> &#8211; Name of the new case directory</li>
+<li><strong>maxLevel</strong> &#8211; Maximum level down to which directories are created instead of symbolically linked</li>
+<li><strong>followSymlinks</strong> &#8211; Follow symbolic links instead of just copying them</li>
+<li><strong>relPath</strong> &#8211; the created symbolic links are relative (instead of absolute)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory" title="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory"><code class="xref py py-class docutils literal"><span class="pre">SolutionDirectory</span></code></a> or correct subclass</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The target directory</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.systemDir">
+<code class="descname">systemDir</code><span class="sig-paren">(</span><em>region=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.systemDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.systemDir" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>region</strong> &#8211; Specify the region for cases with more than 1 mesh</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the name of the C{system}-directory</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.timeIndex">
+<code class="descname">timeIndex</code><span class="sig-paren">(</span><em>item</em>, <em>minTime=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.timeIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.timeIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the index of a directory that corresponds with the given parameter
+:param item: the time that should be found
+:param minTime: search for the time with the minimal difference.
+Otherwise an exact match will be searched</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.timeName">
+<code class="descname">timeName</code><span class="sig-paren">(</span><em>item</em>, <em>minTime=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.timeName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.timeName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the name of a directory that corresponds with the given parameter
+:param item: the time that should be found
+:param minTime: search for the time with the minimal difference.
+Otherwise an exact match will be searched</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.timelines">
+<code class="descname">timelines</code><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.timelines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return sub-directories that contain timeline-data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.writeDictionaryContents">
+<code class="descname">writeDictionaryContents</code><span class="sig-paren">(</span><em>directory</em>, <em>name</em>, <em>contents</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.writeDictionaryContents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.writeDictionaryContents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the contents of a dictionary
+:param directory: Sub-directory of the case
+:param name: name of the dictionary file
+:param contents: Python-dictionary with the dictionary contents</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.writeDictionaryText">
+<code class="descname">writeDictionaryText</code><span class="sig-paren">(</span><em>directory</em>, <em>name</em>, <em>text</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/SolutionDirectory.html#SolutionDirectory.writeDictionaryText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.SolutionDirectory.SolutionDirectory.writeDictionaryText" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the contents of a dictionary
+:param directory: Sub-directory of the case
+:param name: name of the dictionary file
+:param text: String with the dictionary contents</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.RunDictionary.SolutionFile.html" class="btn btn-neutral float-right" title="PyFoam.RunDictionary.SolutionFile module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.RunDictionary.SampleDirectory.html" class="btn btn-neutral" title="PyFoam.RunDictionary.SampleDirectory module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

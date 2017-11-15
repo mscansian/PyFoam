@@ -1,0 +1,276 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.LogAnalysis.BoundingLineAnalyzer &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.LogAnalysis.BoundingLineAnalyzer</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.LogAnalysis.BoundingLineAnalyzer</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Check lines for Boundedness&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="n">boundingRegExp</span><span class="o">=</span><span class="s2">&quot;^bounding (.+), min: (.+) max: (.+) average: (.+)$&quot;</span>
+
+<span class="c1"># from FileLineAnalyzer import FileLineAnalyzer</span>
+<span class="c1"># from TimeLineLineAnalyzer import TimeLineLineAnalyzer</span>
+
+<span class="kn">from</span> <span class="nn">.GeneralLineAnalyzer</span> <span class="kn">import</span> <span class="n">GeneralLineAnalyzer</span>
+
+<div class="viewcode-block" id="GeneralBoundingLineAnalyzer"><a class="viewcode-back" href="../../../api/PyFoam.LogAnalysis.BoundingLineAnalyzer.html#PyFoam.LogAnalysis.BoundingLineAnalyzer.GeneralBoundingLineAnalyzer">[docs]</a><span class="k">class</span> <span class="nc">GeneralBoundingLineAnalyzer</span><span class="p">(</span><span class="n">GeneralLineAnalyzer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses the line for information about variables being bounded</span>
+
+<span class="sd">    Writes files of the form bounding_&lt;var&gt;&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="GeneralBoundingLineAnalyzer.__init__"><a class="viewcode-back" href="../../../api/PyFoam.LogAnalysis.BoundingLineAnalyzer.html#PyFoam.LogAnalysis.BoundingLineAnalyzer.GeneralBoundingLineAnalyzer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">doTimelines</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">doFiles</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">singleFile</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">startTime</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">endTime</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">GeneralLineAnalyzer</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                     <span class="n">titles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Minimum&#39;</span><span class="p">,</span><span class="s1">&#39;Maximum&#39;</span><span class="p">,</span><span class="s1">&#39;Average&#39;</span><span class="p">],</span>
+                                     <span class="n">doTimelines</span><span class="o">=</span><span class="n">doTimelines</span><span class="p">,</span>
+                                     <span class="n">doFiles</span><span class="o">=</span><span class="n">doFiles</span><span class="p">,</span>
+                                     <span class="n">singleFile</span><span class="o">=</span><span class="n">singleFile</span><span class="p">,</span>
+                                     <span class="n">startTime</span><span class="o">=</span><span class="n">startTime</span><span class="p">,</span>
+                                     <span class="n">endTime</span><span class="o">=</span><span class="n">endTime</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">boundingRegExp</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralBoundingLineAnalyzer.addToFiles"><a class="viewcode-back" href="../../../api/PyFoam.LogAnalysis.BoundingLineAnalyzer.html#PyFoam.LogAnalysis.BoundingLineAnalyzer.GeneralBoundingLineAnalyzer.addToFiles">[docs]</a>    <span class="k">def</span> <span class="nf">addToFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">match</span><span class="p">):</span>
+        <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fName</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">rest</span><span class="o">=</span><span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;bounding_&quot;</span><span class="o">+</span><span class="n">name</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">getTime</span><span class="p">(),</span><span class="n">rest</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralBoundingLineAnalyzer.addToTimelines"><a class="viewcode-back" href="../../../api/PyFoam.LogAnalysis.BoundingLineAnalyzer.html#PyFoam.LogAnalysis.BoundingLineAnalyzer.GeneralBoundingLineAnalyzer.addToTimelines">[docs]</a>    <span class="k">def</span> <span class="nf">addToTimelines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">match</span><span class="p">):</span>
+        <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fName</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">rest</span><span class="o">=</span><span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;_min&quot;</span><span class="p">,</span><span class="n">rest</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;_max&quot;</span><span class="p">,</span><span class="n">rest</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;_avg&quot;</span><span class="p">,</span><span class="n">rest</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div></div>
+
+<div class="viewcode-block" id="BoundingLineAnalyzer"><a class="viewcode-back" href="../../../api/PyFoam.LogAnalysis.BoundingLineAnalyzer.html#PyFoam.LogAnalysis.BoundingLineAnalyzer.BoundingLineAnalyzer">[docs]</a><span class="k">class</span> <span class="nc">BoundingLineAnalyzer</span><span class="p">(</span><span class="n">GeneralBoundingLineAnalyzer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses the line for information about variables being bounded</span>
+
+<span class="sd">    Writes files of the form bounding_&lt;var&gt;&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BoundingLineAnalyzer.__init__"><a class="viewcode-back" href="../../../api/PyFoam.LogAnalysis.BoundingLineAnalyzer.html#PyFoam.LogAnalysis.BoundingLineAnalyzer.BoundingLineAnalyzer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">GeneralBoundingLineAnalyzer</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">doTimelines</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></div></div>
+
+<span class="c1">##        FileLineAnalyzer.__init__(self,titles=[&#39;Minimum&#39;,&#39;Maximum&#39;,&#39;Average&#39;])</span>
+<span class="c1">##        self.exp=re.compile(boundingRegExp)</span>
+
+<span class="c1">##    def doAnalysis(self,line):</span>
+<span class="c1">##        m=self.exp.match(line)</span>
+<span class="c1">##        if m!=None:</span>
+<span class="c1">##            name=m.groups()[0]</span>
+<span class="c1">##            rest=m.groups()[1:]</span>
+<span class="c1">##            self.files.write(&quot;bounding_&quot;+name,self.parent.getTime(),rest)</span>
+
+<div class="viewcode-block" id="TimeLineBoundingLineAnalyzer"><a class="viewcode-back" href="../../../api/PyFoam.LogAnalysis.BoundingLineAnalyzer.html#PyFoam.LogAnalysis.BoundingLineAnalyzer.TimeLineBoundingLineAnalyzer">[docs]</a><span class="k">class</span> <span class="nc">TimeLineBoundingLineAnalyzer</span><span class="p">(</span><span class="n">GeneralBoundingLineAnalyzer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses the line for information about variables being bounded&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TimeLineBoundingLineAnalyzer.__init__"><a class="viewcode-back" href="../../../api/PyFoam.LogAnalysis.BoundingLineAnalyzer.html#PyFoam.LogAnalysis.BoundingLineAnalyzer.TimeLineBoundingLineAnalyzer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">GeneralBoundingLineAnalyzer</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">doFiles</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></div></div>
+
+<span class="c1">##        TimeLineLineAnalyzer.__init__(self)</span>
+<span class="c1">##        self.exp=re.compile(boundingRegExp)</span>
+
+<span class="c1">##    def doAnalysis(self,line):</span>
+<span class="c1">##        m=self.exp.match(line)</span>
+<span class="c1">##        if m!=None:</span>
+<span class="c1">##            name=m.groups()[0]</span>
+<span class="c1">##            rest=m.groups()[1:]</span>
+
+<span class="c1">##            self.lines.setValue(name+&quot;_min&quot;,rest[0])</span>
+<span class="c1">##            self.lines.setValue(name+&quot;_max&quot;,rest[1])</span>
+<span class="c1">##            self.lines.setValue(name+&quot;_avg&quot;,rest[2])</span>
+
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

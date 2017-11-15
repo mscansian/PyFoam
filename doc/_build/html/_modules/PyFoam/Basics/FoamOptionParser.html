@@ -1,0 +1,670 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.FoamOptionParser &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.FoamOptionParser</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.FoamOptionParser</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Parse options for the PyFoam-Scripts&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span><span class="p">,</span><span class="n">TitledHelpFormatter</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">versionString</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">changeFoamVersion</span>
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">oldAppConvention</span> <span class="k">as</span> <span class="n">oldApp</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">iteritems</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">string_types</span><span class="p">,</span><span class="n">integer_types</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">environ</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<div class="viewcode-block" id="FoamHelpFormatter"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.FoamHelpFormatter">[docs]</a><span class="k">class</span> <span class="nc">FoamHelpFormatter</span><span class="p">(</span><span class="n">TitledHelpFormatter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;For description and epilog preserve double newlines as one newline&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FoamHelpFormatter.format_description"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.FoamHelpFormatter.format_description">[docs]</a>    <span class="k">def</span> <span class="nf">format_description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">description</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                 <span class="p">[</span><span class="n">TitledHelpFormatter</span><span class="o">.</span><span class="n">format_description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">description</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="FoamHelpFormatter.format_epilog"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.FoamHelpFormatter.format_epilog">[docs]</a>    <span class="k">def</span> <span class="nf">format_epilog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">epilog</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">epilog</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="o">*</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                 <span class="p">[</span><span class="n">TitledHelpFormatter</span><span class="o">.</span><span class="n">format_epilog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">epilog</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span></div></div>
+
+<div class="viewcode-block" id="FoamOptionParser"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.FoamOptionParser">[docs]</a><span class="k">class</span> <span class="nc">FoamOptionParser</span><span class="p">(</span><span class="n">OptionParser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrapper to the usual OptionParser to honor the conventions of OpenFOAM-utilities</span>
+
+<span class="sd">    Options that are not used by the script are passed to the OpenFOAM-application&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FoamOptionParser.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.FoamOptionParser.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">usage</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">version</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">description</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">epilog</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">examples</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">interspersed</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param usage: usage string. If missing a default is used</span>
+<span class="sd">        :param version: if missing the PyFoam-version is used</span>
+<span class="sd">        :param description: description of the utility</span>
+<span class="sd">        :param epilog: Text to be displayed in the help after the options</span>
+<span class="sd">        :param examples: Usage examples to be displayed after the epilog</span>
+<span class="sd">        :param interspersed: needs to be false if options should be passed to an OpenFOAM-utility</span>
+<span class="sd">        :param args: Command line arguments. If unset sys.argv[1:] is used.</span>
+<span class="sd">        Can be a string: it will be splitted then unsing the spaces (very primitive), or a list of strings (prefered)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">usage</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">oldApp</span><span class="p">():</span>
+                <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] &lt;foamApplication&gt; &lt;caseDir&gt; &lt;caseName&gt; [foamOptions]&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] &lt;foamApplication&gt; [foamOptions]&quot;</span>
+
+        <span class="k">if</span> <span class="n">version</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">version</span><span class="o">=</span><span class="s2">&quot;%prog &quot;</span><span class="o">+</span><span class="n">versionString</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">argLine</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">argLine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">argLine</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">examples</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">epilog</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">epilog</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">epilog</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="n">usageText</span><span class="o">=</span><span class="s2">&quot;Usage examples:&quot;</span>
+<span class="c1">#            epilog+=usageText+&quot;\n\n&quot;+(&quot;=&quot;*len(usageText))+&quot;\n\n&quot;+examples</span>
+            <span class="n">epilog</span><span class="o">+=</span><span class="n">usageText</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="n">examples</span>
+
+        <span class="n">OptionParser</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                              <span class="n">usage</span><span class="o">=</span><span class="n">usage</span><span class="p">,</span>
+                              <span class="c1"># prog=self.__type__.__name__,</span>
+                              <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span>
+                              <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                              <span class="n">epilog</span><span class="o">=</span><span class="n">epilog</span><span class="p">,</span>
+                              <span class="n">formatter</span><span class="o">=</span><span class="n">FoamHelpFormatter</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">epilog</span><span class="p">:</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">epilog</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">expand_prog_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epilog</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">interspersed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">enable_interspersed_args</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">disable_interspersed_args</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__foamVersionChanged</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__oldEnvironment</span><span class="o">=</span><span class="bp">None</span></div>
+
+<div class="viewcode-block" id="FoamOptionParser.restoreEnvironment"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.FoamOptionParser.restoreEnvironment">[docs]</a>    <span class="k">def</span> <span class="nf">restoreEnvironment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Restore the environment to its old glory... if it was changed&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__foamVersionChanged</span><span class="p">:</span>
+            <span class="c1">#            print &quot;Restoring the environment&quot;</span>
+            <span class="n">environ</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__oldEnvironment</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FoamOptionParser.parse"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.FoamOptionParser.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">nr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">exactNr</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        parse the options</span>
+<span class="sd">        :param nr: minimum number of arguments that are to be passed to the application</span>
+<span class="sd">        3 is default for pre-1.5 versions of OpenFOAM</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">argLine</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;foamVersion&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">foamVersion</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">force32</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">force64</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;A version can&#39;t be 32 and 64 bit at the same time&quot;</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">__foamVersionChanged</span><span class="o">=</span><span class="bp">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__oldEnvironment</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">environ</span><span class="p">)</span>
+
+                <span class="n">changeFoamVersion</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">foamVersion</span><span class="p">,</span>
+                                  <span class="n">force64</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">force64</span><span class="p">,</span>
+                                  <span class="n">force32</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">force32</span><span class="p">,</span>
+                                  <span class="n">compileOption</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">compileOption</span><span class="p">,</span>
+                                  <span class="n">foamCompiler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">foamCompiler</span><span class="p">,</span>
+                                  <span class="n">wmCompiler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">wmCompiler</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">force32</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">force64</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Forcing version to be 32 or 64 bit, but no version chosen. Doing nothing&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">compileOption</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No OpenFOAM-version chosen. Can&#39;t set compile-option to&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">compileOption</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">nr</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">oldApp</span><span class="p">():</span>
+                <span class="n">nr</span><span class="o">=</span><span class="mi">3</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">nr</span><span class="o">=</span><span class="mi">1</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span><span class="o">&lt;</span><span class="n">nr</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Too few arguments (</span><span class="si">%d</span><span class="s2"> needed, </span><span class="si">%d</span><span class="s2"> given)&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">nr</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)))</span>
+
+        <span class="n">maxNr</span><span class="o">=</span><span class="n">nr</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">oldApp</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;-case&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                <span class="n">maxNr</span><span class="o">+=</span><span class="mi">2</span>
+
+        <span class="k">if</span> <span class="n">exactNr</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span><span class="o">&gt;</span><span class="n">maxNr</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Too many arguments (</span><span class="si">%d</span><span class="s2"> needed, </span><span class="si">%d</span><span class="s2"> given)&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">nr</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)))</span>
+
+        <span class="n">tmp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">tmp</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span> <span class="ow">or</span> <span class="n">a</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">a</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="o">+</span><span class="n">a</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FoamOptionParser.getArgs"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.FoamOptionParser.getArgs">[docs]</a>    <span class="k">def</span> <span class="nf">getArgs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the arguments left after parsing&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="FoamOptionParser.getApplication"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.FoamOptionParser.getApplication">[docs]</a>    <span class="k">def</span> <span class="nf">getApplication</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the OpenFOAM-Application to be run&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="FoamOptionParser.getOptions"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.FoamOptionParser.getOptions">[docs]</a>    <span class="k">def</span> <span class="nf">getOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the options&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;options have not been parsed yet&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span></div>
+
+<div class="viewcode-block" id="FoamOptionParser.casePath"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.FoamOptionParser.casePath">[docs]</a>    <span class="k">def</span> <span class="nf">casePath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the path to the case (if applicable)&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">oldApp</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;-case&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getArgs</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-case&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">curdir</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FoamOptionParser._buildKeyordArgumentList"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.FoamOptionParser._buildKeyordArgumentList">[docs]</a>    <span class="k">def</span> <span class="nf">_buildKeyordArgumentList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Go through the lists of options and build a dictionary of keyword</span>
+<span class="sd">        arguments (in CamelCase)&quot;&quot;&quot;</span>
+        <span class="n">kwArgs</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">og</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">option_groups</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">og</span><span class="o">.</span><span class="n">option_list</span><span class="p">:</span>
+                <span class="n">raw</span><span class="o">=</span><span class="n">o</span><span class="o">.</span><span class="n">get_opt_string</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+                <span class="n">pos</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">pos</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="n">raw</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">raw</span><span class="p">[:</span><span class="n">pos</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="n">raw</span><span class="o">=</span><span class="n">raw</span><span class="p">[</span><span class="n">pos</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+                <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">pos</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">pos</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                        <span class="n">name</span><span class="o">+=</span><span class="n">raw</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
+                        <span class="n">raw</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">name</span><span class="o">+=</span><span class="n">raw</span><span class="p">[:</span><span class="n">pos</span><span class="p">]</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
+                        <span class="n">raw</span><span class="o">=</span><span class="n">raw</span><span class="p">[</span><span class="n">pos</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isalpha</span><span class="p">()</span> <span class="ow">and</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;_&quot;</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Option&quot;</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">get_opt_string</span><span class="p">(),</span><span class="s2">&quot;reduces to&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span>
+                          <span class="s2">&quot;with invalid first character&quot;</span><span class="p">)</span>
+                <span class="c1"># Remove all characters that do not belong in a valid Python-name</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">name</span> <span class="k">if</span> <span class="n">c</span><span class="o">==</span><span class="s2">&quot;_&quot;</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">isalnum</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">kwArgs</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Keyword arguement&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;appears at least twice&quot;</span><span class="p">)</span>
+                <span class="n">kwArgs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">o</span>
+
+        <span class="k">return</span> <span class="n">kwArgs</span></div>
+
+<div class="viewcode-block" id="FoamOptionParser.processKeywordArguments"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.FoamOptionParser.processKeywordArguments">[docs]</a>    <span class="k">def</span> <span class="nf">processKeywordArguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">kw</span><span class="p">):</span>
+        <span class="n">kwArgs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_buildKeyordArgumentList</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">kw</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwArgs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unknown keyword argument&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;in&quot;</span><span class="p">,</span>
+                                <span class="nb">sorted</span><span class="p">(</span><span class="n">kwArgs</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="n">o</span><span class="o">=</span><span class="n">kwArgs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">action</span><span class="o">==</span><span class="s2">&quot;store_true&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">!=</span><span class="nb">bool</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Keyword argument&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;needs a bool&quot;</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">dest</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">o</span><span class="o">.</span><span class="n">action</span><span class="o">==</span><span class="s2">&quot;store_false&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">!=</span><span class="nb">bool</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Keyword argument&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;needs a bool&quot;</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">dest</span><span class="p">,</span><span class="ow">not</span> <span class="n">v</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">o</span><span class="o">.</span><span class="n">action</span><span class="o">==</span><span class="s2">&quot;store&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">type</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s2">&quot;string&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="n">v</span><span class="o">!=</span><span class="n">o</span><span class="o">.</span><span class="n">default</span> <span class="ow">and</span> <span class="n">o</span><span class="o">.</span><span class="n">default</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Keyword argument&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;must be string or&quot;</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">default</span><span class="p">,</span><span class="s2">&quot;. Is a &quot;</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                    <span class="k">elif</span> <span class="n">o</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">,</span><span class="s2">&quot;long&quot;</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">integer_types</span><span class="p">):</span>
+                            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Keyword argument&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;must be an integer. Is a &quot;</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                    <span class="k">elif</span> <span class="n">o</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s2">&quot;float&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">integer_types</span><span class="o">+</span><span class="p">(</span><span class="nb">float</span><span class="p">,)):</span>
+                            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Keyword argument&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;must be float. Is a &quot;</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                    <span class="k">elif</span> <span class="n">o</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s2">&quot;choice&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">o</span><span class="o">.</span><span class="n">choices</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Keyword argument&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;must be one of&quot;</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">choices</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">type</span><span class="p">,</span><span class="s2">&quot;not implemented&quot;</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">dest</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">o</span><span class="o">.</span><span class="n">action</span><span class="o">==</span><span class="s2">&quot;append&quot;</span><span class="p">:</span>
+                <span class="n">oldVal</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">dest</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">oldVal</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Keyword argument&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;must be a list or a tuple&quot;</span><span class="p">)</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">dest</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">):</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">dest</span><span class="p">,</span><span class="n">oldVal</span><span class="o">+</span><span class="n">v</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">oldVal</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">o</span><span class="o">.</span><span class="n">action</span><span class="o">==</span><span class="s2">&quot;store_const&quot;</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">dest</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">const</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">o</span><span class="o">.</span><span class="n">action</span><span class="o">==</span><span class="s2">&quot;append_const&quot;</span><span class="p">:</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">dest</span><span class="p">)</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">const</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">o</span><span class="o">.</span><span class="n">action</span><span class="o">==</span><span class="s2">&quot;count&quot;</span><span class="p">:</span>
+                <span class="n">oldVal</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">dest</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">dest</span><span class="p">,</span><span class="n">oldVal</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Action&quot;</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">action</span><span class="p">,</span><span class="s2">&quot;not implemented&quot;</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="Subcommand"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.Subcommand">[docs]</a><span class="k">class</span> <span class="nc">Subcommand</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+     <span class="sd">&quot;&quot;&quot;A subcommand of a root command-line application that may be</span>
+<span class="sd">     invoked by a SubcommandOptionParser.</span>
+<span class="sd">     Taken from https://gist.github.com/sampsyo/462717</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Subcommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.Subcommand.__init__">[docs]</a>     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">aliases</span><span class="o">=</span><span class="p">(),</span><span class="n">nr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">exactNr</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+          <span class="sd">&quot;&quot;&quot;Creates a new subcommand. name is the primary way to invoke</span>
+<span class="sd">          the subcommand; aliases are alternate names. parser is an</span>
+<span class="sd">          OptionParser responsible for parsing the subcommand&#39;s options.</span>
+<span class="sd">          help is a short description of the command. If no parser is</span>
+<span class="sd">          given, it defaults to a new, empty OptionParser.</span>
+<span class="sd">          &quot;&quot;&quot;</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">parser</span> <span class="ow">or</span> <span class="n">OptionParser</span><span class="p">()</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">aliases</span> <span class="o">=</span> <span class="n">aliases</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">help</span> <span class="o">=</span> <span class="n">help</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="o">=</span><span class="n">nr</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">exactNr</span><span class="o">=</span><span class="n">exactNr</span></div></div>
+
+<div class="viewcode-block" id="SubcommandFoamOptionParser"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.SubcommandFoamOptionParser">[docs]</a><span class="k">class</span> <span class="nc">SubcommandFoamOptionParser</span><span class="p">(</span><span class="n">FoamOptionParser</span><span class="p">):</span>
+     <span class="sd">&quot;&quot;&quot;Subclass of the regular option parser that allows setting subcommands</span>
+<span class="sd">     Inspired by https://gist.github.com/sampsyo/462717</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+     <span class="c1"># A singleton command used to give help on other subcommands.</span>
+     <span class="n">_HelpSubcommand</span> <span class="o">=</span> <span class="n">Subcommand</span><span class="p">(</span><span class="s1">&#39;help&#39;</span><span class="p">,</span> <span class="n">OptionParser</span><span class="p">(),</span>
+                                  <span class="n">help</span><span class="o">=</span><span class="s1">&#39;give detailed help on a specific sub-command&#39;</span><span class="p">,</span>
+                                  <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;?&#39;</span><span class="p">,))</span>
+
+<div class="viewcode-block" id="SubcommandFoamOptionParser.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.SubcommandFoamOptionParser.__init__">[docs]</a>     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">usage</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">version</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">epilog</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">examples</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">description</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">subcommands</span><span class="o">=</span><span class="p">[]):</span>
+          <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">          :param usage: usage string. If missing a default is used</span>
+<span class="sd">          :param version: if missing the PyFoam-version is used</span>
+<span class="sd">          :param description: description of the utility</span>
+<span class="sd">          :param subcommands: list with subcommands to prepopulate the parser</span>
+<span class="sd">          :param args: Command line arguments. If unset sys.argv[1:] is used.</span>
+<span class="sd">          Can be a string: it will be splitted then unsing the spaces (very primitive), or a list of strings (prefered)</span>
+<span class="sd">          &quot;&quot;&quot;</span>
+          <span class="k">if</span> <span class="n">usage</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+               <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">%prog [general options ...] COMMAND [ARGS ...]</span>
+<span class="s2">%prog help COMMAND&quot;&quot;&quot;</span>
+
+          <span class="n">FoamOptionParser</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                    <span class="n">args</span><span class="p">,</span>
+                                    <span class="n">usage</span><span class="p">,</span>
+                                    <span class="n">version</span><span class="p">,</span>
+                                    <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                    <span class="n">epilog</span><span class="o">=</span><span class="n">epilog</span><span class="p">,</span>
+                                    <span class="n">examples</span><span class="o">=</span><span class="n">examples</span><span class="p">,</span>
+                                    <span class="n">interspersed</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+          <span class="bp">self</span><span class="o">.</span><span class="n">subcommands</span><span class="o">=</span><span class="n">subcommands</span><span class="p">[:]</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_HelpSubcommand</span><span class="p">)</span>
+
+          <span class="c1"># Adjust the help-visible name of each subcommand.</span>
+          <span class="k">for</span> <span class="n">subcommand</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subcommands</span><span class="p">:</span>
+               <span class="n">subcommand</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">prog</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> \
+                                        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_prog_name</span><span class="p">(),</span> <span class="n">subcommand</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+          <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">=</span><span class="bp">None</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">__subopts</span><span class="o">=</span><span class="bp">None</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">subargs</span><span class="o">=</span><span class="bp">None</span></div>
+
+<div class="viewcode-block" id="SubcommandFoamOptionParser.addSubcommand"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.SubcommandFoamOptionParser.addSubcommand">[docs]</a>     <span class="k">def</span> <span class="nf">addSubcommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cmd</span><span class="p">,</span><span class="n">usage</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+         <span class="k">if</span> <span class="n">usage</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+             <span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">usage</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">usage</span>
+         <span class="k">else</span><span class="p">:</span>
+             <span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">usage</span><span class="o">=</span><span class="n">usage</span>
+         <span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">formatter</span><span class="o">=</span><span class="n">TitledHelpFormatter</span><span class="p">()</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">subcommands</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span></div>
+
+     <span class="c1"># Add the list of subcommands to the help message.</span>
+<div class="viewcode-block" id="SubcommandFoamOptionParser.format_help"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.SubcommandFoamOptionParser.format_help">[docs]</a>     <span class="k">def</span> <span class="nf">format_help</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formatter</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+          <span class="sd">&quot;&quot;&quot;Taken from https://gist.github.com/sampsyo/462717&quot;&quot;&quot;</span>
+          <span class="c1"># Get the original help message, to which we will append.</span>
+          <span class="n">out</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="o">.</span><span class="n">format_help</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)</span>
+          <span class="k">if</span> <span class="n">formatter</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+               <span class="n">formatter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatter</span>
+
+          <span class="c1"># Subcommands header.</span>
+          <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">]</span>
+          <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">formatter</span><span class="o">.</span><span class="n">format_heading</span><span class="p">(</span><span class="s1">&#39;Commands&#39;</span><span class="p">))</span>
+          <span class="n">formatter</span><span class="o">.</span><span class="n">indent</span><span class="p">()</span>
+
+          <span class="c1"># Generate the display names (including aliases).</span>
+          <span class="c1"># Also determine the help position.</span>
+          <span class="n">disp_names</span> <span class="o">=</span> <span class="p">[]</span>
+          <span class="n">help_position</span> <span class="o">=</span> <span class="mi">0</span>
+          <span class="k">for</span> <span class="n">subcommand</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subcommands</span><span class="p">:</span>
+               <span class="n">name</span> <span class="o">=</span> <span class="n">subcommand</span><span class="o">.</span><span class="n">name</span>
+               <span class="k">if</span> <span class="n">subcommand</span><span class="o">.</span><span class="n">aliases</span><span class="p">:</span>
+                    <span class="n">name</span> <span class="o">+=</span> <span class="s1">&#39; (</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">subcommand</span><span class="o">.</span><span class="n">aliases</span><span class="p">)</span>
+               <span class="n">disp_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+               <span class="c1"># Set the help position based on the max width.</span>
+               <span class="n">proposed_help_position</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="n">formatter</span><span class="o">.</span><span class="n">current_indent</span> <span class="o">+</span> <span class="mi">2</span>
+               <span class="k">if</span> <span class="n">proposed_help_position</span> <span class="o">&lt;=</span> <span class="n">formatter</span><span class="o">.</span><span class="n">max_help_position</span><span class="p">:</span>
+                    <span class="n">help_position</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">help_position</span><span class="p">,</span> <span class="n">proposed_help_position</span><span class="p">)</span>
+
+          <span class="c1"># Add each subcommand to the output.</span>
+          <span class="k">for</span> <span class="n">subcommand</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subcommands</span><span class="p">,</span> <span class="n">disp_names</span><span class="p">):</span>
+               <span class="c1"># Lifted directly from optparse.py.</span>
+               <span class="n">name_width</span> <span class="o">=</span> <span class="n">help_position</span> <span class="o">-</span> <span class="n">formatter</span><span class="o">.</span><span class="n">current_indent</span> <span class="o">-</span> <span class="mi">2</span>
+               <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">name_width</span><span class="p">:</span>
+                    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%*s%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">formatter</span><span class="o">.</span><span class="n">current_indent</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                    <span class="n">indent_first</span> <span class="o">=</span> <span class="n">help_position</span>
+               <span class="k">else</span><span class="p">:</span>
+                    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%*s%-*s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">formatter</span><span class="o">.</span><span class="n">current_indent</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                                         <span class="n">name_width</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                    <span class="n">indent_first</span> <span class="o">=</span> <span class="mi">0</span>
+               <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+               <span class="n">help_width</span> <span class="o">=</span> <span class="n">formatter</span><span class="o">.</span><span class="n">width</span> <span class="o">-</span> <span class="n">help_position</span>
+               <span class="n">help_lines</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">subcommand</span><span class="o">.</span><span class="n">help</span><span class="p">,</span> <span class="n">help_width</span><span class="p">)</span>
+               <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%*s%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">indent_first</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">help_lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+               <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%*s%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">help_position</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+                              <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">help_lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]])</span>
+          <span class="n">formatter</span><span class="o">.</span><span class="n">dedent</span><span class="p">()</span>
+
+          <span class="c1"># Concatenate the original help message with the subcommand</span>
+          <span class="c1"># list.</span>
+          <span class="k">return</span> <span class="n">out</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SubcommandFoamOptionParser.parse"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.SubcommandFoamOptionParser.parse">[docs]</a>     <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">nr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">exactNr</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+          <span class="sd">&quot;&quot;&quot;Do the parsing of a subcommand&quot;&quot;&quot;</span>
+          <span class="k">if</span> <span class="n">nr</span> <span class="ow">or</span> <span class="n">exactNr</span><span class="p">:</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;For calling this implementention no setting of nr and exactNr is valid&quot;</span><span class="p">)</span>
+
+          <span class="n">FoamOptionParser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+          <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+               <span class="c1"># no command</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+          <span class="k">else</span><span class="p">:</span>
+               <span class="n">cmdname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+               <span class="n">subcommand</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subcommand_for_name</span><span class="p">(</span><span class="n">cmdname</span><span class="p">)</span>
+               <span class="k">if</span> <span class="ow">not</span> <span class="n">subcommand</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;unknown command &#39;</span> <span class="o">+</span> <span class="n">cmdname</span><span class="p">)</span>
+
+          <span class="c1"># make sure we get the canonical name</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">=</span><span class="n">subcommand</span><span class="o">.</span><span class="n">name</span>
+
+          <span class="n">nr</span><span class="o">=</span><span class="n">subcommand</span><span class="o">.</span><span class="n">nr</span>
+          <span class="n">exactNr</span><span class="o">=</span><span class="n">subcommand</span><span class="o">.</span><span class="n">exactNr</span>
+
+          <span class="k">if</span> <span class="n">subcommand</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_HelpSubcommand</span><span class="p">:</span>
+              <span class="n">subcommand</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">usage</span><span class="o">=</span><span class="n">subcommand</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">usage</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;COMMAND&quot;</span><span class="p">,</span><span class="n">cmdname</span><span class="p">)</span>
+
+          <span class="bp">self</span><span class="o">.</span><span class="n">__subopts</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">subargs</span><span class="o">=</span><span class="n">subcommand</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+          <span class="k">if</span> <span class="n">nr</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+              <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subargs</span><span class="p">)</span><span class="o">&lt;</span><span class="n">nr</span><span class="p">:</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Too few arguments for </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%d</span><span class="s2"> needed, </span><span class="si">%d</span><span class="s2"> given)&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">cmdname</span><span class="p">,</span><span class="n">nr</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subargs</span><span class="p">)))</span>
+
+              <span class="n">maxNr</span><span class="o">=</span><span class="n">nr</span>
+              <span class="k">if</span> <span class="n">exactNr</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subargs</span><span class="p">)</span><span class="o">&gt;</span><span class="n">maxNr</span><span class="p">:</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Too many arguments for </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%d</span><span class="s2"> needed, </span><span class="si">%d</span><span class="s2"> given)&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">cmdname</span><span class="p">,</span><span class="n">nr</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subargs</span><span class="p">)))</span>
+
+          <span class="k">if</span> <span class="n">subcommand</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_HelpSubcommand</span><span class="p">:</span>
+               <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subargs</span><span class="p">:</span>
+                    <span class="c1"># help on a specific command</span>
+                    <span class="n">cmdname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">subargs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">helpcommand</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subcommand_for_name</span><span class="p">(</span><span class="n">cmdname</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">helpcommand</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                        <span class="n">helpcommand</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">usage</span><span class="o">=</span><span class="n">helpcommand</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">usage</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;COMMAND&quot;</span><span class="p">,</span><span class="n">cmdname</span><span class="p">)</span>
+                        <span class="n">helpcommand</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+               <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># general</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">_update_loose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__subopts</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SubcommandFoamOptionParser.getArgs"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.SubcommandFoamOptionParser.getArgs">[docs]</a>     <span class="k">def</span> <span class="nf">getArgs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+         <span class="sd">&quot;&quot;&quot;Return the arguments left after parsing&quot;&quot;&quot;</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subargs</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subargs</span>
+         <span class="k">else</span><span class="p">:</span>
+             <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="SubcommandFoamOptionParser._subcommand_for_name"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamOptionParser.html#PyFoam.Basics.FoamOptionParser.SubcommandFoamOptionParser._subcommand_for_name">[docs]</a>     <span class="k">def</span> <span class="nf">_subcommand_for_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+          <span class="sd">&quot;&quot;&quot;Return the subcommand in self.subcommands matching the</span>
+<span class="sd">          given name. The name may either be the name of a subcommand or</span>
+<span class="sd">          an alias. If no subcommand matches, returns None.</span>
+<span class="sd">          &quot;&quot;&quot;</span>
+          <span class="k">for</span> <span class="n">subcommand</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subcommands</span><span class="p">:</span>
+               <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">subcommand</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> \
+                  <span class="n">name</span> <span class="ow">in</span> <span class="n">subcommand</span><span class="o">.</span><span class="n">aliases</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">subcommand</span>
+
+          <span class="k">return</span> <span class="bp">None</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

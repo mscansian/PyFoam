@@ -1,0 +1,512 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.APoMaFoXiiQt &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.APoMaFoXiiQt</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.APoMaFoXiiQt</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application-class that implements pyFoamAPoMaFoX.py (A Poor Man&#39;s FoamX)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.CaseBuilderBackend</span> <span class="kn">import</span> <span class="n">CaseBuilderFile</span><span class="p">,</span><span class="n">CaseBuilderDescriptionList</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.CommonCaseBuilder</span> <span class="kn">import</span> <span class="n">CommonCaseBuilder</span>
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">config</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">PyQt4</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;This application needs an installed PyQt4-library&quot;</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
+
+<div class="viewcode-block" id="APoMaFoXiiQt"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.APoMaFoXiiQt">[docs]</a><span class="k">class</span> <span class="nc">APoMaFoXiiQt</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">,</span>
+               <span class="n">CommonCaseBuilder</span><span class="p">):</span>
+<div class="viewcode-block" id="APoMaFoXiiQt.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.APoMaFoXiiQt.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">APoMaFoX is &quot;A Poor Mans FoamX&quot;.</span>
+
+<span class="s2">A small text interface to the CaseBuilder-Functionality</span>
+<span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog &lt;caseBuilderFile&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                   <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="APoMaFoXiiQt.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.APoMaFoXiiQt.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">CommonCaseBuilder</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="APoMaFoXiiQt.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.APoMaFoXiiQt.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pathInfo</span><span class="p">():</span>
+            <span class="k">return</span>
+
+        <span class="n">app</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">())</span>
+
+        <span class="n">fName</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">())</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">dialog</span><span class="o">=</span><span class="n">CaseBuilderBrowser</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dialog</span><span class="o">.</span><span class="n">descriptions</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">fName</span><span class="o">=</span><span class="n">dialog</span><span class="o">.</span><span class="n">descriptions</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Automatically choosing the only description&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">())</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">fName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">searchDescriptionFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fName</span><span class="p">):</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;The description file&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot;does not exist&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Too many arguments&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">fName</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">dialog</span><span class="o">=</span><span class="n">CaseBuilderDialog</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+
+        <span class="n">dialog</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">exec_</span><span class="p">())</span></div></div>
+
+<div class="viewcode-block" id="ComboWrapper"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.ComboWrapper">[docs]</a><span class="k">class</span> <span class="nc">ComboWrapper</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QComboBox</span><span class="p">):</span>
+<div class="viewcode-block" id="ComboWrapper.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.ComboWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ComboWrapper</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ComboWrapper.text"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.ComboWrapper.text">[docs]</a>    <span class="k">def</span> <span class="nf">text</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currentText</span><span class="p">())</span></div></div>
+
+<div class="viewcode-block" id="FilenameWrapper"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.FilenameWrapper">[docs]</a><span class="k">class</span> <span class="nc">FilenameWrapper</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
+<div class="viewcode-block" id="FilenameWrapper.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.FilenameWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FilenameWrapper</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QLineEdit</span><span class="p">()</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">button</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;File ...&quot;</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">button</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">button</span><span class="p">,</span><span class="n">QtCore</span><span class="o">.</span><span class="n">SIGNAL</span><span class="p">(</span><span class="s2">&quot;clicked()&quot;</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">pushed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FilenameWrapper.pushed"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.FilenameWrapper.pushed">[docs]</a>    <span class="k">def</span> <span class="nf">pushed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">theDir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">theDir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">curdir</span><span class="p">)</span>
+
+        <span class="n">fName</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">getOpenFileName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="c1"># parent</span>
+                                                <span class="s2">&quot;Select File&quot;</span><span class="p">,</span> <span class="c1"># caption</span>
+                                                <span class="n">theDir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fName</span><span class="o">!=</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fName</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="FilenameWrapper.setText"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.FilenameWrapper.setText">[docs]</a>    <span class="k">def</span> <span class="nf">setText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">txt</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FilenameWrapper.text"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.FilenameWrapper.text">[docs]</a>    <span class="k">def</span> <span class="nf">text</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">text</span><span class="p">()))</span></div></div>
+
+<div class="viewcode-block" id="CaseBuilderQt"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.CaseBuilderQt">[docs]</a><span class="k">class</span> <span class="nc">CaseBuilderQt</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The common denominator for the windows&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CaseBuilderQt.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.CaseBuilderQt.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CaseBuilderQt</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">=</span><span class="bp">None</span></div>
+
+<div class="viewcode-block" id="CaseBuilderQt.setStatus"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.CaseBuilderQt.setStatus">[docs]</a>    <span class="k">def</span> <span class="nf">setStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">text</span><span class="p">):</span>
+        <span class="n">print_</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QStatusBar</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">()</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">showMessage</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="CaseBuilderBrowser"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.CaseBuilderBrowser">[docs]</a><span class="k">class</span> <span class="nc">CaseBuilderBrowser</span><span class="p">(</span><span class="n">CaseBuilderQt</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A browser of all the available descriptions&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CaseBuilderBrowser.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.CaseBuilderBrowser.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">CaseBuilderQt</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">descriptions</span><span class="o">=</span><span class="n">CaseBuilderDescriptionList</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptions</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No description-files (.pfcb) found in path&quot;</span><span class="p">,</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CaseBuilder&quot;</span><span class="p">,</span><span class="s2">&quot;descriptionpath&quot;</span><span class="p">))</span>
+
+        <span class="n">mainLayout</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">mainLayout</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">descriptsList</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QListWidget</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">descriptsList</span><span class="o">.</span><span class="n">setSelectionMode</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QAbstractItemView</span><span class="o">.</span><span class="n">SingleSelection</span><span class="p">)</span>
+        <span class="n">mainLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptsList</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">itemlist</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">descriptions</span><span class="p">:</span>
+            <span class="n">item</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QListWidgetItem</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">setToolTip</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">descriptsList</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">itemlist</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">item</span><span class="p">,</span><span class="n">d</span><span class="p">))</span>
+
+        <span class="n">buttons</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialogButtonBox</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialogButtonBox</span><span class="o">.</span><span class="n">Cancel</span><span class="p">)</span>
+        <span class="n">mainLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">buttons</span><span class="p">)</span>
+        <span class="n">selectButton</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;Select&quot;</span><span class="p">)</span>
+        <span class="n">selectButton</span><span class="o">.</span><span class="n">setToolTip</span><span class="p">(</span><span class="s2">&quot;Select the case description that we want to work with&quot;</span><span class="p">)</span>
+        <span class="n">buttons</span><span class="o">.</span><span class="n">addButton</span><span class="p">(</span><span class="n">selectButton</span><span class="p">,</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialogButtonBox</span><span class="o">.</span><span class="n">AcceptRole</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">buttons</span><span class="o">.</span><span class="n">accepted</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectPressed</span><span class="p">)</span>
+            <span class="n">buttons</span><span class="o">.</span><span class="n">rejected</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reject</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Old QT-version where QDialogButtonBox doesn&#39;t have the accepted/rejected-attributes&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">buttons</span><span class="p">,</span><span class="n">QtCore</span><span class="o">.</span><span class="n">SIGNAL</span><span class="p">(</span><span class="s2">&quot;accepted()&quot;</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">selectPressed</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">buttons</span><span class="p">,</span><span class="n">QtCore</span><span class="o">.</span><span class="n">SIGNAL</span><span class="p">(</span><span class="s2">&quot;rejected()&quot;</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">reject</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseBuilderBrowser.selectPressed"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.CaseBuilderBrowser.selectPressed">[docs]</a>    <span class="k">def</span> <span class="nf">selectPressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="s2">&quot;Pressed selected&quot;</span><span class="p">)</span>
+        <span class="n">selected</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptsList</span><span class="o">.</span><span class="n">selectedItems</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selected</span><span class="p">)</span><span class="o">!=</span><span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="s2">&quot;Nothing selected&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">desc</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">for</span> <span class="n">it</span><span class="p">,</span><span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">itemlist</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">it</span><span class="o">==</span><span class="n">selected</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">desc</span><span class="o">=</span><span class="n">d</span>
+                <span class="k">break</span>
+
+        <span class="k">if</span> <span class="n">desc</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="s2">&quot;Did not find the selection&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">sub</span><span class="o">=</span><span class="n">CaseBuilderDialog</span><span class="p">(</span><span class="n">desc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">sub</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div></div>
+
+<div class="viewcode-block" id="CaseBuilderDialog"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.CaseBuilderDialog">[docs]</a><span class="k">class</span> <span class="nc">CaseBuilderDialog</span><span class="p">(</span><span class="n">CaseBuilderQt</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A dialog for a CaswBuilder-dialog&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CaseBuilderDialog.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.CaseBuilderDialog.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="p">,</span><span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">CaseBuilderQt</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">=</span><span class="n">CaseBuilderFile</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+
+        <span class="c1">#        print_(&quot;Read case description&quot;,self.desc.name())</span>
+
+        <span class="n">mainLayout</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">mainLayout</span><span class="p">)</span>
+
+        <span class="n">mainLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Builder Template: &quot;</span>
+                                        <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
+                                        <span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">description</span><span class="p">()))</span>
+
+        <span class="n">mainLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Data Template: &quot;</span>
+                                          <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">templatePath</span><span class="p">()))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">caseLayout</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QFormLayout</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Qt-version without QFormLayout&quot;</span><span class="p">)</span>
+            <span class="n">caseLayout</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QVBoxLayout</span><span class="p">()</span>
+
+        <span class="n">mainLayout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">caseLayout</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">caseName</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QLineEdit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">caseName</span><span class="o">.</span><span class="n">setToolTip</span><span class="p">(</span><span class="s2">&quot;The name under which the case will be saved&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">caseLayout</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="s2">&quot;Case name&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">caseName</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">caseLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Case name&quot;</span><span class="p">))</span>
+            <span class="n">caseLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">caseName</span><span class="p">)</span>
+
+        <span class="n">args</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">arguments</span><span class="p">()</span>
+        <span class="n">mLen</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span><span class="n">args</span><span class="p">)))</span>
+        <span class="n">aDesc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">argumentDescriptions</span><span class="p">()</span>
+        <span class="n">aDef</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">argumentDefaults</span><span class="p">()</span>
+        <span class="n">allArgs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">argumentDict</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">argfields</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="n">groups</span><span class="o">=</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">argumentGroups</span><span class="p">()</span>
+        <span class="n">gDesc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">argumentGroupDescription</span><span class="p">()</span>
+
+        <span class="n">theGroupTabs</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QTabWidget</span><span class="p">()</span>
+        <span class="n">mainLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">theGroupTabs</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">g</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Default&quot;</span>
+                <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;All the arguments that did not fit into another group&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">g</span>
+                <span class="n">desc</span><span class="o">=</span><span class="n">gDesc</span><span class="p">[</span><span class="n">g</span><span class="p">]</span>
+            <span class="n">gWidget</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">gLayout</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QFormLayout</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="n">gLayout</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QVBoxLayout</span><span class="p">()</span>
+            <span class="n">gWidget</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">gLayout</span><span class="p">)</span>
+            <span class="n">idx</span><span class="o">=</span><span class="n">theGroupTabs</span><span class="o">.</span><span class="n">addTab</span><span class="p">(</span><span class="n">gWidget</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">theGroupTabs</span><span class="o">.</span><span class="n">setTabToolTip</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span><span class="n">desc</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">groupArguments</span><span class="p">(</span><span class="n">g</span><span class="p">):</span>
+                <span class="n">theType</span><span class="o">=</span><span class="n">allArgs</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">.</span><span class="n">type</span>
+                <span class="k">if</span> <span class="n">theType</span><span class="o">==</span><span class="s2">&quot;file&quot;</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;File&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">)</span>
+                    <span class="n">aWidget</span><span class="o">=</span><span class="n">FilenameWrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                    <span class="n">aWidget</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">aDef</span><span class="p">[</span><span class="n">a</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="n">theType</span><span class="o">==</span><span class="s2">&quot;selection&quot;</span><span class="p">:</span>
+                    <span class="n">aWidget</span><span class="o">=</span><span class="n">ComboWrapper</span><span class="p">()</span>
+                    <span class="n">aWidget</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span><span class="n">allArgs</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+                    <span class="n">aWidget</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">allArgs</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">aDef</span><span class="p">[</span><span class="n">a</span><span class="p">]))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">aWidget</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QLineEdit</span><span class="p">()</span>
+                    <span class="n">aWidget</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">aDef</span><span class="p">[</span><span class="n">a</span><span class="p">])</span>
+                <span class="n">aWidget</span><span class="o">.</span><span class="n">setToolTip</span><span class="p">(</span><span class="n">aDesc</span><span class="p">[</span><span class="n">a</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">argfields</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">=</span><span class="n">aWidget</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">gLayout</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">aWidget</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="n">gLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QLabel</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+                    <span class="n">gLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">aWidget</span><span class="p">)</span>
+
+        <span class="n">bottomLayout</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="n">mainLayout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">bottomLayout</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">noClose</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QCheckBox</span><span class="p">(</span><span class="s2">&quot;Don&#39;t close&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">noClose</span><span class="o">.</span><span class="n">setToolTip</span><span class="p">(</span><span class="s2">&quot;Do not close after &#39;Generate&#39;&quot;</span><span class="p">)</span>
+        <span class="n">bottomLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noClose</span><span class="p">)</span>
+
+        <span class="n">buttons</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialogButtonBox</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialogButtonBox</span><span class="o">.</span><span class="n">Cancel</span><span class="p">)</span>
+        <span class="n">bottomLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">buttons</span><span class="p">)</span>
+        <span class="n">generateButton</span><span class="o">=</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;Generate&quot;</span><span class="p">)</span>
+        <span class="n">generateButton</span><span class="o">.</span><span class="n">setToolTip</span><span class="p">(</span><span class="s2">&quot;Copy the template case and modify it according to the settings&quot;</span><span class="p">)</span>
+        <span class="n">buttons</span><span class="o">.</span><span class="n">addButton</span><span class="p">(</span><span class="n">generateButton</span><span class="p">,</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialogButtonBox</span><span class="o">.</span><span class="n">AcceptRole</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">buttons</span><span class="o">.</span><span class="n">accepted</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generatePressed</span><span class="p">)</span>
+            <span class="n">buttons</span><span class="o">.</span><span class="n">rejected</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reject</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">buttons</span><span class="p">,</span><span class="n">QtCore</span><span class="o">.</span><span class="n">SIGNAL</span><span class="p">(</span><span class="s2">&quot;accepted()&quot;</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">generatePressed</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">buttons</span><span class="p">,</span><span class="n">QtCore</span><span class="o">.</span><span class="n">SIGNAL</span><span class="p">(</span><span class="s2">&quot;rejected()&quot;</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">reject</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseBuilderDialog.generatePressed"><a class="viewcode-back" href="../../../api/PyFoam.Applications.APoMaFoXiiQt.html#PyFoam.Applications.APoMaFoXiiQt.CaseBuilderDialog.generatePressed">[docs]</a>    <span class="k">def</span> <span class="nf">generatePressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="s2">&quot;Pressed generate&quot;</span><span class="p">)</span>
+        <span class="n">ok</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="n">caseName</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">caseName</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">caseName</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="s2">&quot;Casename empty&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">caseName</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="s2">&quot;Directory &quot;</span><span class="o">+</span><span class="n">caseName</span><span class="o">+</span><span class="s2">&quot; already existing&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="s2">&quot;Generating the case &quot;</span><span class="o">+</span><span class="n">caseName</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">arguments</span><span class="p">()):</span>
+            <span class="n">args</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">argfields</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">a</span><span class="p">])</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="s2">&quot;No argument &quot;</span><span class="o">+</span><span class="n">a</span><span class="o">+</span><span class="s2">&quot; was given&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+
+        <span class="n">msg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">verifyArguments</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">msg</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="s2">&quot;With the arguments &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="o">.</span><span class="n">buildCase</span><span class="p">(</span><span class="n">caseName</span><span class="p">,</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">ok</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">if</span> <span class="n">ok</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">noClose</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="s2">&quot;Generated &quot;</span><span class="o">+</span><span class="n">caseName</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

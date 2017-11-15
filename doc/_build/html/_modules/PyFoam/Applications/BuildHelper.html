@@ -1,0 +1,428 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.BuildHelper &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.BuildHelper</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.BuildHelper</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application class that implements pyFoamBuildHelper</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.GeneralVCSInterface</span> <span class="kn">import</span> <span class="n">whichVCS</span><span class="p">,</span><span class="n">getVCS</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">FatalErrorPyFoamException</span>
+
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">environ</span><span class="p">,</span><span class="n">path</span>
+<span class="kn">from</span> <span class="nn">platform</span> <span class="kn">import</span> <span class="n">uname</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span><span class="nn">subprocess</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<div class="viewcode-block" id="BuildHelper"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BuildHelper.html#PyFoam.Applications.BuildHelper.BuildHelper">[docs]</a><span class="k">class</span> <span class="nc">BuildHelper</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="BuildHelper.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BuildHelper.html#PyFoam.Applications.BuildHelper.BuildHelper.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">This application helps with updating a</span>
+<span class="s2">project and the projects it depends on. A phase (or a desired output)</span>
+<span class="s2">has to be specified with an options.</span>
+
+<span class="s2">If no arguments are given then it assumes that the current directory</span>
+<span class="s2">is the root directory of the project to be compiled and that the only</span>
+<span class="s2">project it depends on is the OpenFOAM-installation (as found in the</span>
+<span class="s2">WM_PROJECT_DIR-environment variable). Arguments are assumed to be</span>
+<span class="s2">other projects that are injected between these two</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                   <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] &lt;directories&gt; [arguments]&quot;</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BuildHelper.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BuildHelper.html#PyFoam.Applications.BuildHelper.BuildHelper.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">projects</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                             <span class="s2">&quot;Projects&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;Which projects should be automatically considered&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">projects</span><span class="p">)</span>
+
+        <span class="n">projects</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-openfoam&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;openfoam&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not consider the OpenFOAM-directory&quot;</span><span class="p">)</span>
+        <span class="n">projects</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-current-directory&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;currentDir&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not consider the current directory&quot;</span><span class="p">)</span>
+
+        <span class="n">phases</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                             <span class="s2">&quot;Action&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;What to do&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span>
+
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--info&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;actions&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append_const&quot;</span><span class="p">,</span>
+                          <span class="n">const</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Only print the informations gathered&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--name-of-the-build&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;actions&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append_const&quot;</span><span class="p">,</span>
+                          <span class="n">const</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The unique name of the build to identify it in testing environments&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--update&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;actions&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append_const&quot;</span><span class="p">,</span>
+                          <span class="n">const</span><span class="o">=</span><span class="s2">&quot;update&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Update the sources in all directories from their servers&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--build&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;actions&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append_const&quot;</span><span class="p">,</span>
+                          <span class="n">const</span><span class="o">=</span><span class="s2">&quot;build&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Build all projects in the correct order&quot;</span><span class="p">)</span>
+
+        <span class="n">parameters</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                             <span class="s2">&quot;Parameters&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;Additional parameters&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="n">parameters</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--timeout&quot;</span><span class="p">,</span>
+                              <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;timeout&quot;</span><span class="p">,</span>
+                              <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                              <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                              <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Default timeout (in seconds) for the update from the repositories. If none specified the default of the VCS in question is used. Only applicable if the VCS supports it&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BuildHelper.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BuildHelper.html#PyFoam.Applications.BuildHelper.BuildHelper.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">actions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No action defined&quot;</span><span class="p">)</span>
+
+        <span class="n">dirs</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">openfoam</span> <span class="ow">and</span> <span class="s2">&quot;WM_PROJECT_DIR&quot;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+            <span class="n">dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_PROJECT_DIR&quot;</span><span class="p">])</span>
+        <span class="n">dirs</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">currentDir</span><span class="p">:</span>
+            <span class="n">dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">curdir</span><span class="p">)</span>
+
+        <span class="n">fullDirs</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+                <span class="n">fullDirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+
+        <span class="n">info</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">fullDirs</span><span class="p">,[{}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fullDirs</span><span class="p">))])))</span>
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">fullDirs</span><span class="p">:</span>
+            <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;writable&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">os</span><span class="o">.</span><span class="n">W_OK</span><span class="p">)</span>
+
+            <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;isFoam&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="n">d</span><span class="o">==</span><span class="n">fullDirs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">openfoam</span><span class="p">)</span>
+
+            <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;vcs&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">whichVCS</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="s2">&quot;Allwmake&quot;</span><span class="p">)):</span>
+                <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;make&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;Allwmake&quot;</span>
+            <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="s2">&quot;Makefile&quot;</span><span class="p">)):</span>
+                <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;make&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;make&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;make&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;wmake&quot;</span>
+
+            <span class="k">if</span> <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;vcs&quot;</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;branch&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">vcs</span><span class="o">=</span><span class="n">getVCS</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;vcs&quot;</span><span class="p">],</span>
+                           <span class="n">d</span><span class="p">,</span>
+                           <span class="n">tolerant</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">vcs</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;branch&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">vcs</span><span class="o">.</span><span class="n">branchName</span><span class="p">()</span>
+                    <span class="k">except</span> <span class="n">FatalErrorPyFoamException</span><span class="p">:</span>
+                        <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;branch&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;notImplemented&quot;</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;revision&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">vcs</span><span class="o">.</span><span class="n">getRevision</span><span class="p">()</span>
+                    <span class="k">except</span> <span class="n">FatalErrorPyFoamException</span><span class="p">:</span>
+                        <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;revision&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;notImplemented&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;branch&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;noVCS&quot;</span>
+                    <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;revision&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;noVCS&quot;</span>
+
+        <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">actions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">action</span><span class="o">==</span><span class="s2">&quot;info&quot;</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Project directories:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fullDirs</span><span class="p">):</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%2d</span><span class="s2">.  </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">d</span><span class="p">))</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;    &quot;</span><span class="p">,</span><span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">])</span>
+                    <span class="n">print_</span><span class="p">()</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">({</span><span class="s1">&#39;order&#39;</span> <span class="p">:</span> <span class="n">fullDirs</span><span class="p">,</span>
+                              <span class="s1">&#39;info&#39;</span>  <span class="p">:</span> <span class="n">info</span><span class="p">})</span>
+            <span class="k">elif</span> <span class="n">action</span><span class="o">==</span><span class="s2">&quot;name&quot;</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">openfoam</span><span class="p">:</span>
+                    <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_PROJECT&quot;</span><span class="p">],</span>
+                                              <span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_PROJECT_VERSION&quot;</span><span class="p">],</span>
+                                              <span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_ARCH&quot;</span><span class="p">],</span>
+                                              <span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_OPTIONS&quot;</span><span class="p">],</span>
+                                              <span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_MPLIB&quot;</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">uname</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                                     <span class="n">uname</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">name</span> <span class="o">+=</span> <span class="s2">&quot;_branch-</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">info</span><span class="p">[</span><span class="n">fullDirs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]][</span><span class="s2">&quot;branch&quot;</span><span class="p">]</span>
+
+                <span class="n">print_</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">({</span><span class="s1">&#39;name&#39;</span>   <span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                              <span class="s1">&#39;info&#39;</span>   <span class="p">:</span> <span class="n">info</span><span class="p">,</span>
+                              <span class="s1">&#39;order&#39;</span>  <span class="p">:</span> <span class="n">fullDirs</span><span class="p">})</span>
+            <span class="k">elif</span> <span class="n">action</span><span class="o">==</span><span class="s2">&quot;update&quot;</span><span class="p">:</span>
+                <span class="n">success</span><span class="o">=</span><span class="bp">True</span>
+                <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">fullDirs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;writable&quot;</span><span class="p">]:</span>
+                        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Attempting to update&quot;</span><span class="p">,</span><span class="n">d</span><span class="p">)</span>
+                        <span class="n">print_</span><span class="p">()</span>
+                        <span class="n">vcs</span><span class="o">=</span><span class="n">getVCS</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;vcs&quot;</span><span class="p">],</span>
+                                   <span class="n">d</span><span class="p">,</span>
+                                   <span class="n">tolerant</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">vcs</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="n">vcs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">timeout</span><span class="p">):</span>
+                                    <span class="n">success</span><span class="o">=</span><span class="bp">False</span>
+                            <span class="k">except</span> <span class="n">FatalErrorPyFoamException</span><span class="p">:</span>
+                                <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Problem:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+                                <span class="n">success</span><span class="o">=</span><span class="bp">False</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Not under version control ... skipping&quot;</span><span class="p">)</span>
+                            <span class="n">success</span><span class="o">=</span><span class="bp">False</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">print_</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="s2">&quot;not writable .... skipping update&quot;</span><span class="p">)</span>
+
+                    <span class="n">print_</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem during updating&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">action</span><span class="o">==</span><span class="s2">&quot;build&quot;</span><span class="p">:</span>
+                <span class="n">success</span><span class="o">=</span><span class="bp">True</span>
+                <span class="n">oldDir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+
+                <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">fullDirs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;writable&quot;</span><span class="p">]:</span>
+                        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Attempting to build&quot;</span><span class="p">,</span><span class="n">d</span><span class="p">)</span>
+                        <span class="n">print_</span><span class="p">()</span>
+                        <span class="n">makeCommand</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;make&quot;</span>    <span class="p">:[</span><span class="s2">&quot;make&quot;</span><span class="p">],</span>
+                                     <span class="s2">&quot;wmake&quot;</span>   <span class="p">:[</span><span class="s2">&quot;wmake&quot;</span><span class="p">],</span>
+                                     <span class="s2">&quot;Allwmake&quot;</span><span class="p">:[</span><span class="s2">&quot;./Allwmake&quot;</span><span class="p">]}[</span><span class="n">info</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="s2">&quot;make&quot;</span><span class="p">]]</span>
+
+                        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Changing to&quot;</span><span class="p">,</span><span class="n">d</span><span class="p">,</span><span class="s2">&quot;and executing&quot;</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">makeCommand</span><span class="p">))</span>
+                        <span class="n">print_</span><span class="p">()</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+                        <span class="n">erg</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">makeCommand</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">erg</span><span class="p">:</span>
+                            <span class="n">print_</span><span class="p">()</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Result of build command:&quot;</span><span class="p">,</span><span class="n">erg</span><span class="p">)</span>
+                            <span class="n">success</span><span class="o">=</span><span class="bp">False</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">print_</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="s2">&quot;not writable .... skipping build&quot;</span><span class="p">)</span>
+
+                    <span class="n">print_</span><span class="p">()</span>
+
+                <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">oldDir</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem during building&quot;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unimplemented action&quot;</span><span class="p">,</span><span class="n">action</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,428 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.IPythonHelpers.PermanentStorage &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam.IPythonHelpers" href="../IPythonHelpers.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="../IPythonHelpers.html">PyFoam.IPythonHelpers</a> &raquo;</li>
+      
+    <li>PyFoam.IPythonHelpers.PermanentStorage</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.IPythonHelpers.PermanentStorage</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;PermanentStorage</span>
+
+<span class="sd">Store data permanently in the metadata of a notebook</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Javascript</span><span class="p">,</span><span class="n">display</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span> <span class="k">as</span> <span class="n">pickle</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">from</span> <span class="nn">IPython.utils.py3compat</span> <span class="kn">import</span> <span class="n">str_to_bytes</span><span class="p">,</span> <span class="n">bytes_to_str</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+<div class="viewcode-block" id="PermanentStorage"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.PermanentStorage.html#PyFoam.IPythonHelpers.PermanentStorage.PermanentStorage">[docs]</a><span class="k">class</span> <span class="nc">PermanentStorage</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Access the stored values in the notebook</span>
+
+<span class="sd">    To make sure that only one object is created (so that multiple objects</span>
+<span class="sd">    can&#39;t interfer) it is created as a singleton. See:</span>
+<span class="sd">    A python singleton: http://code.activestate.com/recipes/52558/&quot;&quot;&quot;</span>
+
+    <span class="c1"># Value we get from the dark side (Javascript). Technically a global variable. But we&#39;re dealing with JavaScript here&#39;</span>
+    <span class="n">_data</span><span class="o">=</span><span class="p">{}</span>
+    <span class="c1"># this is so ugly. But I don&#39;t know a better way</span>
+
+    <span class="k">class</span> <span class="nc">__permanentStorage</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Actual implementation of the storage &quot;&quot;&quot;</span>
+
+        <span class="n">__storePath</span><span class="o">=</span><span class="s2">&quot;IPython.notebook.metadata.pyFoam.storedData&quot;</span>
+
+        <span class="n">__outputHandle</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    function handle_output(out){</span>
+<span class="s2">        console.log(out);</span>
+<span class="s2">        var res = null;</span>
+<span class="s2">         // if output is a print statement</span>
+<span class="s2">        if(out.msg_type == &quot;stream&quot;){</span>
+<span class="s2">            res = out.content.data;</span>
+<span class="s2">        }</span>
+<span class="s2">        // if output is a python object</span>
+<span class="s2">        else if(out.msg_type === &quot;pyout&quot;){</span>
+<span class="s2">            res = out.content.data[&quot;text/plain&quot;];</span>
+<span class="s2">        }</span>
+<span class="s2">        // if output is a python error</span>
+<span class="s2">        else if(out.msg_type == &quot;pyerr&quot;){</span>
+<span class="s2">            res = out.content.ename + &quot;: &quot; + out.content.evalue;</span>
+<span class="s2">        }</span>
+<span class="s2">        // if output is something we haven&#39;t thought of</span>
+<span class="s2">        else{</span>
+<span class="s2">            res = &quot;[out type not implemented]&quot;;</span>
+<span class="s2">        }</span>
+<span class="s2">        console.log(res);</span>
+<span class="s2">    }</span>
+<span class="s2">    var callbacks =  {&#39;iopub&#39; : {&#39;output&#39; : handle_output}};</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Make sure that there is a subdictionary in the notebook-metadata&quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__autowrite</span><span class="o">=</span><span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__autoread</span><span class="o">=</span><span class="bp">True</span>
+            <span class="n">display</span><span class="p">(</span><span class="n">Javascript</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__outputHandle</span><span class="o">+</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">function ensurePyFoamStorage() {</span>
+<span class="s2">  if (typeof IPython ==&quot;undefined&quot;) {</span>
+<span class="s2">      alert(&quot;Trying to use PyFoam.IPythonHelpers.PermanentStorage outside of IPython&quot;);</span>
+<span class="s2">      return;</span>
+<span class="s2">  } else if(IPython.notebook==undefined) {</span>
+<span class="s2">      alert(&quot;Trying to use PyFoam.IPythonHelpers.PermanentStorage outside of an IPython-notebook&quot;);</span>
+<span class="s2">      return;</span>
+<span class="s2">  } else if(IPython.notebook.metadata.pyFoam==undefined) {</span>
+<span class="s2">      IPython.notebook.metadata.pyFoam=Object();</span>
+<span class="s2">      console.log(&quot;IPython.notebook.metadata.pyFoam created&quot;);</span>
+<span class="s2">  } else {</span>
+<span class="s2">      console.log(&quot;IPython.notebook.metadata.pyFoam found&quot;);</span>
+<span class="s2">  }</span>
+<span class="s2">  if(IPython.notebook.metadata.pyFoam.storedData==undefined) {</span>
+<span class="s2">      IPython.notebook.metadata.pyFoam.storedData=Object();</span>
+<span class="s2">      console.log(&quot;IPython.notebook.metadata.pyFoam.storedData created&quot;);</span>
+<span class="s2">  } else {</span>
+<span class="s2">      console.log(&quot;IPython.notebook.metadata.pyFoam.storedData found&quot;);</span>
+<span class="s2">  }</span>
+
+<span class="s2">  var store=IPython.notebook.metadata.pyFoam.storedData;</span>
+<span class="s2">  var expr=&quot;from PyFoam.IPythonHelpers.PermanentStorage import PermanentStorage as perm</span><span class="se">\\</span><span class="s2">nperm._data={}&quot;;</span>
+<span class="s2">  status=&quot;Starting transfer&quot;;</span>
+<span class="s2">  var kernel=IPython.notebook.kernel;</span>
+<span class="s2">  kernel.execute(expr, callbacks, {silent:false});</span>
+<span class="s2">  for(var k in store) {</span>
+<span class="s2">      var totalLen=store[k].length;</span>
+<span class="s2">      console.log(&quot;Found stored &quot;+k+&quot; Length: &quot;+totalLen);</span>
+<span class="s2">//      expr+=&quot;&#39;&quot;+k+&quot;&#39; : &#39;&quot;+store[k]+&quot;&#39; ,&quot;;</span>
+<span class="s2">      var chunk=400; // seems to be the best compromise</span>
+<span class="s2">      var nChunks=(totalLen/chunk|0)+1;</span>
+<span class="s2">      for(var i=0;i&lt;nChunks;i++) {</span>
+<span class="s2">          status=&quot;chunk &quot;+(i+1)+&quot; of &quot;+nChunks+&quot; of &quot;+k;</span>
+<span class="s2">          var value = store[k].substring(i*chunk,(i+1)*chunk);</span>
+<span class="s2">          var command =&quot;perm._data[&#39;&quot;+k+&quot;&#39;]&quot;;</span>
+<span class="s2">          if(i&gt;0) {</span>
+<span class="s2">            command+=&quot;+=&quot;;</span>
+<span class="s2">          } else {</span>
+<span class="s2">            command+=&quot;=&quot;;</span>
+<span class="s2">          }</span>
+<span class="s2">          command += &quot;&#39;&quot;+value+&quot;&#39;&quot;;</span>
+<span class="s2">          kernel.execute(command);</span>
+<span class="s2">      }</span>
+<span class="s2">  }</span>
+<span class="s2">  status=&quot;Starting transfer (this can take some time)&quot;;</span>
+<span class="s2">  console.log(&quot;Execution of python done&quot;);</span>
+<span class="s2">}</span>
+<span class="s2">ensurePyFoamStorage();</span>
+<span class="s2">                       &quot;&quot;&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__displayModes</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">attr</span><span class="p">):</span>
+             <span class="k">try</span><span class="p">:</span>
+                  <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span>
+                       <span class="n">bytes_to_str</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">str_to_bytes</span><span class="p">(</span>
+                            <span class="n">PermanentStorage</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">attr</span><span class="p">]))))</span>
+             <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                  <span class="k">return</span> <span class="s2">&quot;TypeError: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">attr</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Set property in the metadata&quot;&quot;&quot;</span>
+            <span class="n">pick</span><span class="o">=</span><span class="n">bytes_to_str</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">str_to_bytes</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">))))</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">attr</span>
+            <span class="n">PermanentStorage</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span><span class="o">=</span><span class="n">pick</span>
+            <span class="n">display</span><span class="p">(</span><span class="n">Javascript</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">[&quot;</span><span class="si">%s</span><span class="s1">&quot;]=&quot;</span><span class="si">%s</span><span class="s1">&quot;;console.log(&quot;Setting </span><span class="si">%s</span><span class="s1">&quot;);&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__storePath</span><span class="p">,</span>
+                                                 <span class="n">name</span><span class="p">,</span>
+                                                 <span class="n">pick</span><span class="p">,</span>
+                                                 <span class="n">name</span><span class="p">)));</span>
+
+        <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">attr</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Remove the property from the metadata&quot;&quot;&quot;</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">attr</span>
+            <span class="k">del</span> <span class="n">PermanentStorage</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span>
+            <span class="n">display</span><span class="p">(</span><span class="n">Javascript</span><span class="p">(</span><span class="s1">&#39;delete </span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">;console.log(&quot;Deleting </span><span class="si">%s</span><span class="s1">&quot;);&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__storePath</span><span class="p">,</span>
+                                                  <span class="n">name</span><span class="p">,</span><span class="n">name</span><span class="p">)));</span>
+
+        <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+             <span class="k">return</span> <span class="n">PermanentStorage</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">__iter__</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">iterkeys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+             <span class="k">return</span> <span class="n">PermanentStorage</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+             <span class="k">return</span> <span class="n">PermanentStorage</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+             <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">PermanentStorage</span><span class="o">.</span><span class="n">_data</span>
+
+        <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">call</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Get value or evaluate it.</span>
+<span class="sd">            :param name: name of the item to get/set</span>
+<span class="sd">            :param f: function to evaluate if the item is not present. If</span>
+<span class="sd">            item is not callable (strings for instance) it is set &#39;as-is&#39;</span>
+<span class="sd">            :param call: Use f() if possible (otherwise f)&quot;&quot;&quot;</span>
+            <span class="n">val</span><span class="o">=</span><span class="bp">None</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__autoread</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">val</span><span class="o">=</span><span class="bp">None</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="s1">&#39;__call__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">call</span><span class="p">:</span>
+                    <span class="n">val</span><span class="o">=</span><span class="n">f</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">val</span><span class="o">=</span><span class="n">f</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__autowrite</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">val</span>
+            <span class="k">return</span> <span class="n">val</span>
+
+        <span class="k">def</span> <span class="nf">__displayModes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Storage status: Autowrite: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__autowrite</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; Autoread: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__autoread</span><span class="p">)</span>
+            <span class="n">display</span><span class="p">(</span><span class="n">Javascript</span><span class="p">(</span><span class="s1">&#39;status=&quot;&#39;</span><span class="o">+</span><span class="n">msg</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span><span class="p">))</span>
+
+        <span class="k">def</span> <span class="nf">autowriteOn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;The ()-operator should automatically set the value in the metadata&quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__autowrite</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__displayModes</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">autowriteOff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;The ()-operator should not automatically set the value in the metadata&quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__autowrite</span><span class="o">=</span><span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__displayModes</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">autoreadOn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;The ()-operator should automatically get the value from the metadata&quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__autoread</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__displayModes</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">autoreadOff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;The ()-operator should not automatically get the value from the metadata&quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__autoread</span><span class="o">=</span><span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__displayModes</span><span class="p">()</span>
+
+    <span class="c1"># storage for the instance reference</span>
+    <span class="n">__instance</span> <span class="o">=</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="PermanentStorage.__init__"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.PermanentStorage.html#PyFoam.IPythonHelpers.PermanentStorage.PermanentStorage.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create the singleon &quot;&quot;&quot;</span>
+        <span class="c1"># Check whether we already have an instance</span>
+        <span class="k">if</span> <span class="n">PermanentStorage</span><span class="o">.</span><span class="n">__instance</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c1"># Create and remember instance</span>
+            <span class="n">PermanentStorage</span><span class="o">.</span><span class="n">__instance</span> <span class="o">=</span> <span class="n">PermanentStorage</span><span class="o">.</span><span class="n">__permanentStorage</span><span class="p">()</span>
+
+        <span class="c1"># Store instance reference as the only member in the handle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s1">&#39;_PermanentStorage__instance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">PermanentStorage</span><span class="o">.</span><span class="n">__instance</span></div>
+
+<div class="viewcode-block" id="PermanentStorage.__getattr__"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.PermanentStorage.html#PyFoam.IPythonHelpers.PermanentStorage.PermanentStorage.__getattr__">[docs]</a>    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Delegate access to implementation &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__instance</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PermanentStorage.__setattr__"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.PermanentStorage.html#PyFoam.IPythonHelpers.PermanentStorage.PermanentStorage.__setattr__">[docs]</a>    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Delegate access to implementation &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__instance</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PermanentStorage.__getitem__"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.PermanentStorage.html#PyFoam.IPythonHelpers.PermanentStorage.PermanentStorage.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get property from the metadata&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__instance</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PermanentStorage.__delitem__"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.PermanentStorage.html#PyFoam.IPythonHelpers.PermanentStorage.PermanentStorage.__delitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete property from the metadata&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__instance</span><span class="o">.</span><span class="n">__delitem__</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PermanentStorage.__iter__"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.PermanentStorage.html#PyFoam.IPythonHelpers.PermanentStorage.PermanentStorage.__iter__">[docs]</a>    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Iterate over properties of the metadata&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__instance</span><span class="o">.</span><span class="n">__iter__</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PermanentStorage.__contains__"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.PermanentStorage.html#PyFoam.IPythonHelpers.PermanentStorage.PermanentStorage.__contains__">[docs]</a>    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Is property in the metadata&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__instance</span><span class="o">.</span><span class="n">__contains__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PermanentStorage.__setitem__"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.PermanentStorage.html#PyFoam.IPythonHelpers.PermanentStorage.PermanentStorage.__setitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">attr</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set property in the metadata&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__instance</span><span class="o">.</span><span class="n">__setitem__</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span><span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PermanentStorage.__call__"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.PermanentStorage.html#PyFoam.IPythonHelpers.PermanentStorage.PermanentStorage.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">call</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__instance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">call</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

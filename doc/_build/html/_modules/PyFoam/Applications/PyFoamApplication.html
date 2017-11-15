@@ -1,0 +1,880 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.PyFoamApplication &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.PyFoamApplication</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.PyFoamApplication</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Base class for pyFoam-applications</span>
+
+<span class="sd">Classes can also be called with a command-line string&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.FoamOptionParser</span> <span class="kn">import</span> <span class="n">FoamOptionParser</span><span class="p">,</span><span class="n">SubcommandFoamOptionParser</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span><span class="p">,</span><span class="n">FatalErrorPyFoamException</span><span class="p">,</span><span class="n">PyFoamException</span><span class="p">,</span><span class="n">isatty</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span> <span class="kn">import</span> <span class="n">NoTouchSolutionDirectory</span>
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">ensureDynamicLibraries</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.TerminalFormatter</span> <span class="kn">import</span> <span class="n">TerminalFormatter</span>
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span>
+
+<span class="n">format</span><span class="o">=</span><span class="n">TerminalFormatter</span><span class="p">()</span>
+<span class="n">format</span><span class="o">.</span><span class="n">getConfigFormat</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">)</span>
+<span class="n">format</span><span class="o">.</span><span class="n">getConfigFormat</span><span class="p">(</span><span class="s2">&quot;warn&quot;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">getcwd</span><span class="p">,</span><span class="n">environ</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">iteritems</span><span class="p">,</span><span class="n">string_types</span>
+
+<div class="viewcode-block" id="PyFoamApplicationException"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplicationException">[docs]</a><span class="k">class</span> <span class="nc">PyFoamApplicationException</span><span class="p">(</span><span class="n">FatalErrorPyFoamException</span><span class="p">):</span>
+<div class="viewcode-block" id="PyFoamApplicationException.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplicationException.__init__">[docs]</a>     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">app</span><span class="p">,</span><span class="o">*</span><span class="n">text</span><span class="p">):</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">=</span><span class="n">app</span>
+          <span class="n">FatalErrorPyFoamException</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">text</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PyFoamApplicationException.__str__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplicationException.__str__">[docs]</a>     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+          <span class="k">return</span> <span class="n">FatalErrorPyFoamException</span><span class="o">.</span><span class="n">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; in Application-class: &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span></div></div>
+
+
+<div class="viewcode-block" id="pyFoamExceptionHook"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.pyFoamExceptionHook">[docs]</a><span class="k">def</span> <span class="nf">pyFoamExceptionHook</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="n">tb</span><span class="p">,</span><span class="n">debugOnSyntaxError</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="p">,</span><span class="s1">&#39;ps1&#39;</span><span class="p">):</span>
+        <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Interactive mode. No debugger&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">__excepthook__</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="n">tb</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="p">(</span><span class="n">isatty</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span> <span class="ow">and</span> <span class="n">isatty</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="p">)</span> <span class="ow">and</span> <span class="n">isatty</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;pvpython&quot;</span><span class="p">]):</span>
+        <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Not on a terminal. No debugger&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">__excepthook__</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="n">tb</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span><span class="ne">SyntaxError</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">debugOnSyntaxError</span><span class="p">:</span>
+        <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Syntax error. No debugger&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">__excepthook__</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="n">tb</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">traceback</span>
+        <span class="k">try</span><span class="p">:</span>
+             <span class="kn">import</span> <span class="nn">ipdb</span> <span class="kn">as</span> <span class="nn">pdb</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+             <span class="kn">import</span> <span class="nn">pdb</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+             <span class="c1"># ipdb doesn&#39;t work in pvpython</span>
+             <span class="kn">import</span> <span class="nn">pdb</span>
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exception</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="n">tb</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">()</span>
+        <span class="n">pdb</span><span class="o">.</span><span class="n">pm</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="pyFoamSIG1HandlerPrintStack"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.pyFoamSIG1HandlerPrintStack">[docs]</a><span class="k">def</span> <span class="nf">pyFoamSIG1HandlerPrintStack</span><span class="p">(</span><span class="n">nr</span><span class="p">,</span><span class="n">frame</span><span class="p">):</span>
+     <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Signal Nr&quot;</span><span class="p">,</span><span class="n">nr</span><span class="p">,</span><span class="s2">&quot;sent&quot;</span><span class="p">)</span>
+     <span class="k">raise</span> <span class="n">FatalErrorPyFoamException</span><span class="p">(</span><span class="s2">&quot;Signal nr&quot;</span><span class="p">,</span><span class="n">nr</span><span class="p">,</span><span class="s2">&quot;sent&quot;</span><span class="p">)</span></div>
+
+<span class="n">_LocalConfigurationFile</span><span class="o">=</span><span class="bp">None</span>
+
+<div class="viewcode-block" id="PyFoamApplication"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication">[docs]</a><span class="k">class</span> <span class="nc">PyFoamApplication</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class is the base for all pyFoam-utilities&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="PyFoamApplication.iDict"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.iDict">[docs]</a>    <span class="k">class</span> <span class="nc">iDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+         <span class="s2">&quot;This class is a quick and dirty wrapper to use a dictionary like a struct&quot;</span>
+<div class="viewcode-block" id="PyFoamApplication.iDict.__getattr__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.iDict.__getattr__">[docs]</a>         <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+              <span class="k">try</span><span class="p">:</span>
+                   <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+              <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                   <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="PyFoamApplication.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">description</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">epilog</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">examples</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">usage</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">interspersed</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">nr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">changeVersion</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">exactNr</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">subcommands</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">inputApp</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">localConfigurationFile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">findLocalConfigurationFile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwArgs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param description: description of the command</span>
+<span class="sd">        :param epilog: text to be printed after the options-help</span>
+<span class="sd">        :param examples: usage examples to be printed after the epilog</span>
+<span class="sd">        :param usage: Usage</span>
+<span class="sd">        :param interspersed: Is the command line allowed to be interspersed (options after the arguments)</span>
+<span class="sd">        :param args: Command line arguments when using the Application as a &#39;class&#39; from a script</span>
+<span class="sd">        :param nr: Number of required arguments</span>
+<span class="sd">        :param changeVersion: May this application change the version of OF used?</span>
+<span class="sd">        :param exactNr: Must not have more than the required number of arguments</span>
+<span class="sd">        :param subcommands: parse and use subcommands from the command line. Either True or a list with subcommands</span>
+<span class="sd">        :param inputApp: Application with input data. Used to allow a &#39;pipe-like&#39; behaviour if the class is used from a Script</span>
+<span class="sd">        :param localConfigurationFile: Use this file (or list of files) as a local configuration</span>
+<span class="sd">        :param findLocalConfigurationFile: Method to find a configuration file BEFORE the actual parameters are parsed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">global</span> <span class="n">_LocalConfigurationFile</span>
+
+        <span class="k">if</span> <span class="n">_LocalConfigurationFile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+             <span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">addFile</span><span class="p">(</span><span class="n">_LocalConfigurationFile</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">localConfigurationFile</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+             <span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">addFile</span><span class="p">(</span><span class="n">localConfigurationFile</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">localConfigurationFile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+             <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">localConfigurationFile</span><span class="p">:</span>
+                  <span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">addFile</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">subcommands</span><span class="p">:</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">subs</span><span class="o">=</span><span class="bp">True</span>
+             <span class="k">if</span> <span class="n">interspersed</span><span class="p">:</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Subcommand parser does not work with &#39;interspersed&#39;&quot;</span><span class="p">)</span>
+             <span class="k">if</span> <span class="n">subcommands</span><span class="o">==</span><span class="bp">True</span><span class="p">:</span>
+                  <span class="n">subcommands</span><span class="o">=</span><span class="p">[]</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">=</span><span class="n">SubcommandFoamOptionParser</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                                    <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                                    <span class="n">epilog</span><span class="o">=</span><span class="n">epilog</span><span class="p">,</span>
+                                                    <span class="n">examples</span><span class="o">=</span><span class="n">examples</span><span class="p">,</span>
+                                                    <span class="n">usage</span><span class="o">=</span><span class="n">usage</span><span class="p">,</span>
+                                                    <span class="n">subcommands</span><span class="o">=</span><span class="n">subcommands</span><span class="p">)</span>
+             <span class="n">nr</span><span class="o">=</span><span class="bp">None</span>
+             <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">subs</span><span class="o">=</span><span class="bp">False</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">=</span><span class="n">FoamOptionParser</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                          <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                          <span class="n">epilog</span><span class="o">=</span><span class="n">epilog</span><span class="p">,</span>
+                                          <span class="n">examples</span><span class="o">=</span><span class="n">examples</span><span class="p">,</span>
+                                          <span class="n">usage</span><span class="o">=</span><span class="n">usage</span><span class="p">,</span>
+                                          <span class="n">interspersed</span><span class="o">=</span><span class="n">interspersed</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">calledName</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calledAsClass</span><span class="o">=</span><span class="p">(</span><span class="n">args</span><span class="o">!=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">calledAsClass</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calledName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="o">+</span><span class="s2">&quot; used by &quot;</span><span class="o">+</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">prog</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">calledName</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">_LocalConfigurationFile</span> <span class="ow">and</span> <span class="n">findLocalConfigurationFile</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
+                <span class="n">usedArgs</span><span class="o">=</span><span class="n">args</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">usedArgs</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="n">_LocalConfigurationFile</span><span class="o">=</span><span class="n">findLocalConfigurationFile</span><span class="p">(</span><span class="n">usedArgs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">_LocalConfigurationFile</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">_LocalConfigurationFile</span><span class="p">):</span>
+                <span class="c1"># Fix functions that do not check for the existence</span>
+                <span class="n">_LocalConfigurationFile</span><span class="o">=</span><span class="bp">None</span>
+            <span class="k">if</span> <span class="n">_LocalConfigurationFile</span><span class="p">:</span>
+                 <span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">addFile</span><span class="p">(</span><span class="n">_LocalConfigurationFile</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">generalOpts</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">iDict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">inputApp</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="p">[</span><span class="s2">&quot;inputData&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">inputApp</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span>
+
+        <span class="n">grp</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                        <span class="s2">&quot;Default&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;Options common to all PyFoam-applications&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">changeVersion</span><span class="p">:</span>
+            <span class="c1"># the options are evaluated in Basics.FoamOptionParser</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--foamVersion&quot;</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;foamVersion&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Change the OpenFOAM-version that is to be used. To get a list of know Foam-versions use the pyFoamVersion.py-utility&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;WM_PROJECT_VERSION&quot;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+                <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--currentFoamVersion&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;foamVersion&quot;</span><span class="p">,</span>
+                               <span class="n">const</span><span class="o">=</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_PROJECT_VERSION&quot;</span><span class="p">],</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_const&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use the current OpenFOAM-version &quot;</span><span class="o">+</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WM_PROJECT_VERSION&quot;</span><span class="p">])</span>
+
+            <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--force-32bit&quot;</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;force32&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Forces the usage of a 32-bit-version if that version exists as 32 and 64 bit. Only used when --foamVersion is used&quot;</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--force-64bit&quot;</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;force64&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Forces the usage of a 64-bit-version if that version exists as 32 and 64 bit. Only used when --foamVersion is used&quot;</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--force-debug&quot;</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;compileOption&quot;</span><span class="p">,</span>
+                           <span class="n">const</span><span class="o">=</span><span class="s2">&quot;Debug&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_const&quot;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Forces the value Debug for the WM_COMPILE_OPTION. Only used when --foamVersion is used&quot;</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--force-opt&quot;</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;compileOption&quot;</span><span class="p">,</span>
+                           <span class="n">const</span><span class="o">=</span><span class="s2">&quot;Opt&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_const&quot;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Forces the value Opt for the WM_COMPILE_OPTION. Only used when --foamVersion is used&quot;</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--force-system-compiler&quot;</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;foamCompiler&quot;</span><span class="p">,</span>
+                           <span class="n">const</span><span class="o">=</span><span class="s2">&quot;system&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_const&quot;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Force using a &#39;system&#39; compiler (compiler installed in the system)&quot;</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--force-openfoam-compiler&quot;</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;foamCompiler&quot;</span><span class="p">,</span>
+                           <span class="n">const</span><span class="o">=</span><span class="s2">&quot;OpenFOAM&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_const&quot;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Force using a &#39;OpenFOAM&#39; compiler (compiler installed in ThirdParty)&quot;</span><span class="p">)</span>
+            <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--force-compiler&quot;</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;wmCompiler&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Overwrite value for WM_COMPILER (for instance Gcc47 ...)&quot;</span><span class="p">)</span>
+
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--psyco-accelerated&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;psyco&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Accelerate the script using the psyco-library (EXPERIMENTAL and requires a separatly installed psyco)&quot;</span><span class="p">)</span>
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--profile-python&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;profilePython&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Profile the python-script (not the OpenFOAM-program) - mostly of use for developers&quot;</span><span class="p">)</span>
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--profile-cpython&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;profileCPython&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Profile the python-script (not the OpenFOAM-program) using the better cProfile library - mostly of use for developers&quot;</span><span class="p">)</span>
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--profile-hotshot&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;profileHotshot&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Profile the python-script using the hotshot-library (not the OpenFOAM-program) - mostly of use for developers - DEPRECATED as this library will by removed from standard python and is no longer supported&quot;</span><span class="p">)</span>
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--profile-line-profiler&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;profileLineProfiler&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Profile the python-script using the line_profiler-library (not the OpenFOAM-program) - mostly of use for developers - EXPERIMENTAL&quot;</span><span class="p">)</span>
+
+        <span class="n">dbg</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                        <span class="s2">&quot;Debugging&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;Options mainly used for debugging PyFoam-Utilities&quot;</span><span class="p">)</span>
+
+        <span class="n">dbg</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--location-of-local-config&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;locationOfLocalConfig&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Prints the location of the found LocalConfigPyFoam-file that is used (if any)&quot;</span><span class="p">)</span>
+        <span class="n">dbg</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--traceback-on-error&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;traceback&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Prints a traceback when an error is encountered (for debugging)&quot;</span><span class="p">)</span>
+        <span class="n">dbg</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--interactive-debugger&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;interactiveDebug&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;In case of an exception start the interactive debugger PDB. Also implies --traceback-on-error&quot;</span><span class="p">)</span>
+        <span class="n">dbg</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--catch-USR1-signal&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;catchUSR1Signal&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If the USR1-signal is sent to the application with &#39;kill -USR1 &lt;pid&gt;&#39; the application ens and prints a traceback. If interactive debugging is enabled then the debugger is entered. Use to investigate hangups&quot;</span><span class="p">)</span>
+        <span class="n">dbg</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--also-catch-TERM-signal&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;alsoCatchTERMsignal&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;In addition to USR1 catch the regular TERM-kill&quot;</span><span class="p">)</span>
+        <span class="n">dbg</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--keyboard-interrupt-trace&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;keyboardInterrupTrace&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Make the application behave like with --catch-USR1-signal if &lt;Ctrl&gt;-C is pressed&quot;</span><span class="p">)</span>
+        <span class="n">dbg</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--syntax-error-debugger&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;syntaxErrorDebugger&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Only makes sense with --interactive-debugger: Do interactive debugging even when a syntax error was encountered&quot;</span><span class="p">)</span>
+        <span class="n">dbg</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--i-am-a-developer&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;developerMode&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Switch on all of the above options. Usually this makes only sense if you&#39;re developing PyFoam&#39;&quot;</span><span class="p">)</span>
+        <span class="n">dbg</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--interactive-after-execution&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;interacticeAfterExecution&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Instead of ending execution drop to an interactive shell (which is IPython if possible)&quot;</span><span class="p">)</span>
+
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--dump-application-data&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;dumpAppData&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print the dictionary with the generated application data after running&quot;</span><span class="p">)</span>
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--pickle-application-data&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;pickleApplicationData&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                       <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Write a pickled version of the application data to a file. If the</span>
+<span class="s2">filename given is &#39;stdout&#39; then the pickled data is written to</span>
+<span class="s2">stdout. The usual standard output is then captured and added to the</span>
+<span class="s2">application data as an entry &#39;stdout&#39; (same for &#39;stderr&#39;). Be careful</span>
+<span class="s2">with these option for commands that generate a lot of output&quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">grp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">dbg</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addOptions</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">nr</span><span class="o">=</span><span class="n">nr</span><span class="p">,</span><span class="n">exactNr</span><span class="o">=</span><span class="n">exactNr</span><span class="p">)</span>
+        <span class="n">ensureDynamicLibraries</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwArgs</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">processKeywordArguments</span><span class="p">(</span><span class="n">kwArgs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">cmdname</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">locationOfLocalConfig</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">_LocalConfigurationFile</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Local configuration found at&quot;</span><span class="p">,</span>
+                      <span class="n">_LocalConfigurationFile</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;No LocalConfigPyFoam-file found&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;WM_PROJECT_VERSION&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+             <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;$WM_PROJECT_VERSION unset. PyFoam will not be able to determine the OpenFOAM-version and behave strangely&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">developerMode</span><span class="p">:</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">syntaxErrorDebugger</span><span class="o">=</span><span class="bp">True</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">keyboardInterrupTrace</span><span class="o">=</span><span class="bp">True</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">alsoCatchTERMsignal</span><span class="o">=</span><span class="bp">True</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">catchUSR1Signal</span><span class="o">=</span><span class="bp">True</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">interactiveDebug</span><span class="o">=</span><span class="bp">True</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">traceback</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">interactiveDebug</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">excepthook</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a1</span><span class="p">,</span><span class="n">a2</span><span class="p">,</span><span class="n">a3</span><span class="p">:</span><span class="n">pyFoamExceptionHook</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span>
+                                                               <span class="n">a2</span><span class="p">,</span>
+                                                               <span class="n">a3</span><span class="p">,</span>
+                                                               <span class="n">debugOnSyntaxError</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">syntaxErrorDebugger</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">traceback</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">catchUSR1Signal</span><span class="p">:</span>
+             <span class="kn">import</span> <span class="nn">signal</span>
+             <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGUSR1</span><span class="p">,</span><span class="n">pyFoamSIG1HandlerPrintStack</span><span class="p">)</span>
+             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">alsoCatchTERMsignal</span><span class="p">:</span>
+                  <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">,</span><span class="n">pyFoamSIG1HandlerPrintStack</span><span class="p">)</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">traceback</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">keyboardInterrupTrace</span><span class="p">:</span>
+             <span class="kn">import</span> <span class="nn">signal</span>
+             <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span><span class="n">pyFoamSIG1HandlerPrintStack</span><span class="p">)</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">traceback</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">psyco</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">psyco</span>
+                <span class="n">psyco</span><span class="o">.</span><span class="n">full</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No psyco installed. Continuing without acceleration&quot;</span><span class="p">)</span>
+        <span class="n">profOptions</span><span class="o">=</span><span class="nb">sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">profilePython</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">profileCPython</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">profileHotshot</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">profileLineProfiler</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">profOptions</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">profOptions</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Only one profiling option can be specified at a time&quot;</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Running profiled&quot;</span><span class="p">)</span>
+            <span class="n">fnAdd</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">profilePython</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">profile</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">profileCPython</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">cProfile</span> <span class="kn">as</span> <span class="nn">profile</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">profileLineProfiler</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">line_profiler</span>
+                <span class="n">profile</span><span class="o">=</span><span class="n">line_profiler</span><span class="o">.</span><span class="n">LineProfiler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">)</span>
+                <span class="kn">import</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span>
+                <span class="n">profile</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">PyFoam</span><span class="o">.</span><span class="n">RunDictionary</span><span class="o">.</span><span class="n">SolutionDirectory</span><span class="p">)</span>
+                <span class="n">fnAdd</span><span class="o">=</span><span class="s2">&quot;.lineProfiler&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">hotshot</span>
+            <span class="n">profileData</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="n">fnAdd</span><span class="o">+</span><span class="s2">&quot;.profile&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">profilePython</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">profileCPython</span><span class="p">:</span>
+                <span class="n">profile</span><span class="o">.</span><span class="n">runctx</span><span class="p">(</span><span class="s1">&#39;self.run()&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">,{</span><span class="s1">&#39;self&#39;</span><span class="p">:</span><span class="bp">self</span><span class="p">},</span><span class="n">profileData</span><span class="p">)</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Reading python profile&quot;</span><span class="p">)</span>
+                <span class="kn">import</span> <span class="nn">pstats</span>
+                <span class="n">stats</span><span class="o">=</span><span class="n">pstats</span><span class="o">.</span><span class="n">Stats</span><span class="p">(</span><span class="n">profileData</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">profileLineProfiler</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">inspect</span>
+                <span class="n">nr</span><span class="o">=</span><span class="n">profile</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getmodule</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Adding&quot;</span><span class="p">,</span><span class="n">nr</span><span class="p">,</span><span class="s2">&quot;functions for line-profiling&quot;</span><span class="p">)</span>
+                <span class="n">profile</span><span class="o">.</span><span class="n">runctx</span><span class="p">(</span><span class="s1">&#39;self.run()&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">,{</span><span class="s1">&#39;self&#39;</span><span class="p">:</span><span class="bp">self</span><span class="p">})</span>
+                <span class="n">profile</span><span class="o">.</span><span class="n">dump_stats</span><span class="p">(</span><span class="n">profileData</span><span class="p">)</span>
+                <span class="n">profile</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">profileData</span><span class="o">+</span><span class="s2">&quot;.printed&quot;</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">))</span>
+                <span class="n">stats</span><span class="o">=</span><span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">profileData</span><span class="o">+=</span><span class="s2">&quot;.hotshot&quot;</span>
+                <span class="n">prof</span><span class="o">=</span><span class="n">hotshot</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span><span class="n">profileData</span><span class="p">)</span>
+                <span class="n">prof</span><span class="o">.</span><span class="n">runctx</span><span class="p">(</span><span class="s1">&#39;self.run()&#39;</span><span class="p">,{},{</span><span class="s1">&#39;self&#39;</span><span class="p">:</span><span class="bp">self</span><span class="p">})</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Writing and reading hotshot profile&quot;</span><span class="p">)</span>
+                <span class="n">prof</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="kn">import</span> <span class="nn">hotshot.stats</span>
+                <span class="n">stats</span><span class="o">=</span><span class="n">hotshot</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">profileData</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">stats</span><span class="p">:</span>
+                <span class="n">stats</span><span class="o">.</span><span class="n">strip_dirs</span><span class="p">()</span>
+                <span class="n">stats</span><span class="o">.</span><span class="n">sort_stats</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span><span class="s1">&#39;calls&#39;</span><span class="p">)</span>
+                <span class="n">stats</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">restoreEnvironment</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pickleApplicationData</span><span class="o">==</span><span class="s2">&quot;stdout&quot;</span><span class="p">:</span>
+                    <span class="c1"># Redirect output to memory</span>
+                    <span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="n">StringIO</span>
+
+                    <span class="n">oldStdout</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+                    <span class="n">oldStderr</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">=</span><span class="n">StringIO</span><span class="p">()</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">=</span><span class="n">StringIO</span><span class="p">()</span>
+
+                <span class="n">result</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+                <span class="c1"># do this at the earliest possible moment</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">restoreEnvironment</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pickleApplicationData</span><span class="o">==</span><span class="s2">&quot;stdout&quot;</span><span class="p">:</span>
+                    <span class="c1"># restore stdout</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="p">[</span><span class="s2">&quot;stdout&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="p">[</span><span class="s2">&quot;stderr&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">=</span><span class="n">oldStdout</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">=</span><span class="n">oldStderr</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pickleApplicationData</span><span class="p">:</span>
+                    <span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span> <span class="k">as</span> <span class="n">pickle</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pickleApplicationData</span><span class="o">==</span><span class="s2">&quot;stdout&quot;</span><span class="p">:</span>
+                        <span class="n">pick</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">Pickler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">pick</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">Pickler</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pickleApplicationData</span><span class="p">,</span><span class="s1">&#39;wb&#39;</span><span class="p">))</span>
+                    <span class="n">pick</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="p">)</span>
+                    <span class="k">del</span> <span class="n">pick</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dumpAppData</span><span class="p">:</span>
+                    <span class="kn">import</span> <span class="nn">pprint</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Application data:&quot;</span><span class="p">)</span>
+                    <span class="n">printer</span><span class="o">=</span><span class="n">pprint</span><span class="o">.</span><span class="n">PrettyPrinter</span><span class="p">()</span>
+                    <span class="n">printer</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">interacticeAfterExecution</span><span class="p">:</span>
+                     <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Dropping to interactive shell ... &quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                     <span class="n">ns</span><span class="o">=</span><span class="p">{}</span>
+                     <span class="n">ns</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">locals</span><span class="p">())</span>
+                     <span class="n">ns</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">globals</span><span class="p">())</span>
+                     <span class="k">try</span><span class="p">:</span>
+                          <span class="kn">import</span> <span class="nn">IPython</span>
+                          <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;found IPython ...&quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                          <span class="k">if</span> <span class="s2">&quot;embed&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">IPython</span><span class="p">):</span>
+                               <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;up-to-date IPython</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                               <span class="n">IPython</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span><span class="n">user_ns</span><span class="o">=</span><span class="n">ns</span><span class="p">)</span>
+                          <span class="k">else</span><span class="p">:</span>
+                               <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;old-school IPython</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                               <span class="n">IPython</span><span class="o">.</span><span class="n">Shell</span><span class="o">.</span><span class="n">IPythonShellEmbed</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">user_ns</span><span class="o">=</span><span class="n">ns</span><span class="p">)()</span>
+
+                     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                          <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;no IPython -&gt; regular shell</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                          <span class="kn">from</span> <span class="nn">code</span> <span class="kn">import</span> <span class="n">InteractiveConsole</span>
+                          <span class="n">c</span><span class="o">=</span><span class="n">InteractiveConsole</span><span class="p">(</span><span class="n">ns</span><span class="p">)</span>
+                          <span class="n">c</span><span class="o">.</span><span class="n">interact</span><span class="p">()</span>
+                     <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Ending interactive shell</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">result</span>
+            <span class="k">except</span> <span class="n">PyFoamException</span><span class="p">:</span>
+                <span class="n">e</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">traceback</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">calledAsClass</span><span class="p">:</span>
+                    <span class="k">raise</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">errorPrint</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.__getitem__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get application data&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;available keys:&quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.__setitem__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.__setitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set data. Only if key does not exist (data can only be set once)&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">key</span><span class="p">,</span><span class="s2">&quot;does already exist in app-data&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.__iter__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.__iter__">[docs]</a>    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Iterate over the application data&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">k</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.iterkeys"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.iterkeys">[docs]</a>    <span class="k">def</span> <span class="nf">iterkeys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.iteritems"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.iteritems">[docs]</a>    <span class="k">def</span> <span class="nf">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.__getattr__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.__getattr__">[docs]</a>    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+         <span class="k">try</span><span class="p">:</span>
+              <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+              <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.getData"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.getData">[docs]</a>    <span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the application data&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.setData"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.setData">[docs]</a>    <span class="k">def</span> <span class="nf">setData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the application data</span>
+
+<span class="sd">        :param data: dictionary whose entries will be added to the</span>
+<span class="sd">        application data (possibly overwriting old entries of the same name)&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__appData</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">v</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.ensureGeneralOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.ensureGeneralOptions">[docs]</a>    <span class="k">def</span> <span class="nf">ensureGeneralOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">generalOpts</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generalOpts</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                                         <span class="s2">&quot;General&quot;</span><span class="p">,</span>
+                                         <span class="s2">&quot;General options for the control of OpenFOAM-runs&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generalOpts</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add options to the parser</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the real application</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Not a valid application&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PyFoamApplication.error"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.error">[docs]</a>    <span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+         <span class="sd">&quot;&quot;&quot;Raise a error exception. How it will be handled is a different story</span>
+<span class="sd">        :param args: Arguments to the exception</span>
+<span class="sd">         &quot;&quot;&quot;</span>
+         <span class="k">raise</span> <span class="n">PyFoamApplicationException</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.errorPrint"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.errorPrint">[docs]</a>    <span class="k">def</span> <span class="nf">errorPrint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prints an error message and exits</span>
+<span class="sd">        :param args: Arguments that are to be printed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">isatty</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">format</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Error in&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">calledName</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">isatty</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">format</span><span class="o">.</span><span class="n">reset</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.warning"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.warning">[docs]</a>    <span class="k">def</span> <span class="nf">warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prints a warning message</span>
+<span class="sd">        :param args: Arguments that are to be printed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">isatty</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">format</span><span class="o">.</span><span class="n">warn</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Warning in&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">calledName</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">isatty</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">format</span><span class="o">.</span><span class="n">reset</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.depreciationWarning"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.depreciationWarning">[docs]</a>    <span class="k">def</span> <span class="nf">depreciationWarning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">reason</span><span class="p">):</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;This utility is now deprecated because&quot;</span><span class="p">,</span><span class="n">reason</span><span class="p">,</span>
+                      <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;It will be removed in future versions of PyFoam</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.silent"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.silent">[docs]</a>    <span class="k">def</span> <span class="nf">silent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Don&#39;t print a warning message</span>
+<span class="sd">        :param args: Arguments that are to be printed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.checkCase"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.checkCase">[docs]</a>    <span class="k">def</span> <span class="nf">checkCase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">fatal</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check whether this is a valid OpenFOAM-case</span>
+<span class="sd">        :param name: the directory-bame that is supposed to be the case</span>
+<span class="sd">        :param fatal: If this is not a case then the application ends</span>
+<span class="sd">        :param verbose: If this is not a case no warning is issued</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">fatal</span><span class="p">:</span>
+            <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">error</span>
+        <span class="k">elif</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">warning</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">silent</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">func</span><span class="p">(</span><span class="s2">&quot;Case&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;does not exist&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">func</span><span class="p">(</span><span class="s2">&quot;Case&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;is not a directory&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">)):</span>
+            <span class="n">func</span><span class="p">(</span><span class="s2">&quot;Case&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;does not have a &#39;system&#39; directory&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;constant&quot;</span><span class="p">)):</span>
+            <span class="n">func</span><span class="p">(</span><span class="s2">&quot;Case&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;does not have a &#39;constant&#39; directory&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">return</span> <span class="bp">True</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.addToCaseLog"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.addToCaseLog">[docs]</a>    <span class="k">def</span> <span class="nf">addToCaseLog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="o">*</span><span class="n">text</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add information about the application that was run to the case-log</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logline</span><span class="o">=</span><span class="p">[</span><span class="n">NoTouchSolutionDirectory</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">calledName</span><span class="o">==</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">logline</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;Application:&quot;</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span><span class="o">+</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logline</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;Application:&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">calledName</span><span class="p">]</span>
+
+        <span class="n">logline</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot; | with cwd&quot;</span><span class="p">,</span><span class="n">getcwd</span><span class="p">(),</span><span class="s2">&quot; | &quot;</span><span class="p">]</span>
+        <span class="n">logline</span><span class="o">+=</span><span class="n">text</span>
+        <span class="n">NoTouchSolutionDirectory</span><span class="o">.</span><span class="n">addToHistory</span><span class="p">(</span><span class="o">*</span><span class="n">logline</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.addLocalConfig"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.addLocalConfig">[docs]</a>    <span class="k">def</span> <span class="nf">addLocalConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">directory</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a local directory (assuming it is found)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">directory</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">addFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span><span class="s2">&quot;LocalConfigPyFoam&quot;</span><span class="p">),</span><span class="n">silent</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.localConfigFromCasename"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.localConfigFromCasename">[docs]</a>    <span class="k">def</span> <span class="nf">localConfigFromCasename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Look for the local configuration assuming that the first argument</span>
+<span class="sd">        after &#39;-case&#39; is the case directory&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;-case&quot;</span><span class="p">:</span>
+               <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="s2">&quot;LocalConfigPyFoam&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">localConfigInCWD</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.localConfigInArgs"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.localConfigInArgs">[docs]</a>    <span class="k">def</span> <span class="nf">localConfigInArgs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assume that the first argument that is no option and a directory</span>
+<span class="sd">        can have a local configuration&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;-&quot;</span><span class="p">:</span>
+               <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+                   <span class="n">confPath</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s2">&quot;LocalConfigPyFoam&quot;</span><span class="p">)</span>
+                   <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">confPath</span><span class="p">):</span>
+                       <span class="k">return</span> <span class="n">confPath</span>
+                   <span class="k">else</span><span class="p">:</span>
+                       <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.localConfigInArgsFile"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.localConfigInArgsFile">[docs]</a>    <span class="k">def</span> <span class="nf">localConfigInArgsFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assume that the first argument that is no option and a file</span>
+<span class="sd">        can has a local configuration in the same directory&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;-&quot;</span><span class="p">:</span>
+               <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+                   <span class="n">confPath</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">a</span><span class="p">)),</span><span class="s2">&quot;LocalConfigPyFoam&quot;</span><span class="p">)</span>
+                   <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">confPath</span><span class="p">):</span>
+                       <span class="k">return</span> <span class="n">confPath</span>
+                   <span class="k">else</span><span class="p">:</span>
+                       <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="PyFoamApplication.localConfigInCWD"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication.localConfigInCWD">[docs]</a>    <span class="k">def</span> <span class="nf">localConfigInCWD</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;find the local configuration in the current directory&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">os</span>
+        <span class="n">confPath</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span><span class="s2">&quot;LocalConfigPyFoam&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">confPath</span><span class="p">):</span>
+             <span class="k">return</span> <span class="n">confPath</span>
+        <span class="k">else</span><span class="p">:</span>
+             <span class="k">return</span> <span class="bp">None</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

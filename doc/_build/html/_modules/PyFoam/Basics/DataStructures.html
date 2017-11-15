@@ -1,0 +1,866 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.DataStructures &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.DataStructures</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.DataStructures</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Data structures in Foam-Files that can&#39;t be directly represented by Python-Structures&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="c1"># import FoamFileGenerator in the end to avoid circular dependencies</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">integer_types</span><span class="p">,</span><span class="n">PY3</span><span class="p">,</span><span class="n">string_types</span><span class="p">,</span><span class="n">StringIO</span>
+
+<span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+<div class="viewcode-block" id="cmp"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.cmp">[docs]</a>    <span class="k">def</span> <span class="nf">cmp</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">a</span><span class="o">&lt;</span><span class="n">b</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">a</span><span class="o">==</span><span class="n">b</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="FoamDataType"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FoamDataType">[docs]</a><span class="k">class</span> <span class="nc">FoamDataType</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="FoamDataType.__repr__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FoamDataType.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;&#39;&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;&#39;&quot;</span></div>
+
+<div class="viewcode-block" id="FoamDataType.__eq__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FoamDataType.__eq__">[docs]</a>    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Implementation to make __cmp__ work again in Python3</span>
+
+<span class="sd">        Implementing this method means that these objects are not hashable.</span>
+<span class="sd">        But that is OK</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span></div>
+
+<div class="viewcode-block" id="FoamDataType.__lt__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FoamDataType.__lt__">[docs]</a>    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="s2">&quot;Implementation to make __cmp__ work again in Python3&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">0</span></div>
+
+<div class="viewcode-block" id="FoamDataType.__ne__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FoamDataType.__ne__">[docs]</a>    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">!=</span><span class="mi">0</span></div>
+
+<div class="viewcode-block" id="FoamDataType.__gt__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FoamDataType.__gt__">[docs]</a>    <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span></div>
+
+<div class="viewcode-block" id="FoamDataType.__ge__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FoamDataType.__ge__">[docs]</a>    <span class="k">def</span> <span class="nf">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span></div>
+
+<div class="viewcode-block" id="FoamDataType.__le__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FoamDataType.__le__">[docs]</a>    <span class="k">def</span> <span class="nf">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">&lt;=</span><span class="mi">0</span></div></div>
+
+<div class="viewcode-block" id="Field"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Field">[docs]</a><span class="k">class</span> <span class="nc">Field</span><span class="p">(</span><span class="n">FoamDataType</span><span class="p">):</span>
+<div class="viewcode-block" id="Field.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Field.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">val</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">length</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="o">=</span><span class="n">val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="o">=</span><span class="n">length</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">in</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span><span class="n">UnparsedList</span><span class="p">,</span><span class="n">BinaryList</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">uniform</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">uniform</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">),</span><span class="s2">&quot;of value&quot;</span><span class="p">,</span><span class="n">val</span><span class="p">,</span><span class="s2">&quot;can not be used to determine uniformity&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">uniform</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">),</span><span class="s2">&quot;can&#39;t be used with a uniform field (length &quot;</span><span class="p">,</span><span class="n">length</span><span class="p">,</span><span class="s2">&quot; specified)&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Field.__str__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Field.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">result</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; {&quot;</span>
+            <span class="n">result</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;}&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">uniform</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;uniform &quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;nonuniform &quot;</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot; &quot;</span>
+
+            <span class="n">result</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span>
+                <span class="n">PyFoam</span><span class="o">.</span><span class="n">Basics</span><span class="o">.</span><span class="n">FoamFileGenerator</span><span class="o">.</span><span class="n">FoamFileGenerator</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">,</span>
+                    <span class="n">longListThreshold</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">useFixedType</span><span class="o">=</span><span class="bp">False</span>
+                <span class="p">))</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="Field.__cmp__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Field.__cmp__">[docs]</a>    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">!=</span><span class="n">Field</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">uniform</span><span class="o">!=</span><span class="n">other</span><span class="o">.</span><span class="n">uniform</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uniform</span><span class="p">,</span><span class="n">other</span><span class="o">.</span><span class="n">uniform</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">!=</span><span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="o">!=</span><span class="n">other</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">,</span><span class="n">other</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">,</span><span class="n">other</span><span class="o">.</span><span class="n">val</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Field.__getitem__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Field.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">&gt;=</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">key</span><span class="o">&lt;</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">val</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s1">&#39;Key&#39;</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="s1">&#39;outside of range 0 to&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">uniform</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">val</span></div>
+
+<div class="viewcode-block" id="Field.__setitem__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Field.__setitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">assert</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">uniform</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">=</span><span class="n">value</span></div>
+
+<div class="viewcode-block" id="Field.__len__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Field.__len__">[docs]</a>    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">,(</span><span class="nb">list</span><span class="p">,)):</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Operation len() unsupported for data of type&quot;</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Field.isUniform"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Field.isUniform">[docs]</a>    <span class="k">def</span> <span class="nf">isUniform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">uniform</span></div>
+
+<div class="viewcode-block" id="Field.isBinary"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Field.isBinary">[docs]</a>    <span class="k">def</span> <span class="nf">isBinary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">)</span><span class="o">==</span><span class="n">BinaryList</span></div>
+
+<div class="viewcode-block" id="Field.binaryString"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Field.binaryString">[docs]</a>    <span class="k">def</span> <span class="nf">binaryString</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;nonuniform &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot; &lt;BINARY DATA&gt;&quot;</span></div>
+
+<div class="viewcode-block" id="Field.value"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Field.value">[docs]</a>    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">val</span></div>
+
+<div class="viewcode-block" id="Field.setUniform"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Field.setUniform">[docs]</a>    <span class="k">def</span> <span class="nf">setUniform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="o">=</span><span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uniform</span><span class="o">=</span><span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="bp">None</span></div>
+
+<div class="viewcode-block" id="Field.toNumpy"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Field.toNumpy">[docs]</a>    <span class="k">def</span> <span class="nf">toNumpy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">regexp</span><span class="p">,</span><span class="n">dtypes</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert to numpy-structured array (with one entry)</span>
+<span class="sd">        @param regexp: Ignored. Just for compatibility with Unparsed</span>
+<span class="sd">        @param dtypes: lsit of data types&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">tup</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="n">tup</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">,)</span>
+            <span class="n">result</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">tup</span><span class="p">],</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Can not convert&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span><span class="s2">&quot;to a numpy-array&quot;</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="Dimension"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Dimension">[docs]</a><span class="k">class</span> <span class="nc">Dimension</span><span class="p">(</span><span class="n">FoamDataType</span><span class="p">):</span>
+<div class="viewcode-block" id="Dimension.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Dimension.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">dims</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">=</span><span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dimString</span><span class="o">=</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span><span class="o">==</span><span class="mi">7</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Dimension.__str__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Dimension.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">result</span><span class="o">=</span><span class="s2">&quot;[ &quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">dimString</span><span class="o">+</span><span class="s2">&quot; &quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; &quot;</span>
+        <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;]&quot;</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="Dimension.__cmp__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Dimension.__cmp__">[docs]</a>    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">dims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimString</span><span class="p">,</span><span class="n">other</span><span class="o">.</span><span class="n">dimString</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">dims</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span><span class="n">other</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Dimension.__getitem__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Dimension.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Dimension.__setitem__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Dimension.__setitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">=</span><span class="n">value</span></div></div>
+
+<div class="viewcode-block" id="FixedLength"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FixedLength">[docs]</a><span class="k">class</span> <span class="nc">FixedLength</span><span class="p">(</span><span class="n">FoamDataType</span><span class="p">):</span>
+<div class="viewcode-block" id="FixedLength.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FixedLength.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">vals</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="o">=</span><span class="n">vals</span><span class="p">[:]</span></div>
+
+<div class="viewcode-block" id="FixedLength.__str__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FixedLength.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;(&quot;</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%g</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;)&quot;</span></div>
+
+<div class="viewcode-block" id="FixedLength.__cmp__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FixedLength.__cmp__">[docs]</a>    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">==</span><span class="bp">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">),</span><span class="n">FixedLength</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">,</span><span class="n">other</span><span class="o">.</span><span class="n">vals</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FixedLength.__getitem__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FixedLength.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="FixedLength.__setitem__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FixedLength.__setitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">=</span><span class="n">value</span></div>
+
+<div class="viewcode-block" id="FixedLength.__len__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.FixedLength.__len__">[docs]</a>    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="Vector"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector">[docs]</a><span class="k">class</span> <span class="nc">Vector</span><span class="p">(</span><span class="n">FixedLength</span><span class="p">):</span>
+<div class="viewcode-block" id="Vector.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">):</span>
+        <span class="n">FixedLength</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Vector.__add__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector.__add__">[docs]</a>    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">==</span><span class="n">Vector</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">integer_types</span><span class="o">+</span><span class="p">(</span><span class="nb">float</span><span class="p">,):</span>
+            <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span></div>
+
+<div class="viewcode-block" id="Vector.__radd__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector.__radd__">[docs]</a>    <span class="k">def</span> <span class="nf">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">integer_types</span><span class="o">+</span><span class="p">(</span><span class="nb">float</span><span class="p">,):</span>
+            <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span></div>
+
+<div class="viewcode-block" id="Vector.__sub__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector.__sub__">[docs]</a>    <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">==</span><span class="n">Vector</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">integer_types</span><span class="o">+</span><span class="p">(</span><span class="nb">float</span><span class="p">,):</span>
+            <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span></div>
+
+<div class="viewcode-block" id="Vector.__rsub__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector.__rsub__">[docs]</a>    <span class="k">def</span> <span class="nf">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">integer_types</span><span class="o">+</span><span class="p">(</span><span class="nb">float</span><span class="p">,):</span>
+            <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">y</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">y</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">y</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span></div>
+
+<div class="viewcode-block" id="Vector.__mul__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector.__mul__">[docs]</a>    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">==</span><span class="n">Vector</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">integer_types</span><span class="o">+</span><span class="p">(</span><span class="nb">float</span><span class="p">,):</span>
+            <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span></div>
+
+<div class="viewcode-block" id="Vector.__rmul__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector.__rmul__">[docs]</a>    <span class="k">def</span> <span class="nf">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">integer_types</span><span class="o">+</span><span class="p">(</span><span class="nb">float</span><span class="p">,):</span>
+            <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">y</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">y</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">y</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span></div>
+
+<div class="viewcode-block" id="Vector.__div__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector.__div__">[docs]</a>    <span class="k">def</span> <span class="nf">__div__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">==</span><span class="n">Vector</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">integer_types</span><span class="o">+</span><span class="p">(</span><span class="nb">float</span><span class="p">,):</span>
+            <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span></div>
+
+<div class="viewcode-block" id="Vector.__truediv__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector.__truediv__">[docs]</a>    <span class="k">def</span> <span class="nf">__truediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__div__</span><span class="p">(</span><span class="n">y</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Vector.__xor__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector.__xor__">[docs]</a>    <span class="k">def</span> <span class="nf">__xor__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">==</span><span class="n">Vector</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                          <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                          <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span></div>
+
+<div class="viewcode-block" id="Vector.__abs__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector.__abs__">[docs]</a>    <span class="k">def</span> <span class="nf">__abs__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Vector.__neg__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector.__neg__">[docs]</a>    <span class="k">def</span> <span class="nf">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span>
+        <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Vector.__pos__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Vector.__pos__">[docs]</a>    <span class="k">def</span> <span class="nf">__pos__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span>
+        <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div></div>
+
+<div class="viewcode-block" id="Tensor"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Tensor">[docs]</a><span class="k">class</span> <span class="nc">Tensor</span><span class="p">(</span><span class="n">FixedLength</span><span class="p">):</span>
+<div class="viewcode-block" id="Tensor.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Tensor.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">v1</span><span class="p">,</span><span class="n">v2</span><span class="p">,</span><span class="n">v3</span><span class="p">,</span><span class="n">v4</span><span class="p">,</span><span class="n">v5</span><span class="p">,</span><span class="n">v6</span><span class="p">,</span><span class="n">v7</span><span class="p">,</span><span class="n">v8</span><span class="p">,</span><span class="n">v9</span><span class="p">):</span>
+        <span class="n">FixedLength</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,[</span><span class="n">v1</span><span class="p">,</span><span class="n">v2</span><span class="p">,</span><span class="n">v3</span><span class="p">,</span><span class="n">v4</span><span class="p">,</span><span class="n">v5</span><span class="p">,</span><span class="n">v6</span><span class="p">,</span><span class="n">v7</span><span class="p">,</span><span class="n">v8</span><span class="p">,</span><span class="n">v9</span><span class="p">])</span></div></div>
+
+<div class="viewcode-block" id="SymmTensor"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.SymmTensor">[docs]</a><span class="k">class</span> <span class="nc">SymmTensor</span><span class="p">(</span><span class="n">FixedLength</span><span class="p">):</span>
+<div class="viewcode-block" id="SymmTensor.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.SymmTensor.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">v1</span><span class="p">,</span><span class="n">v2</span><span class="p">,</span><span class="n">v3</span><span class="p">,</span><span class="n">v4</span><span class="p">,</span><span class="n">v5</span><span class="p">,</span><span class="n">v6</span><span class="p">):</span>
+        <span class="n">FixedLength</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,[</span><span class="n">v1</span><span class="p">,</span><span class="n">v2</span><span class="p">,</span><span class="n">v3</span><span class="p">,</span><span class="n">v4</span><span class="p">,</span><span class="n">v5</span><span class="p">,</span><span class="n">v6</span><span class="p">])</span></div></div>
+
+<div class="viewcode-block" id="BoolProxy"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.BoolProxy">[docs]</a><span class="k">class</span> <span class="nc">BoolProxy</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wraps a boolean parsed from a file. Optionally stores a textual</span>
+<span class="sd">    representation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TrueStrings</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;on&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;yes&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+<span class="c1">#                &quot;y&quot;     # this breaks parsing certain files</span>
+    <span class="p">]</span>
+    <span class="n">FalseStrings</span><span class="o">=</span><span class="p">[</span>
+        <span class="s2">&quot;off&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;no&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;false&quot;</span><span class="p">,</span>
+<span class="c1">#        &quot;n&quot;,           # this breaks parsing certain files</span>
+        <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;invalid&quot;</span>
+    <span class="p">]</span>
+
+<div class="viewcode-block" id="BoolProxy.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.BoolProxy.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">val</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">textual</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">val</span><span class="o">==</span><span class="bp">None</span> <span class="ow">and</span> <span class="n">textual</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;&#39;BoolProxy&#39; initialized without values&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">val</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">textual</span> <span class="ow">in</span> <span class="n">BoolProxy</span><span class="o">.</span><span class="n">TrueStrings</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">elif</span> <span class="n">textual</span> <span class="ow">in</span> <span class="n">BoolProxy</span><span class="o">.</span><span class="n">FalseStrings</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="o">=</span><span class="bp">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">textual</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; not in &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">BoolProxy</span><span class="o">.</span><span class="n">TrueStrings</span><span class="p">)</span>
+                                <span class="o">+</span><span class="s2">&quot; or &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">BoolProxy</span><span class="o">.</span><span class="n">TrueStrings</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span><span class="bp">False</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; is not a boolean&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="o">=</span><span class="n">val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textual</span><span class="o">=</span><span class="n">textual</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">textual</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">textual</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">BoolProxy</span><span class="o">.</span><span class="n">TrueStrings</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textual</span><span class="o">+</span><span class="s2">&quot; not in &quot;</span>
+                                    <span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">BoolProxy</span><span class="o">.</span><span class="n">TrueStrings</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">textual</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">BoolProxy</span><span class="o">.</span><span class="n">FalseStrings</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textual</span><span class="o">+</span><span class="s2">&quot; not in &quot;</span>
+                                    <span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">BoolProxy</span><span class="o">.</span><span class="n">FalseStrings</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="BoolProxy.__nonzero__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.BoolProxy.__nonzero__">[docs]</a>    <span class="k">def</span> <span class="nf">__nonzero__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">val</span></div>
+
+    <span class="c1"># for Python 3</span>
+<div class="viewcode-block" id="BoolProxy.__bool__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.BoolProxy.__bool__">[docs]</a>    <span class="k">def</span> <span class="nf">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">val</span></div>
+
+<div class="viewcode-block" id="BoolProxy.__str__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.BoolProxy.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">textual</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;yes&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;no&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">textual</span></div>
+
+<div class="viewcode-block" id="BoolProxy.__repr__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.BoolProxy.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__str__</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BoolProxy.__eq__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.BoolProxy.__eq__">[docs]</a>    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">o</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">bool</span><span class="p">,</span><span class="n">BoolProxy</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="o">==</span><span class="n">o</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">textual</span><span class="o">==</span><span class="n">o</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="o">==</span><span class="n">BoolProxy</span><span class="p">(</span><span class="n">textual</span><span class="o">=</span><span class="n">o</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># raise TypeError(&quot;Can&#39;t compare BoolProxy with &quot;+str(type(o)))</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="o">==</span><span class="n">o</span></div></div>
+
+<div class="viewcode-block" id="DictRedirection"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictRedirection">[docs]</a><span class="k">class</span> <span class="nc">DictRedirection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class is in charge of handling redirections to other directories&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DictRedirection.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictRedirection.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fullCopy</span><span class="p">,</span><span class="n">reference</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fullCopy</span><span class="o">=</span><span class="n">fullCopy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span><span class="o">=</span><span class="n">reference</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="o">=</span><span class="n">name</span></div>
+
+<div class="viewcode-block" id="DictRedirection.useAsRedirect"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictRedirection.useAsRedirect">[docs]</a>    <span class="k">def</span> <span class="nf">useAsRedirect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fullCopy</span><span class="o">=</span><span class="bp">None</span></div>
+
+<div class="viewcode-block" id="DictRedirection.getContent"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictRedirection.getContent">[docs]</a>    <span class="k">def</span> <span class="nf">getContent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">result</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_fullCopy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fullCopy</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="DictRedirection.__call__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictRedirection.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span></div>
+
+<div class="viewcode-block" id="DictRedirection.__str__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictRedirection.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;$&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span></div>
+
+<div class="viewcode-block" id="DictRedirection.__float__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictRedirection.__float__">[docs]</a>    <span class="k">def</span> <span class="nf">__float__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reference</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DictRedirection.keys"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictRedirection.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fullCopy</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fullCopy</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div></div>
+
+<div class="viewcode-block" id="DictProxy"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy">[docs]</a><span class="k">class</span> <span class="nc">DictProxy</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class that acts like a dictionary, but preserves the order</span>
+<span class="sd">    of the entries. Used to beautify the output&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DictProxy.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">dict</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="o">=</span><span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_decoration</span><span class="o">=</span><span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_regex</span><span class="o">=</span><span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_redirects</span><span class="o">=</span><span class="p">[]</span></div>
+
+<div class="viewcode-block" id="DictProxy.isRegexp"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.isRegexp">[docs]</a>    <span class="k">def</span> <span class="nf">isRegexp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;&quot;&#39;</span> <span class="ow">and</span> <span class="n">key</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;&quot;&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="DictProxy.__setitem__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.__setitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isRegexp</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+            <span class="n">exp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_regex</span><span class="o">=</span><span class="p">[(</span><span class="n">key</span><span class="p">,</span><span class="n">exp</span><span class="p">,</span><span class="n">value</span><span class="p">)]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">_regex</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">dict</span><span class="o">.</span><span class="n">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">isRegexp</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DictProxy.__getitem__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">e</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regex</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">v</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redirects</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">r</span><span class="p">()[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DictProxy.__delitem__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.__delitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="nb">dict</span><span class="o">.</span><span class="n">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoration</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoration</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="DictProxy.__deepcopy__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.__deepcopy__">[docs]</a>    <span class="k">def</span> <span class="nf">__deepcopy__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">memo</span><span class="p">):</span>
+        <span class="n">new</span><span class="o">=</span><span class="n">DictProxy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">==</span><span class="n">DictRedirection</span><span class="p">:</span>
+                <span class="n">new</span><span class="o">.</span><span class="n">addRedirection</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">new</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">],</span><span class="n">memo</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">new</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getRegexpValue</span><span class="p">(</span><span class="n">k</span><span class="p">),</span><span class="n">memo</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new</span></div>
+
+<div class="viewcode-block" id="DictProxy.__contains__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.__contains__">[docs]</a>    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">dict</span><span class="o">.</span><span class="n">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">e</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regex</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="bp">True</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redirects</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">r</span><span class="p">():</span>
+                    <span class="k">return</span> <span class="bp">True</span>
+
+            <span class="k">return</span> <span class="bp">False</span></div>
+
+    <span class="k">def</span> <span class="nf">__enforceString</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">toString</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="n">toString</span><span class="p">:</span>
+            <span class="n">r</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,(</span><span class="nb">list</span><span class="p">,</span><span class="nb">dict</span><span class="p">)):</span>
+                <span class="n">r</span><span class="o">=</span><span class="s1">&#39;&quot;&#39;</span><span class="o">+</span><span class="n">r</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span>
+            <span class="k">return</span> <span class="n">r</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">v</span>
+
+<div class="viewcode-block" id="DictProxy.update"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">toString</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Emulate the regular update of dict&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">other</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span><span class="s2">&quot;keys&quot;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__enforceString</span><span class="p">(</span><span class="n">other</span><span class="p">[</span><span class="n">k</span><span class="p">],</span><span class="n">toString</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">other</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__enforceString</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">toString</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__enforceString</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">],</span><span class="n">toString</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DictProxy.keys"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">result</span><span class="o">=</span><span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redirects</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isRegexp</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redirects</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="DictProxy.__iter__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.__iter__">[docs]</a>    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span><span class="o">=</span><span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redirects</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isRegexp</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="n">k</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redirects</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                    <span class="k">yield</span> <span class="n">k</span></div>
+
+<div class="viewcode-block" id="DictProxy.__str__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">first</span><span class="o">=</span><span class="bp">True</span>
+        <span class="n">result</span><span class="o">=</span><span class="s2">&quot;{&quot;</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">v</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
+                <span class="n">first</span><span class="o">=</span><span class="bp">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;, &quot;</span>
+            <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">k</span><span class="p">),</span><span class="nb">repr</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+        <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;}&quot;</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="DictProxy.iteritems"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.iteritems">[docs]</a>    <span class="k">def</span> <span class="nf">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">lst</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">lst</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">k</span><span class="p">,</span><span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">lst</span></div>
+
+    <span class="c1"># needed for python 3. Should be a generator, but ...</span>
+<div class="viewcode-block" id="DictProxy.items"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DictProxy.addDecoration"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.addDecoration">[docs]</a>    <span class="k">def</span> <span class="nf">addDecoration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="n">text</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoration</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_decoration</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_decoration</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">+=</span><span class="n">text</span></div>
+
+<div class="viewcode-block" id="DictProxy.getDecoration"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.getDecoration">[docs]</a>    <span class="k">def</span> <span class="nf">getDecoration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoration</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot; </span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoration</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="DictProxy.getRegexpValue"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.getRegexpValue">[docs]</a>    <span class="k">def</span> <span class="nf">getRegexpValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">e</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regex</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="n">key</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">v</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DictProxy.addRedirection"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.DictProxy.addRedirection">[docs]</a>    <span class="k">def</span> <span class="nf">addRedirection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">redir</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_order</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">redir</span><span class="p">)</span>
+        <span class="n">redir</span><span class="o">.</span><span class="n">useAsRedirect</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_redirects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">redir</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="TupleProxy"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.TupleProxy">[docs]</a><span class="k">class</span> <span class="nc">TupleProxy</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Enables Tuples to be manipulated&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TupleProxy.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.TupleProxy.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tup</span><span class="o">=</span><span class="p">()):</span>
+        <span class="nb">list</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tup</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="Unparsed"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Unparsed">[docs]</a><span class="k">class</span> <span class="nc">Unparsed</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class that encapsulates an unparsed string&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Unparsed.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Unparsed.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">data</span></div>
+
+<div class="viewcode-block" id="Unparsed.__str__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Unparsed.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span></div>
+
+<div class="viewcode-block" id="Unparsed.__hash__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Unparsed.__hash__">[docs]</a>    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Unparsed.__lt__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Unparsed.__lt__">[docs]</a>    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">&lt;</span><span class="n">other</span><span class="o">.</span><span class="n">data</span></div>
+
+<div class="viewcode-block" id="Unparsed.toNumpy"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Unparsed.toNumpy">[docs]</a>    <span class="k">def</span> <span class="nf">toNumpy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">regexp</span><span class="p">,</span><span class="n">dtypes</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assume that the unparsed data contains line-wise data and transform it to a numpy-array.</span>
+<span class="sd">        @param regexp: regular expression where the groups correspond to the dtypes,</span>
+<span class="sd">        @param dtypes: list with dtypes&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fromregex</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">),</span>
+                                <span class="n">regexp</span><span class="p">,</span>
+                                <span class="n">dtypes</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">BytesIO</span><span class="p">,</span><span class="n">b</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fromregex</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">b</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)),</span>
+                                <span class="n">regexp</span><span class="p">,</span>
+                                <span class="n">dtypes</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="BinaryBlob"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.BinaryBlob">[docs]</a><span class="k">class</span> <span class="nc">BinaryBlob</span><span class="p">(</span><span class="n">Unparsed</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represents a part of the file with binary data in it&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BinaryBlob.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.BinaryBlob.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="n">Unparsed</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="Codestream"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Codestream">[docs]</a><span class="k">class</span> <span class="nc">Codestream</span><span class="p">(</span><span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class that encapsulates an codestream string&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Codestream.__str__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.Codestream.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;#{&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="o">.</span><span class="n">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;#}&quot;</span></div></div>
+
+<div class="viewcode-block" id="UnparsedList"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.UnparsedList">[docs]</a><span class="k">class</span> <span class="nc">UnparsedList</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class that encapsulates a list that was not parsed for</span>
+<span class="sd">    performance reasons&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="UnparsedList.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.UnparsedList.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lngth</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="o">=</span><span class="n">lngth</span></div>
+
+<div class="viewcode-block" id="UnparsedList.__len__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.UnparsedList.__len__">[docs]</a>    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span></div>
+
+<div class="viewcode-block" id="UnparsedList.__cmp__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.UnparsedList.__cmp__">[docs]</a>    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UnparsedList.__eq__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.UnparsedList.__eq__">[docs]</a>    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">==</span><span class="n">other</span><span class="o">.</span><span class="n">data</span></div>
+
+<div class="viewcode-block" id="UnparsedList.__lt__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.UnparsedList.__lt__">[docs]</a>    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">&lt;</span><span class="n">other</span><span class="o">.</span><span class="n">data</span></div>
+
+<div class="viewcode-block" id="UnparsedList.toNumpy"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.UnparsedList.toNumpy">[docs]</a>    <span class="k">def</span> <span class="nf">toNumpy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">regexp</span><span class="p">,</span><span class="n">dtypes</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fromregex</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">),</span>
+                                <span class="n">regexp</span><span class="p">,</span>
+                                <span class="n">dtypes</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">BytesIO</span><span class="p">,</span><span class="n">b</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fromregex</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">b</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)),</span>
+                                <span class="n">regexp</span><span class="p">,</span>
+                                <span class="n">dtypes</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="BinaryList"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.BinaryList">[docs]</a><span class="k">class</span> <span class="nc">BinaryList</span><span class="p">(</span><span class="n">UnparsedList</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class that represents a list that is saved as binary data&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BinaryList.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.BinaryList.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lngth</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="n">UnparsedList</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lngth</span><span class="p">,</span><span class="n">data</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="makePrimitiveString"><a class="viewcode-back" href="../../../api/PyFoam.Basics.DataStructures.html#PyFoam.Basics.DataStructures.makePrimitiveString">[docs]</a><span class="k">def</span> <span class="nf">makePrimitiveString</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make strings of types that might get written to a directory&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,(</span><span class="n">Dimension</span><span class="p">,</span><span class="n">FixedLength</span><span class="p">,</span><span class="n">BoolProxy</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">val</span></div>
+
+<span class="c1"># Moved to the end to avoid circular dependencies</span>
+<span class="kn">import</span> <span class="nn">PyFoam.Basics.FoamFileGenerator</span>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,661 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Infrastructure.CTestRun module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.Infrastructure package" href="PyFoam.Infrastructure.html"/>
+        <link rel="next" title="PyFoam.Infrastructure.ClusterJob module" href="PyFoam.Infrastructure.ClusterJob.html"/>
+        <link rel="prev" title="PyFoam.Infrastructure.RunHooks.WriteToSqliteDatabase module" href="PyFoam.Infrastructure.RunHooks.WriteToSqliteDatabase.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a> &raquo;</li>
+      
+    <li>PyFoam.Infrastructure.CTestRun module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.Infrastructure.CTestRun.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.Infrastructure.CTestRun">
+<span id="pyfoam-infrastructure-ctestrun-module"></span><h1>PyFoam.Infrastructure.CTestRun module<a class="headerlink" href="#module-PyFoam.Infrastructure.CTestRun" title="Permalink to this headline">¶</a></h1>
+<p>A wrapper to run a solver as a CTest</p>
+<dl class="class">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun">
+<em class="property">class </em><code class="descclassname">PyFoam.Infrastructure.CTestRun.</code><code class="descname">CTestRun</code><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>This class runs a solver on a test case, examines the results
+and fails if they don&#8217;t live up the expectations</p>
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun._CTestRun__doInit">
+<code class="descname">_CTestRun__doInit</code><span class="sig-paren">(</span><em>solver</em>, <em>originalCase</em>, <em>minimumRunTime=None</em>, <em>referenceData=None</em>, <em>tailLength=50</em>, <em>headLength=50</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun._CTestRun__doInit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialzation method to be called before running the actual
+test (purpose of this method is to avoid cascaded of
+constructor-calls</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>solver</strong> &#8211; name of the solver to test</li>
+<li><strong>originalCase</strong> &#8211; location of the original case files (they</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>will be copied)
+:param minimumRuntime: the solver has to run at least to this time
+to be considered &#8220;ran successful&#8221;
+:param referenceData: directory with data that is used for testing
+:param tailLength: output that many lines from the end of the solver output
+:param headLength: output that many lines from the beginning of the solver output</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun._CTestRun__recursiveInit">
+<code class="descname">_CTestRun__recursiveInit</code><span class="sig-paren">(</span><em>theClass</em>, <em>called</em><span class="sig-paren">)</span><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun._CTestRun__recursiveInit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Automatically call the &#8216;init&#8217;-method of the whole tree</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun._CTestRun__setParameterAsUsed">
+<code class="descname">_CTestRun__setParameterAsUsed</code><span class="sig-paren">(</span><em>keys</em><span class="sig-paren">)</span><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun._CTestRun__setParameterAsUsed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'sizeClassString': &lt;function CTestRun.sizeClassString&gt;, 'generalTest': &lt;function CTestRun.generalTest&gt;, 'status': &lt;function CTestRun.status&gt;, 'autoReconstruct': &lt;function CTestRun.autoReconstruct&gt;, 'parallelPrepare': &lt;function CTestRun.parallelPrepare&gt;, '__new__': &lt;staticmethod object&gt;, 'fatalFail': &lt;function CTestRun.fatalFail&gt;, 'runTests': &lt;function CTestRun.runTests&gt;, 'which': &lt;function CTestRun.which&gt;, 'run': &lt;function CTestRun.run&gt;, 'wrapACallback': &lt;function CTestRun.wrapACallback&gt;, 'processOptions': &lt;function CTestRun.processOptions&gt;, 'dataDir': &lt;function CTestRun.dataDir&gt;, '_CTestRun__recursiveInit': &lt;function CTestRun.__recursiveInit&gt;, '__dict__': &lt;attribute '__dict__' of 'CTestRun' objects&gt;, '_CTestRun__setParameterAsUsed': &lt;function CTestRun.__setParameterAsUsed&gt;, 'shortTestName': &lt;function CTestRun.shortTestName&gt;, 'runAndCatchExceptions': &lt;function CTestRun.runAndCatchExceptions&gt;, 'line': &lt;function CTestRun.line&gt;, 'wrapCallbacks': &lt;function CTestRun.wrapCallbacks&gt;, 'addToClone': &lt;function CTestRun.addToClone&gt;, 'isNotEqual': &lt;function CTestRun.isNotEqual&gt;, 'runInfo': &lt;function CTestRun.runInfo&gt;, 'solution': &lt;function CTestRun.solution&gt;, 'failGeneral': &lt;function CTestRun.failGeneral&gt;, 'setTimeout': &lt;function CTestRun.setTimeout&gt;, 'runCommand': &lt;function CTestRun.runCommand&gt;, 'isBigger': &lt;function CTestRun.isBigger&gt;, 'readRunInfo': &lt;function CTestRun.readRunInfo&gt;, 'fail': &lt;function CTestRun.fail&gt;, 'warn': &lt;function CTestRun.warn&gt;, 'controlDict': &lt;function CTestRun.controlDict&gt;, 'compareSamples': &lt;function CTestRun.compareSamples&gt;, 'messageGeneral': &lt;function CTestRun.messageGeneral&gt;, 'testName': &lt;function CTestRun.testName&gt;, '__module__': 'PyFoam.Infrastructure.CTestRun', 'parameterValues': &lt;function CTestRun.parameterValues&gt;, 'reconstruct': &lt;function CTestRun.reconstruct&gt;, '__init__': &lt;function CTestRun.__init__&gt;, 'preRunTestCheckMesh': &lt;function CTestRun.preRunTestCheckMesh&gt;, '__weakref__': &lt;attribute '__weakref__' of 'CTestRun' objects&gt;, 'shell': &lt;function CTestRun.shell&gt;, 'autoDecompose': &lt;function CTestRun.autoDecompose&gt;, 'isEqual': &lt;function CTestRun.isEqual&gt;, '__getitem__': &lt;function CTestRun.__getitem__&gt;, 'endTest': &lt;function CTestRun.endTest&gt;, 'timeoutDefinitions': [('unknown', 60), ('tiny', 60), ('small', 300), ('medium', 1800), ('big', 7200), ('huge', 43200), ('monster', 172800), ('unlimited', 2592000)], 'postprocess': &lt;function CTestRun.postprocess&gt;, 'execute': &lt;function CTestRun.execute&gt;, 'cloneData': &lt;function CTestRun.cloneData&gt;, 'isSmaller': &lt;function CTestRun.isSmaller&gt;, 'compareTimelines': &lt;function CTestRun.compareTimelines&gt;, 'casePrepare': &lt;function CTestRun.casePrepare&gt;, 'setParameters': &lt;function CTestRun.setParameters&gt;, '__doc__': &quot;This class runs a solver on a test case, examines the results\n    and fails if they don't live up the expectations&quot;, 'decompose': &lt;function CTestRun.decompose&gt;, '_CTestRun__doInit': &lt;function CTestRun.__doInit&gt;, 'meshPrepare': &lt;function CTestRun.meshPrepare&gt;, 'workDir': &lt;function CTestRun.workDir&gt;, 'addFunctionObjects': &lt;function CTestRun.addFunctionObjects&gt;, 'writeRunInfo': &lt;function CTestRun.writeRunInfo&gt;})</em><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a parameter</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Infrastructure.CTestRun'</em><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.__new__">
+<em class="property">static </em><code class="descname">__new__</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.__new__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.__new__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.addFunctionObjects">
+<code class="descname">addFunctionObjects</code><span class="sig-paren">(</span><em>templateFile</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.addFunctionObjects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.addFunctionObjects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add entries for libraries and functionObjects to the controlDict
+(if they don&#8217;t exist
+:param templateFile: file withe the data that should be added</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.addToClone">
+<code class="descname">addToClone</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.addToClone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.addToClone" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.autoDecompose">
+<code class="descname">autoDecompose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.autoDecompose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.autoDecompose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decomposition used if no callback is specified</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.autoReconstruct">
+<code class="descname">autoReconstruct</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.autoReconstruct"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.autoReconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reconstruction used if no callback is specified</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.casePrepare">
+<code class="descname">casePrepare</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.casePrepare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.casePrepare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callback to prepare the case. Default behaviour is to do
+nothing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.cloneData">
+<code class="descname">cloneData</code><span class="sig-paren">(</span><em>src</em>, <em>dst</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.cloneData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.cloneData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy files recurivly into a case
+:param src: the source directory the files come fro
+:param dst: the destination directory the files go to</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.compareSamples">
+<code class="descname">compareSamples</code><span class="sig-paren">(</span><em>data</em>, <em>reference</em>, <em>fields</em>, <em>time=None</em>, <em>line=None</em>, <em>scaleData=1</em>, <em>offsetData=0</em>, <em>scaleX=1</em>, <em>offsetX=0</em>, <em>useReferenceForComparison=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.compareSamples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.compareSamples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare sample data and return the statistics
+:param data: the name of the data directory
+:param reference:the name of the directory with the reference data
+:param fields: list of the fields to compare
+:param time: the time to compare for. If empty the latest time is used</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.compareTimelines">
+<code class="descname">compareTimelines</code><span class="sig-paren">(</span><em>data</em>, <em>reference</em>, <em>fields</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.compareTimelines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.compareTimelines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare timeline data and return the statistics
+:param data: the name of the data directory
+:param reference:the name of the directory with the reference data
+:param fields: list of the fields to compare</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.controlDict">
+<code class="descname">controlDict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.controlDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.controlDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access a representation of the controlDict of the case</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.dataDir">
+<code class="descname">dataDir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.dataDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.dataDir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.decompose">
+<code class="descname">decompose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.decompose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.decompose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callback to do the decomposition (if automatic is not sufficient)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.endTest">
+<code class="descname">endTest</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.endTest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.endTest" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the passed arguments on the case and check if
+everything went alright
+:param regexps: a list of regular expressions that the output should be scanned for</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.fail">
+<code class="descname">fail</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.fail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.fail" title="Permalink to this definition">¶</a></dt>
+<dd><p>To be called if the test failed but other tests should be tried
+:param args: arbitrary number of arguments that build the
+fail-message</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.failGeneral">
+<code class="descname">failGeneral</code><span class="sig-paren">(</span><em>prefix</em>, <em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.failGeneral"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.failGeneral" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> &#8211; arbitrary number of arguments that build the</td>
+</tr>
+</tbody>
+</table>
+<p>fail-message
+:param prefix: General classification of the failure</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.fatalFail">
+<code class="descname">fatalFail</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.fatalFail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.fatalFail" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> &#8211; arbitrary number of arguments that build the</td>
+</tr>
+</tbody>
+</table>
+<p>fail-message</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.generalTest">
+<code class="descname">generalTest</code><span class="sig-paren">(</span><em>testFunction</em>, <em>args</em>, <em>*message</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.generalTest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.generalTest" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.isBigger">
+<code class="descname">isBigger</code><span class="sig-paren">(</span><em>value</em>, <em>threshold=0</em>, <em>message=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.isBigger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.isBigger" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.isEqual">
+<code class="descname">isEqual</code><span class="sig-paren">(</span><em>value</em>, <em>target=0</em>, <em>tolerance=1e-10</em>, <em>message=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.isEqual"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.isEqual" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.isNotEqual">
+<code class="descname">isNotEqual</code><span class="sig-paren">(</span><em>value</em>, <em>target=0</em>, <em>tolerance=1e-10</em>, <em>message=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.isNotEqual"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.isNotEqual" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.isSmaller">
+<code class="descname">isSmaller</code><span class="sig-paren">(</span><em>value</em>, <em>threshold=0</em>, <em>message=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.isSmaller"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.isSmaller" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.line">
+<code class="descname">line</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.line" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.meshPrepare">
+<code class="descname">meshPrepare</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.meshPrepare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.meshPrepare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callback to prepare the mesh for the case. Default
+behaviour is to run blockMesh on the case</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.messageGeneral">
+<code class="descname">messageGeneral</code><span class="sig-paren">(</span><em>prefix</em>, <em>say</em>, <em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.messageGeneral"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.messageGeneral" title="Permalink to this definition">¶</a></dt>
+<dd><p>Everything that passes through this method will be repeated
+in the end
+:param args: arbitrary number of arguments that build the
+fail-message
+:param prefix: General classification of the message</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.parallelPrepare">
+<code class="descname">parallelPrepare</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.parallelPrepare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.parallelPrepare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callback to prepare the case in parallel (after it was decomposed).
+Default behaviour is to do nothing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.parameterValues">
+<code class="descname">parameterValues</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.parameterValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.parameterValues" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.postprocess">
+<code class="descname">postprocess</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.postprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.postprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callback to run after the solver has finished. Default
+behaviour is to do nothing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.preRunTestCheckMesh">
+<code class="descname">preRunTestCheckMesh</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.preRunTestCheckMesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.preRunTestCheckMesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>This test is always run. If this is not desirable it has to
+be overridden in a child-class</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.processOptions">
+<code class="descname">processOptions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.processOptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.processOptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select which phase of the test should be run</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.readRunInfo">
+<code class="descname">readRunInfo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.readRunInfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.readRunInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>read the runInfo from a file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.reconstruct">
+<code class="descname">reconstruct</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.reconstruct"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callback to do the reconstruction (if automatic is not sufficient)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the actual test</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.runAndCatchExceptions">
+<code class="descname">runAndCatchExceptions</code><span class="sig-paren">(</span><em>func</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.runAndCatchExceptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.runAndCatchExceptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a callable and catch Python-exceptions if they occur
+:param func: The actual thing to be run</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.runCommand">
+<code class="descname">runCommand</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.runCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.runCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a command and let it directly write to the output</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.runInfo">
+<code class="descname">runInfo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.runInfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.runInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>return the run information. If the solver was actually run</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.runTests">
+<code class="descname">runTests</code><span class="sig-paren">(</span><em>namePrefix</em>, <em>warnSerial=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.runTests"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.runTests" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run all methods that fit a certain name prefix</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.setParameters">
+<code class="descname">setParameters</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.setParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.setParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the parameters with a set of keyword-arguments</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.setTimeout">
+<code class="descname">setTimeout</code><span class="sig-paren">(</span><em>quiet=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.setTimeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.setTimeout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.shell">
+<code class="descname">shell</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.shell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.shell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a command in the case directory and let it directly
+write to the output
+:param workingDirectory: change to this directory</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.shortTestName">
+<code class="descname">shortTestName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.shortTestName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.shortTestName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.sizeClassString">
+<code class="descname">sizeClassString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.sizeClassString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.sizeClassString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.solution">
+<code class="descname">solution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.solution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.solution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access to a SolutionDirectory-object that represents the
+current solution</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.status">
+<code class="descname">status</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>print a status message about the test</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.testName">
+<code class="descname">testName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.testName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.testName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the full test name with which this test is identified</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.timeoutDefinitions">
+<code class="descname">timeoutDefinitions</code><em class="property"> = [('unknown', 60), ('tiny', 60), ('small', 300), ('medium', 1800), ('big', 7200), ('huge', 43200), ('monster', 172800), ('unlimited', 2592000)]</em><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.timeoutDefinitions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.warn">
+<code class="descname">warn</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.warn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.warn" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> &#8211; arbitrary number of arguments that build the</td>
+</tr>
+</tbody>
+</table>
+<p>warning-message</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.which">
+<code class="descname">which</code><span class="sig-paren">(</span><em>command</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.which"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.which" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like the regular which command - return the full path to an
+executable</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.workDir">
+<code class="descname">workDir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.workDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.workDir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.wrapACallback">
+<code class="descname">wrapACallback</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.wrapACallback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.wrapACallback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Has to be a separate method because the loop in
+wrapCallbacks didn&#8217;t work</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.wrapCallbacks">
+<code class="descname">wrapCallbacks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.wrapCallbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.wrapCallbacks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrap the callback methods with a Python exception handler.
+This is not done here so that methoids that the child classes
+overwrote will be wrapped to</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.CTestRun.CTestRun.writeRunInfo">
+<code class="descname">writeRunInfo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#CTestRun.writeRunInfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.CTestRun.writeRunInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>read the runInfo from a file</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Infrastructure.CTestRun.isCallback">
+<code class="descclassname">PyFoam.Infrastructure.CTestRun.</code><code class="descname">isCallback</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/CTestRun.html#isCallback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.CTestRun.isCallback" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.Infrastructure.ClusterJob.html" class="btn btn-neutral float-right" title="PyFoam.Infrastructure.ClusterJob module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.Infrastructure.RunHooks.WriteToSqliteDatabase.html" class="btn btn-neutral" title="PyFoam.Infrastructure.RunHooks.WriteToSqliteDatabase module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

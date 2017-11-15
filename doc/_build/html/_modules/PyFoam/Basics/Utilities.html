@@ -1,0 +1,482 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.Utilities &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.Utilities</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.Utilities</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot; Utility functions</span>
+
+<span class="sd">Can be used via a class or as functions&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">warning</span><span class="p">,</span><span class="n">error</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span><span class="nn">fnmatch</span>
+
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">popen2</span> <span class="kn">import</span> <span class="n">popen4</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span><span class="n">PIPE</span><span class="p">,</span><span class="n">STDOUT</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">listdir</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">remove</span> <span class="k">as</span> <span class="n">removeFile</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">shutil</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># this is an old python-version without it. We&#39;ll try to work around it</span>
+    <span class="k">pass</span>
+
+<div class="viewcode-block" id="Utilities"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities">[docs]</a><span class="k">class</span> <span class="nc">Utilities</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class with utility methods</span>
+
+<span class="sd">    Can be inherited without side effects by classes that need these</span>
+<span class="sd">    methods&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Utilities.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Utilities.execute"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cmd</span><span class="p">,</span><span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">workdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">echo</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">getReturnCode</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Execute the command cmd. If specified change the working directory</span>
+
+<span class="sd">        Currently no error-handling is done</span>
+<span class="sd">        :return: A list with all the output-lines of the execution&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+        <span class="n">oldDir</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="n">workdir</span><span class="p">:</span>
+            <span class="n">oldDir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span><span class="o">==</span><span class="nb">list</span><span class="p">:</span>
+            <span class="n">fpath</span><span class="o">=</span><span class="n">cmd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fpath</span><span class="o">=</span><span class="n">cmd</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Check if the file is there. Then we assume that this is a script</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
+            <span class="c1"># Script seems to be unexecutable</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">X_OK</span><span class="p">):</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;The script file&quot;</span><span class="p">,</span><span class="n">fpath</span><span class="p">,</span><span class="s2">&quot;is not executable&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
+            <span class="n">raus</span><span class="p">,</span><span class="n">rein</span> <span class="o">=</span> <span class="n">popen4</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">stdin</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">STDOUT</span><span class="p">,</span> <span class="n">close_fds</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">universal_newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">rein</span><span class="p">,</span><span class="n">raus</span><span class="p">)</span><span class="o">=</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">stdin</span><span class="p">,</span><span class="n">p</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">echo</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">tmp</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">while</span> <span class="n">p</span><span class="o">.</span><span class="n">poll</span><span class="p">()</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">l</span><span class="o">=</span><span class="n">raus</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">echo</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tmp</span><span class="o">=</span><span class="n">raus</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="c1"># line=raus.readline()</span>
+        <span class="c1"># while line!=&quot;&quot;:</span>
+        <span class="c1">#     print line</span>
+        <span class="c1">#     line=raus.readline()</span>
+
+        <span class="k">if</span> <span class="n">oldDir</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">oldDir</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">getReturnCode</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">p</span><span class="o">.</span><span class="n">returncode</span><span class="p">,</span><span class="n">tmp</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tmp</span></div>
+
+<div class="viewcode-block" id="Utilities.remove"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">f</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove a file if it exists.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+            <span class="n">removeFile</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Utilities.rmtree"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities.rmtree">[docs]</a>    <span class="k">def</span> <span class="nf">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dst</span><span class="p">,</span><span class="n">ignore_errors</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Encapsulates the shutil rmtree and provides an alternative for</span>
+<span class="sd">        old Python-version&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span><span class="n">ignore_errors</span><span class="o">=</span><span class="n">ignore_errors</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;rm -rf &quot;</span><span class="o">+</span><span class="n">dst</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Utilities.copytree"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities.copytree">[docs]</a>    <span class="k">def</span> <span class="nf">copytree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">src</span><span class="p">,</span><span class="n">dst</span><span class="p">,</span>
+                 <span class="n">symlinks</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Encapsulates the shutil copytree and provides an alternative for</span>
+<span class="sd">        old Python-version&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">force</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+                <span class="n">dst</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">src</span><span class="p">)))</span>
+
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="ow">and</span> <span class="n">symlinks</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">src</span><span class="p">),</span><span class="n">dst</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">dst</span><span class="p">,</span>
+                                <span class="n">symlinks</span><span class="o">=</span><span class="n">symlinks</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">dst</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+            <span class="n">cpOptions</span><span class="o">=</span><span class="s2">&quot;-R&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">symlinks</span><span class="p">:</span>
+                <span class="n">cpOptions</span><span class="o">+=</span><span class="s2">&quot; -L&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;cp &quot;</span><span class="o">+</span><span class="n">cpOptions</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="n">src</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="n">dst</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Utilities.copyfile"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities.copyfile">[docs]</a>    <span class="k">def</span> <span class="nf">copyfile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">src</span><span class="p">,</span><span class="n">dst</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Encapsulates the shutil copyfile and provides an alternative for</span>
+<span class="sd">        old Python-version&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+                <span class="n">dst</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">src</span><span class="p">)))</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">dst</span><span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copymode</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">dst</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;cp &quot;</span><span class="o">+</span><span class="n">src</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="n">dst</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Utilities.writeDictionaryHeader"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities.writeDictionaryHeader">[docs]</a>    <span class="k">def</span> <span class="nf">writeDictionaryHeader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">f</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Writes a dummy header so OpenFOAM accepts the file as a dictionary</span>
+<span class="sd">        :param f: The file to write to</span>
+<span class="sd">        :type f: file&quot;&quot;&quot;</span>
+
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">// * * * * * * * * * //</span>
+<span class="s2">FoamFile</span>
+<span class="s2">{</span>
+<span class="s2">	version 0.5;</span>
+<span class="s2">	format ascii;</span>
+<span class="s2">	root &quot;ROOT&quot;;</span>
+<span class="s2">	case &quot;CASE&quot;;</span>
+<span class="s2">	class dictionary;</span>
+<span class="s2">	object nix;</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span></div>
+
+    <span class="n">excludeNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;^.svn$&quot;</span> <span class="p">,</span> <span class="s2">&quot;~$&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Utilities.listDirectory"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities.listDirectory">[docs]</a>    <span class="k">def</span> <span class="nf">listDirectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Lists the files in a directory, but excludes certain names</span>
+<span class="sd">        and files with certain endings</span>
+<span class="sd">        :param d: The directory to list</span>
+<span class="sd">        :return: List of the found files and directories&quot;&quot;&quot;</span>
+
+        <span class="n">result</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="n">excludes</span><span class="o">=</span><span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludeNames</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">listdir</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+            <span class="n">ok</span><span class="o">=</span><span class="bp">True</span>
+
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">excludes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                    <span class="n">ok</span><span class="o">=</span><span class="bp">False</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">ok</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="Utilities.which"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities.which">[docs]</a>    <span class="k">def</span> <span class="nf">which</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">progname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the full path. Return None if not found&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="n">progname</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="c1"># shutil has no which</span>
+            <span class="n">pipe</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s1">&#39;which &#39;</span><span class="o">+</span><span class="n">progname</span><span class="p">,</span>
+                                    <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                    <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                                    <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+
+            <span class="p">(</span><span class="n">fullname</span><span class="p">,</span> <span class="n">errout</span><span class="p">)</span> <span class="o">=</span> <span class="n">pipe</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="nb">input</span><span class="p">)</span>
+
+            <span class="n">stat</span> <span class="o">=</span> <span class="n">pipe</span><span class="o">.</span><span class="n">returncode</span>
+
+            <span class="k">if</span> <span class="n">stat</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;which can not find a match for&quot;</span><span class="p">,</span><span class="n">progname</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">fullname</span></div>
+
+<div class="viewcode-block" id="Utilities.find"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities.find">[docs]</a>    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pattern</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span><span class="n">directoriesToo</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find all files whose names match</span>
+<span class="sd">        :param pattern: glob-style pattern</span>
+<span class="sd">        :param path: path under which this files are to be searched</span>
+<span class="sd">        :param directoriesToo: also match directories?&quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">directoriesToo</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+                        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="Utilities.humanReadableSize"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities.humanReadableSize">[docs]</a>    <span class="k">def</span> <span class="nf">humanReadableSize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">num</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Lifted from http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size</span>
+<span class="sd">        Gets a number in bytes and returns a human readable string&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;bytes&#39;</span><span class="p">,</span><span class="s1">&#39;KB&#39;</span><span class="p">,</span><span class="s1">&#39;MB&#39;</span><span class="p">,</span><span class="s1">&#39;GB&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="mf">1024.0</span> <span class="ow">and</span> <span class="n">num</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mf">1024.0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%3.1f%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">num</span> <span class="o">/=</span> <span class="mf">1024.0</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%3.1f%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="s1">&#39;TB&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Utilities.diskUsage"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.Utilities.diskUsage">[docs]</a>    <span class="k">def</span> <span class="nf">diskUsage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fpath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the disk space used at the specified path in bytes&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span>
+                <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+                    <span class="p">[</span><span class="s2">&quot;du&quot;</span><span class="p">,</span><span class="s2">&quot;-sb&quot;</span><span class="p">,</span><span class="n">fpath</span><span class="p">],</span>
+                    <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                    <span class="n">stderr</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">communicate</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="c1"># assume that this du does not support -b</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span>
+                <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+                    <span class="p">[</span><span class="s2">&quot;du&quot;</span><span class="p">,</span><span class="s2">&quot;-sk&quot;</span><span class="p">,</span><span class="n">fpath</span><span class="p">],</span>
+                    <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">communicate</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="mi">1024</span></div></div>
+
+<div class="viewcode-block" id="diskUsage"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.diskUsage">[docs]</a><span class="k">def</span> <span class="nf">diskUsage</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calls the method of the same name from the Utilites class&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Utilities</span><span class="p">()</span><span class="o">.</span><span class="n">diskUsage</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="humanReadableSize"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.humanReadableSize">[docs]</a><span class="k">def</span> <span class="nf">humanReadableSize</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calls the method of the same name from the Utilites class&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Utilities</span><span class="p">()</span><span class="o">.</span><span class="n">humanReadableSize</span><span class="p">(</span><span class="n">num</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="which"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.which">[docs]</a><span class="k">def</span> <span class="nf">which</span><span class="p">(</span><span class="n">prog</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calls the method of the same name from the Utilites class&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Utilities</span><span class="p">()</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="n">prog</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="execute"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.execute">[docs]</a><span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span><span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">workdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">echo</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">getReturnCode</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calls the method of the same name from the Utilites class&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Utilities</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span><span class="n">debug</span><span class="p">,</span><span class="n">workdir</span><span class="p">,</span><span class="n">echo</span><span class="p">,</span><span class="n">getReturnCode</span><span class="o">=</span><span class="n">getReturnCode</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="writeDictionaryHeader"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.writeDictionaryHeader">[docs]</a><span class="k">def</span> <span class="nf">writeDictionaryHeader</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calls the method of the same name from the Utilites class&quot;&quot;&quot;</span>
+    <span class="n">Utilities</span><span class="p">()</span><span class="o">.</span><span class="n">writeDictionaryHeader</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="listDirectory"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.listDirectory">[docs]</a><span class="k">def</span> <span class="nf">listDirectory</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calls the method of the same name from the Utilites class&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Utilities</span><span class="p">()</span><span class="o">.</span><span class="n">listDirectory</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="rmtree"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.rmtree">[docs]</a><span class="k">def</span> <span class="nf">rmtree</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">ignore_errors</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calls the method of the same name from the Utilites class&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Utilities</span><span class="p">()</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">ignore_errors</span><span class="o">=</span><span class="n">ignore_errors</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="copytree"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.copytree">[docs]</a><span class="k">def</span> <span class="nf">copytree</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">dest</span><span class="p">,</span><span class="n">symlinks</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calls the method of the same name from the Utilites class&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Utilities</span><span class="p">()</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">dest</span><span class="p">,</span><span class="n">symlinks</span><span class="o">=</span><span class="n">symlinks</span><span class="p">,</span><span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="remove"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.remove">[docs]</a><span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calls the method of the same name from the Utilites class&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Utilities</span><span class="p">()</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="copyfile"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.copyfile">[docs]</a><span class="k">def</span> <span class="nf">copyfile</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">dest</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calls the method of the same name from the Utilites class&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Utilities</span><span class="p">()</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">dest</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="find"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Utilities.html#PyFoam.Basics.Utilities.find">[docs]</a><span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">directoriesToo</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calls the method of the same name from the Utilites class&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Utilities</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">directoriesToo</span><span class="o">=</span><span class="n">directoriesToo</span><span class="p">)</span></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.CommonChangeBoundary &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.CommonChangeBoundary</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.CommonChangeBoundary</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Class that implements the common functionality for the ChangeBoundary-utilities</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<div class="viewcode-block" id="CommonChangeBoundary"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonChangeBoundary.html#PyFoam.Applications.CommonChangeBoundary.CommonChangeBoundary">[docs]</a><span class="k">class</span> <span class="nc">CommonChangeBoundary</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; The class that defines options for ChangeBoundary-utilities</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CommonChangeBoundary.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonChangeBoundary.html#PyFoam.Applications.CommonChangeBoundary.CommonChangeBoundary.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">input</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                        <span class="s2">&quot;Input&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;Defines Whether processor directories should be handled&quot;</span><span class="p">)</span>
+
+        <span class="nb">input</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--region&quot;</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;region&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Region to use. If unset the default mesh is used&quot;</span><span class="p">)</span>
+        <span class="nb">input</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--time-directory&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Time to use. If unset the mesh in &#39;</span><span class="si">%d</span><span class="s2">efault&#39; is used&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+
+        <span class="n">output</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                        <span class="s2">&quot;Output&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;How the changes are output&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--test&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Only print the new boundary file&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+        <span class="n">grp</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                        <span class="s2">&quot;Processor&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;Defines Whether processor directories should be handled&quot;</span><span class="p">)</span>
+
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-processor&quot;</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doProcessors&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not process processorX-directories even if they are found&quot;</span><span class="p">)</span>
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-single&quot;</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doSingle&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not process the boundary files of the non-decomposed directories&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">grp</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommonChangeBoundary.processBoundaryFiles"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonChangeBoundary.html#PyFoam.Applications.CommonChangeBoundary.CommonChangeBoundary.processBoundaryFiles">[docs]</a>    <span class="k">def</span> <span class="nf">processBoundaryFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">func</span><span class="p">,</span><span class="n">case</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param func: the function that transforms the actual boundary file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">changed</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">doSingle</span><span class="p">:</span>
+            <span class="n">bFileName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="n">case</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">region</span><span class="p">)</span>
+            <span class="n">changed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">processABoundaryFile</span><span class="p">(</span><span class="n">func</span><span class="p">,</span>
+                                              <span class="n">bFileName</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">changed</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">bFileName</span><span class="p">,</span><span class="s2">&quot;not changed&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">doProcessors</span><span class="p">:</span>
+            <span class="n">changedAll</span><span class="o">=</span><span class="bp">True</span>
+            <span class="n">hasProc</span><span class="o">=</span><span class="bp">False</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">glob</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="n">case</span><span class="p">,</span><span class="s2">&quot;processor*&quot;</span><span class="p">)):</span>
+                <span class="n">hasProc</span><span class="o">=</span><span class="bp">True</span>
+                <span class="n">c</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">processABoundaryFile</span><span class="p">(</span><span class="n">func</span><span class="p">,</span>
+                                            <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">region</span><span class="p">))</span>
+                <span class="n">changedAll</span><span class="o">=</span><span class="n">changedAll</span> <span class="ow">and</span> <span class="n">c</span>
+                <span class="n">changed</span><span class="o">=</span><span class="n">changed</span> <span class="ow">or</span> <span class="n">c</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">changedAll</span> <span class="ow">and</span> <span class="n">hasProc</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Not all processor directories in&quot;</span><span class="p">,</span><span class="n">case</span><span class="p">,</span>
+                             <span class="s2">&quot;correctly processed&quot;</span><span class="p">)</span>
+                <span class="n">changed</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">changed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem processing boundary file(s) in&quot;</span><span class="p">,</span><span class="n">case</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommonChangeBoundary.processABoundaryFile"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonChangeBoundary.html#PyFoam.Applications.CommonChangeBoundary.CommonChangeBoundary.processABoundaryFile">[docs]</a>    <span class="k">def</span> <span class="nf">processABoundaryFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">func</span><span class="p">,</span><span class="n">targetDir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param func: the function that transforms the actual boundary file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">boundaryPath</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">targetDir</span><span class="p">,</span><span class="s2">&quot;polyMesh&quot;</span><span class="p">,</span><span class="s2">&quot;boundary&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">boundary</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">boundaryPath</span><span class="p">,</span>
+                                         <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                         <span class="n">boundaryDict</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                         <span class="n">treatBinaryAsASCII</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem opening boundary file&quot;</span><span class="p">,</span><span class="n">boundaryPath</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="n">bnd</span><span class="o">=</span><span class="n">boundary</span><span class="o">.</span><span class="n">content</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">bnd</span><span class="p">)</span><span class="o">!=</span><span class="nb">list</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem with boundary file (not a list)&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="n">boundary</span><span class="o">.</span><span class="n">content</span><span class="o">=</span><span class="n">func</span><span class="p">(</span><span class="n">bnd</span><span class="p">,</span><span class="n">targetDir</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">boundary</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">test</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">boundary</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">boundary</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span>
+                <span class="c1"># self.addToCaseLog(boundaryPath)</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">boundaryPath</span><span class="p">,</span><span class="s2">&quot;unchanged&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

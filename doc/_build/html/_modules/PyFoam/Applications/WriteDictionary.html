@@ -1,0 +1,301 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.WriteDictionary &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.WriteDictionary</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.WriteDictionary</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application class that implements pyFoamWriteDictionary</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">exec_</span>
+
+<div class="viewcode-block" id="WriteDictionary"><a class="viewcode-back" href="../../../api/PyFoam.Applications.WriteDictionary.html#PyFoam.Applications.WriteDictionary.WriteDictionary">[docs]</a><span class="k">class</span> <span class="nc">WriteDictionary</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="WriteDictionary.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.WriteDictionary.html#PyFoam.Applications.WriteDictionary.WriteDictionary.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Write a value to a Foam-Dictionary.  The description of the value is</span>
+<span class="s2">word. If the value is non-atomic (a list or a dictionary) it has to be</span>
+<span class="s2">in in Python-notation.  Parts of the expression can be accessed by</span>
+<span class="s2">using the Python-notation for accessing sub-expressions.</span>
+
+<span class="s2">Example of usage:</span>
+<span class="s2">                            &gt; pyFoamWriteDictionary.py --test pitzDaily/0/U &quot;boundaryField[&#39;inlet&#39;][&#39;type&#39;]&quot; zeroGradient &lt;</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] &lt;dictfile&gt; &lt;key&gt; &lt;val&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WriteDictionary.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.WriteDictionary.html#PyFoam.Applications.WriteDictionary.WriteDictionary.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--test&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Doesn&#39;t write to the file, but outputs the result on stdout&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--strip-quotes-from-value&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;stripQuotes&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Strip the quotes from the value if they had to be defined&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--evaluate&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;verbatim&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Interpret the string as a python expression before assigning it&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WriteDictionary.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.WriteDictionary.html#PyFoam.Applications.WriteDictionary.WriteDictionary.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nb">all</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;&quot;&#39;</span><span class="p">:</span>
+            <span class="nb">all</span><span class="o">=</span><span class="nb">all</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;&quot;&#39;</span><span class="p">:</span>
+            <span class="nb">all</span><span class="o">=</span><span class="nb">all</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stripQuotes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;&quot;&#39;</span><span class="p">:</span>
+                <span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="k">if</span> <span class="n">val</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;&quot;&#39;</span><span class="p">:</span>
+                <span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+
+        <span class="n">match</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;([a-zA-Z_][a-zA-Z0-9_]*)(.*)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="nb">all</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Expression&quot;</span><span class="p">,</span><span class="nb">all</span><span class="p">,</span><span class="s2">&quot;not usable as an expression&quot;</span><span class="p">)</span>
+
+        <span class="n">key</span><span class="o">=</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">sub</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">groups</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">!=</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="n">sub</span><span class="o">=</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbatim</span><span class="p">:</span>
+            <span class="n">newValue</span><span class="o">=</span><span class="n">val</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">newValue</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dictFile</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="n">backup</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">val</span><span class="o">=</span><span class="n">dictFile</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Key: &quot;</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="s2">&quot;not existing in File&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem with file&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sub</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">dictFile</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">=</span><span class="n">newValue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">exec_</span><span class="p">(</span><span class="s2">&quot;dictFile[key]&quot;</span><span class="o">+</span><span class="n">sub</span><span class="o">+</span><span class="s2">&quot;=newValue&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem with subexpression:&quot;</span><span class="p">,</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">test</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">dictFile</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dictFile</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

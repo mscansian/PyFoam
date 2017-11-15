@@ -1,0 +1,496 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Execution.BasicRunner module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.Execution package" href="PyFoam.Execution.html"/>
+        <link rel="next" title="PyFoam.Execution.BasicWatcher module" href="PyFoam.Execution.BasicWatcher.html"/>
+        <link rel="prev" title="PyFoam.Execution.AnalyzedWatcher module" href="PyFoam.Execution.AnalyzedWatcher.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.Execution.html">PyFoam.Execution package</a> &raquo;</li>
+      
+    <li>PyFoam.Execution.BasicRunner module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.Execution.BasicRunner.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.Execution.BasicRunner">
+<span id="pyfoam-execution-basicrunner-module"></span><h1>PyFoam.Execution.BasicRunner module<a class="headerlink" href="#module-PyFoam.Execution.BasicRunner" title="Permalink to this headline">¶</a></h1>
+<p>Run a OpenFOAM command</p>
+<dl class="class">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner">
+<em class="property">class </em><code class="descclassname">PyFoam.Execution.BasicRunner.</code><code class="descname">BasicRunner</code><span class="sig-paren">(</span><em>argv=None</em>, <em>silent=False</em>, <em>logname=None</em>, <em>compressLog=False</em>, <em>lam=None</em>, <em>server=False</em>, <em>restart=False</em>, <em>noLog=False</em>, <em>logTail=None</em>, <em>remark=None</em>, <em>jobId=None</em>, <em>parameters=None</em>, <em>writeState=True</em>, <em>echoCommandLine=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Base class for the running of commands</p>
+<p>When the command is run the output is copied to a LogFile and
+(optionally) standard-out</p>
+<p>The argument list assumes for the first three elements the
+OpenFOAM-convention:</p>
+<p>&lt;cmd&gt; &lt;dir&gt; &lt;case&gt;</p>
+<p>The directory name for outputs is therefor created from &lt;dir&gt; and
+&lt;case&gt;</p>
+<p>Provides some handle-methods that are to be overloaded for
+additional functionality</p>
+<dl class="attribute">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'writeTailLog': &lt;function BasicRunner.writeTailLog&gt;, 'stopGracefully': &lt;function BasicRunner.stopGracefully&gt;, 'writeTheState': &lt;function BasicRunner.writeTheState&gt;, '__module__': 'PyFoam.Execution.BasicRunner', '_writeStopAt': &lt;function BasicRunner._writeStopAt&gt;, '__doc__': 'Base class for the running of commands\n\n    When the command is run the output is copied to a LogFile and\n    (optionally) standard-out\n\n    The argument list assumes for the first three elements the\n    OpenFOAM-convention:\n\n    &lt;cmd&gt; &lt;dir&gt; &lt;case&gt;\n\n    The directory name for outputs is therefor created from &lt;dir&gt; and\n    &lt;case&gt;\n\n    Provides some handle-methods that are to be overloaded for\n    additional functionality', '__init__': &lt;function BasicRunner.__init__&gt;, 'startHandle': &lt;function BasicRunner.startHandle&gt;, 'writeResults': &lt;function BasicRunner.writeResults&gt;, 'writeToStateFile': &lt;function BasicRunner.writeToStateFile&gt;, 'stopWithoutWrite': &lt;function BasicRunner.stopWithoutWrite&gt;, 'getSolutionDirectory': &lt;function BasicRunner.getSolutionDirectory&gt;, 'writeStartTime': &lt;function BasicRunner.writeStartTime&gt;, 'stopHandle': &lt;function BasicRunner.stopHandle&gt;, '__dict__': &lt;attribute '__dict__' of 'BasicRunner' objects&gt;, 'stopAtNextWrite': &lt;function BasicRunner.stopAtNextWrite&gt;, 'writeLastSeen': &lt;function BasicRunner.writeLastSeen&gt;, 'writeNowTime': &lt;function BasicRunner.writeNowTime&gt;, 'lineHandle': &lt;function BasicRunner.lineHandle&gt;, 'start': &lt;function BasicRunner.start&gt;, 'runOK': &lt;function BasicRunner.runOK&gt;, 'addEndTrigger': &lt;function BasicRunner.addEndTrigger&gt;, '__weakref__': &lt;attribute '__weakref__' of 'BasicRunner' objects&gt;, 'appendTailLine': &lt;function BasicRunner.appendTailLine&gt;, 'logName': &lt;function BasicRunner.logName&gt;})</em><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>argv=None</em>, <em>silent=False</em>, <em>logname=None</em>, <em>compressLog=False</em>, <em>lam=None</em>, <em>server=False</em>, <em>restart=False</em>, <em>noLog=False</em>, <em>logTail=None</em>, <em>remark=None</em>, <em>jobId=None</em>, <em>parameters=None</em>, <em>writeState=True</em>, <em>echoCommandLine=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>argv</strong> &#8211; list with the tokens that are the command line</td>
+</tr>
+</tbody>
+</table>
+<p>if not set the standard command line is used
+:param silent: if True no output is sent to stdout
+:param logname: name of the logfile
+:param compressLog: Compress the logfile into a gzip
+:param lam: Information about a parallel run
+:param server: Whether or not to start the network-server
+:type lam: PyFoam.Execution.ParallelExecution.LAMMachine
+:param noLog: Don&#8217;t output a log file
+:param logTail: only the last lines of the log should be written
+:param remark: User defined remark about the job
+:param parameters: User defined dictionary with parameters for</p>
+<blockquote>
+<div>documentation purposes</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>jobId</strong> &#8211; Job ID of the controlling system (Queueing system)</li>
+<li><strong>writeState</strong> &#8211; Write the state to some files in the case</li>
+<li><strong>echoCommandLine</strong> &#8211; Prefix that is printed with the command line. If unset nothing is printed</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Execution.BasicRunner'</em><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner._writeStopAt">
+<code class="descname">_writeStopAt</code><span class="sig-paren">(</span><em>value</em>, <em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner._writeStopAt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner._writeStopAt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write stopAt to stop the run gracefully</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.addEndTrigger">
+<code class="descname">addEndTrigger</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.addEndTrigger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.addEndTrigger" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>f</strong> &#8211; A function that is to be executed at the end of the simulation</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.appendTailLine">
+<code class="descname">appendTailLine</code><span class="sig-paren">(</span><em>line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.appendTailLine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.appendTailLine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append lines to the tail of the log</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.getSolutionDirectory">
+<code class="descname">getSolutionDirectory</code><span class="sig-paren">(</span><em>archive=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.getSolutionDirectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.getSolutionDirectory" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The directory of the case</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="PyFoam.RunDictionary.SolutionDirectory.html#module-PyFoam.RunDictionary.SolutionDirectory" title="PyFoam.RunDictionary.SolutionDirectory">PyFoam.RunDictionary.SolutionDirectory</a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>archive</strong> &#8211; Name of the directory for archiving results</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.lineHandle">
+<code class="descname">lineHandle</code><span class="sig-paren">(</span><em>line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.lineHandle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.lineHandle" title="Permalink to this definition">¶</a></dt>
+<dd><p>called every time a new line is read</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.logName">
+<code class="descname">logName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.logName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.logName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the name of the logfiles</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.runOK">
+<code class="descname">runOK</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.runOK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.runOK" title="Permalink to this definition">¶</a></dt>
+<dd><p>checks whether the run was successful</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.start">
+<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>starts the command and stays with it till the end</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.startHandle">
+<code class="descname">startHandle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.startHandle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.startHandle" title="Permalink to this definition">¶</a></dt>
+<dd><p>to be called before the program is started</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.stopAtNextWrite">
+<code class="descname">stopAtNextWrite</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.stopAtNextWrite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.stopAtNextWrite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tells the runner to stop at the next write</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.stopGracefully">
+<code class="descname">stopGracefully</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.stopGracefully"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.stopGracefully" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tells the runner to stop at the next convenient time</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.stopHandle">
+<code class="descname">stopHandle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.stopHandle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.stopHandle" title="Permalink to this definition">¶</a></dt>
+<dd><p>called after the program has stopped</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.stopWithoutWrite">
+<code class="descname">stopWithoutWrite</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.stopWithoutWrite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.stopWithoutWrite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tells the runner to stop without writing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.writeLastSeen">
+<code class="descname">writeLastSeen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.writeLastSeen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.writeLastSeen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.writeNowTime">
+<code class="descname">writeNowTime</code><span class="sig-paren">(</span><em>force=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.writeNowTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.writeNowTime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.writeResults">
+<code class="descname">writeResults</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.writeResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.writeResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the next possible time-step</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.writeStartTime">
+<code class="descname">writeStartTime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.writeStartTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.writeStartTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the real time the run was started at</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.writeTailLog">
+<code class="descname">writeTailLog</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.writeTailLog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.writeTailLog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the last lines to the log</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.writeTheState">
+<code class="descname">writeTheState</code><span class="sig-paren">(</span><em>state</em>, <em>always=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.writeTheState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.writeTheState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the current state the run is in</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunner.writeToStateFile">
+<code class="descname">writeToStateFile</code><span class="sig-paren">(</span><em>fName</em>, <em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunner.writeToStateFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunner.writeToStateFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a message to a state file</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunnerCheck">
+<em class="property">class </em><code class="descclassname">PyFoam.Execution.BasicRunner.</code><code class="descname">BasicRunnerCheck</code><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunnerCheck"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunnerCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A small class that does primitve checking for BasicRunner
+Duplicates other efforts, but ....</p>
+<dl class="attribute">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunnerCheck.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__weakref__': &lt;attribute '__weakref__' of 'BasicRunnerCheck' objects&gt;, '__module__': 'PyFoam.Execution.BasicRunner', '__doc__': 'A small class that does primitve checking for BasicRunner\n    Duplicates other efforts, but ....', '__init__': &lt;function BasicRunnerCheck.__init__&gt;, 'getTime': &lt;function BasicRunnerCheck.getTime&gt;, 'getCreateTime': &lt;function BasicRunnerCheck.getCreateTime&gt;, 'floatRegExp': '[-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?', '__dict__': &lt;attribute '__dict__' of 'BasicRunnerCheck' objects&gt;, 'controlDictRead': &lt;function BasicRunnerCheck.controlDictRead&gt;})</em><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunnerCheck.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunnerCheck.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunnerCheck.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunnerCheck.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunnerCheck.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Execution.BasicRunner'</em><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunnerCheck.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunnerCheck.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunnerCheck.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunnerCheck.controlDictRead">
+<code class="descname">controlDictRead</code><span class="sig-paren">(</span><em>line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunnerCheck.controlDictRead"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunnerCheck.controlDictRead" title="Permalink to this definition">¶</a></dt>
+<dd><p>Was the controlDict reread?</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunnerCheck.floatRegExp">
+<code class="descname">floatRegExp</code><em class="property"> = '[-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?'</em><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunnerCheck.floatRegExp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunnerCheck.getCreateTime">
+<code class="descname">getCreateTime</code><span class="sig-paren">(</span><em>line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunnerCheck.getCreateTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunnerCheck.getCreateTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this line contain mesh time information?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Execution.BasicRunner.BasicRunnerCheck.getTime">
+<code class="descname">getTime</code><span class="sig-paren">(</span><em>line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#BasicRunnerCheck.getTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.BasicRunnerCheck.getTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this line contain time information?</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Execution.BasicRunner.restoreControlDict">
+<code class="descclassname">PyFoam.Execution.BasicRunner.</code><code class="descname">restoreControlDict</code><span class="sig-paren">(</span><em>ctrl</em>, <em>runner</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Execution/BasicRunner.html#restoreControlDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Execution.BasicRunner.restoreControlDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timed function to avoid time-stamp-problems</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.Execution.BasicWatcher.html" class="btn btn-neutral float-right" title="PyFoam.Execution.BasicWatcher module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.Execution.AnalyzedWatcher.html" class="btn btn-neutral" title="PyFoam.Execution.AnalyzedWatcher module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

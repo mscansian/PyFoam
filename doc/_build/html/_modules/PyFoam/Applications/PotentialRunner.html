@@ -1,0 +1,439 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.PotentialRunner &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.PotentialRunner</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.PotentialRunner</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application class that implements pyFoamSteadyRunner</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">environ</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Execution.BasicRunner</span> <span class="kn">import</span> <span class="n">BasicRunner</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">warning</span><span class="p">,</span><span class="n">error</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">oldAppConvention</span> <span class="k">as</span> <span class="n">oldApp</span>
+
+<span class="kn">from</span> <span class="nn">.CommonParallel</span> <span class="kn">import</span> <span class="n">CommonParallel</span>
+<span class="kn">from</span> <span class="nn">.CommonStandardOutput</span> <span class="kn">import</span> <span class="n">CommonStandardOutput</span>
+<span class="kn">from</span> <span class="nn">.CommonServer</span> <span class="kn">import</span> <span class="n">CommonServer</span>
+<span class="kn">from</span> <span class="nn">.CommonVCSCommit</span> <span class="kn">import</span> <span class="n">CommonVCSCommit</span>
+<span class="kn">from</span> <span class="nn">.CommonLibFunctionTrigger</span> <span class="kn">import</span> <span class="n">CommonLibFunctionTrigger</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">oldTutorialStructure</span><span class="p">,</span><span class="n">foamVersion</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<div class="viewcode-block" id="PotentialRunner"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PotentialRunner.html#PyFoam.Applications.PotentialRunner.PotentialRunner">[docs]</a><span class="k">class</span> <span class="nc">PotentialRunner</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">,</span>
+                      <span class="n">CommonStandardOutput</span><span class="p">,</span>
+                      <span class="n">CommonServer</span><span class="p">,</span>
+                      <span class="n">CommonLibFunctionTrigger</span><span class="p">,</span>
+                      <span class="n">CommonParallel</span><span class="p">,</span>
+                      <span class="n">CommonVCSCommit</span><span class="p">):</span>
+<div class="viewcode-block" id="PotentialRunner.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PotentialRunner.html#PyFoam.Applications.PotentialRunner.PotentialRunner.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Runs the potentialFoam solver on a case to get a decent initial</span>
+<span class="s2">condition.</span>
+
+<span class="s2">Copies the current fields for U and p to backup-files.</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] &lt;caseDirectory&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                   <span class="n">findLocalConfigurationFile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">localConfigFromCasename</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PotentialRunner.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PotentialRunner.html#PyFoam.Applications.PotentialRunner.PotentialRunner.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">pot</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                        <span class="s2">&quot;Solver settings&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;Basic settings for the potentialFoam-solver&quot;</span><span class="p">)</span>
+
+        <span class="n">pot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--non-orthogonal-correctors&quot;</span><span class="p">,</span>
+                       <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;noCorr&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The number of non-orthogonal corrections&quot;</span><span class="p">)</span>
+        <span class="n">pot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--tolerance&quot;</span><span class="p">,</span>
+                       <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;tolerance&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Overwrite the tolerance of the linear solver&quot;</span><span class="p">)</span>
+        <span class="n">pot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--relTol&quot;</span><span class="p">,</span>
+                       <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;relTol&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Overwrite the relative tolerance of the linear solver&quot;</span><span class="p">)</span>
+        <span class="n">pot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-write-p&quot;</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;writep&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t write pressure p&quot;</span><span class="p">)</span>
+        <span class="n">pot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--pRefCell&quot;</span><span class="p">,</span>
+                       <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;pRefCell&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Sets the number of the reference cell for closed cases&quot;</span><span class="p">)</span>
+        <span class="n">pot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--pRefValue&quot;</span><span class="p">,</span>
+                               <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;pRefValue&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Sets the pressure reference value for closed cases&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">pot</span><span class="p">)</span>
+
+        <span class="n">CommonParallel</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">CommonStandardOutput</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">CommonServer</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">CommonLibFunctionTrigger</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">CommonVCSCommit</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PotentialRunner.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PotentialRunner.html#PyFoam.Applications.PotentialRunner.PotentialRunner.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">sol</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="n">cName</span><span class="p">,</span><span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="c1"># self.addLocalConfig(cName)</span>
+        <span class="n">initial</span><span class="o">=</span><span class="n">sol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;U&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">initial</span> <span class="ow">or</span> <span class="s2">&quot;p&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">initial</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Either &#39;p&#39; or &#39;U&#39; missing from the initial directory&quot;</span><span class="p">,</span><span class="n">initial</span><span class="o">.</span><span class="n">baseName</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">writep</span><span class="p">:</span>
+            <span class="n">initial</span><span class="p">[</span><span class="s2">&quot;p.prepotential&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">initial</span><span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">]</span>
+        <span class="n">initial</span><span class="p">[</span><span class="s2">&quot;U.prepotential&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">initial</span><span class="p">[</span><span class="s2">&quot;U&quot;</span><span class="p">]</span>
+
+        <span class="n">lam</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getParallel</span><span class="p">(</span><span class="n">sol</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">writep</span><span class="p">:</span>
+            <span class="n">writep</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;-writep&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">writep</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="n">argv</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;potentialFoam&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">oldApp</span><span class="p">():</span>
+            <span class="n">argv</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="n">cName</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">argv</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;-case&quot;</span><span class="p">,</span><span class="n">cName</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLogname</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;Potential&quot;</span><span class="p">,</span><span class="n">useApplication</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkAndCommit</span><span class="p">(</span><span class="n">sol</span><span class="p">)</span>
+
+        <span class="n">run</span><span class="o">=</span><span class="n">BasicRunner</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="n">argv</span><span class="o">+</span><span class="n">writep</span><span class="p">,</span>
+                        <span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">server</span><span class="p">,</span>
+                        <span class="n">logname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">logname</span><span class="p">,</span>
+                        <span class="n">compressLog</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">compress</span><span class="p">,</span>
+                        <span class="n">silent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">progress</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">,</span>
+                        <span class="n">lam</span><span class="o">=</span><span class="n">lam</span><span class="p">,</span>
+                        <span class="n">logTail</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">logTail</span><span class="p">,</span>
+                        <span class="n">echoCommandLine</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">echoCommandPrefix</span><span class="p">,</span>
+                        <span class="n">noLog</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">noLog</span><span class="p">)</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Setting system-directory for potentialFoam&quot;</span><span class="p">)</span>
+        <span class="n">trig</span><span class="o">=</span><span class="n">PotentialTrigger</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">noCorr</span><span class="p">,</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">tolerance</span><span class="p">,</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">relTol</span><span class="p">,</span>
+                              <span class="n">pRefCell</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pRefCell</span><span class="p">,</span>
+                              <span class="n">pRefValue</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pRefValue</span><span class="p">,</span>
+                              <span class="n">removeLibs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">removeLibs</span><span class="p">,</span>
+                              <span class="n">removeFunctions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">removeFunctions</span><span class="p">)</span>
+        <span class="n">run</span><span class="o">.</span><span class="n">addEndTrigger</span><span class="p">(</span><span class="n">trig</span><span class="o">.</span><span class="n">resetIt</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addToCaseLog</span><span class="p">(</span><span class="n">cName</span><span class="p">,</span><span class="s2">&quot;Starting&quot;</span><span class="p">)</span>
+
+        <span class="n">run</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addToCaseLog</span><span class="p">(</span><span class="n">cName</span><span class="p">,</span><span class="s2">&quot;Ending&quot;</span><span class="p">)</span></div></div>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span>
+
+<div class="viewcode-block" id="PotentialTrigger"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PotentialRunner.html#PyFoam.Applications.PotentialRunner.PotentialTrigger">[docs]</a><span class="k">class</span> <span class="nc">PotentialTrigger</span><span class="p">:</span>
+<div class="viewcode-block" id="PotentialTrigger.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PotentialRunner.html#PyFoam.Applications.PotentialRunner.PotentialTrigger.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">sol</span><span class="p">,</span>
+                 <span class="n">correctors</span><span class="p">,</span>
+                 <span class="n">tolerance</span><span class="p">,</span>
+                 <span class="n">relTol</span><span class="p">,</span>
+                 <span class="n">pRefValue</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">pRefCell</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">removeLibs</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">removeFunctions</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">systemDir</span><span class="p">(),</span><span class="s2">&quot;fvSolution&quot;</span><span class="p">),</span><span class="n">backup</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schemes</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">systemDir</span><span class="p">(),</span><span class="s2">&quot;fvSchemes&quot;</span><span class="p">),</span><span class="n">backup</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">systemDir</span><span class="p">(),</span><span class="s2">&quot;controlDict&quot;</span><span class="p">),</span><span class="n">backup</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">controlOrig</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">systemDir</span><span class="p">(),</span><span class="s2">&quot;controlDict&quot;</span><span class="p">),</span><span class="n">backup</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="n">pre</span><span class="o">=</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;FOAM_TUTORIALS&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">oldTutorialStructure</span><span class="p">():</span>
+            <span class="n">pre</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pre</span><span class="p">,</span><span class="s2">&quot;basic&quot;</span><span class="p">)</span>
+        <span class="n">pot</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pre</span><span class="p">,</span><span class="s2">&quot;potentialFoam&quot;</span><span class="p">,</span><span class="s2">&quot;cylinder&quot;</span><span class="p">),</span><span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">paraviewLink</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fresh</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;SIMPLE&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution</span> <span class="ow">and</span> <span class="n">foamVersion</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="p">[</span><span class="s2">&quot;SIMPLE&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pot</span><span class="o">.</span><span class="n">systemDir</span><span class="p">(),</span><span class="s2">&quot;fvSolution&quot;</span><span class="p">),</span><span class="n">backup</span><span class="o">=</span><span class="bp">False</span><span class="p">)[</span><span class="s2">&quot;SIMPLE&quot;</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">foamVersion</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
+                <span class="n">solutionBlock</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="p">[</span><span class="s2">&quot;SIMPLE&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="p">[</span><span class="s2">&quot;potentialFlow&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">solutionBlock</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="p">[</span><span class="s2">&quot;potentialFlow&quot;</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="s2">&quot;nNonOrthogonalCorrectors&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">solutionBlock</span> <span class="ow">and</span> <span class="n">correctors</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">correctors</span><span class="o">=</span><span class="mi">3</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Setting number of correctors to default value&quot;</span><span class="p">,</span><span class="n">correctors</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">correctors</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">solutionBlock</span><span class="p">[</span><span class="s2">&quot;nNonOrthogonalCorrectors&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">correctors</span>
+
+            <span class="k">if</span> <span class="n">pRefCell</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">solutionBlock</span><span class="p">[</span><span class="s2">&quot;pRefCell&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">pRefCell</span>
+            <span class="k">if</span> <span class="n">pRefValue</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">solutionBlock</span><span class="p">[</span><span class="s2">&quot;pRefValue&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">pRefValue</span>
+
+            <span class="k">if</span> <span class="n">tolerance</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">][</span><span class="s2">&quot;p&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;tolerance&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">tolerance</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="c1"># 1.6 format</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">][</span><span class="s2">&quot;p&quot;</span><span class="p">][</span><span class="s2">&quot;tolerance&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">tolerance</span>
+
+            <span class="k">if</span> <span class="n">relTol</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">][</span><span class="s2">&quot;p&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;relTol&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">relTol</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="c1"># 1.6 format</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">][</span><span class="s2">&quot;p&quot;</span><span class="p">][</span><span class="s2">&quot;relTol&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">relTol</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">schemes</span><span class="o">.</span><span class="n">content</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pot</span><span class="o">.</span><span class="n">systemDir</span><span class="p">(),</span><span class="s2">&quot;fvSchemes&quot;</span><span class="p">),</span><span class="n">backup</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">content</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pot</span><span class="o">.</span><span class="n">systemDir</span><span class="p">(),</span><span class="s2">&quot;controlDict&quot;</span><span class="p">),</span><span class="n">backup</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">content</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;functions&quot;</span><span class="p">,</span><span class="s2">&quot;libs&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Remove&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;from controlDict&quot;</span><span class="p">)</span>
+                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="s2">&quot;functions&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">controlOrig</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">removeFunctions</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Copying functions over&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="p">[</span><span class="s2">&quot;functions&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">controlOrig</span><span class="p">[</span><span class="s2">&quot;functions&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;libs&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">controlOrig</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">removeLibs</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Copying libs over&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="p">[</span><span class="s2">&quot;libs&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">controlOrig</span><span class="p">[</span><span class="s2">&quot;libs&quot;</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schemes</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Restoring defaults&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schemes</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">e</span></div>
+
+<div class="viewcode-block" id="PotentialTrigger.resetIt"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PotentialRunner.html#PyFoam.Applications.PotentialRunner.PotentialTrigger.resetIt">[docs]</a>    <span class="k">def</span> <span class="nf">resetIt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fresh</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Trigger called: Resetting fvSchemes and fvSolution&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schemes</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fresh</span><span class="o">=</span><span class="bp">False</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,742 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Infrastructure.Configuration &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Infrastructure.Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Infrastructure.Configuration</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Reads configuration-files that define defaults for various PyFoam-Settings</span>
+
+<span class="sd">Also hardcodes defaults for the settings&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="n">configparser</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">iteritems</span><span class="p">,</span><span class="n">PY3</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Infrastructure.Hardcoded</span> <span class="kn">import</span> <span class="n">globalConfigFile</span><span class="p">,</span><span class="n">userConfigFile</span><span class="p">,</span><span class="n">globalDirectory</span><span class="p">,</span><span class="n">userDirectory</span><span class="p">,</span><span class="n">globalConfigDir</span><span class="p">,</span><span class="n">userConfigDir</span><span class="p">,</span><span class="n">pyFoamSiteVar</span><span class="p">,</span><span class="n">siteConfigDir</span><span class="p">,</span><span class="n">siteConfigFile</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">environ</span>
+<span class="kn">import</span> <span class="nn">glob</span><span class="o">,</span><span class="nn">re</span>
+
+<span class="n">_defaults</span><span class="o">=</span><span class="p">{</span>
+    <span class="s2">&quot;Network&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;startServerPort&quot;</span>  <span class="p">:</span> <span class="s2">&quot;18000&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;nrServerPorts&quot;</span>    <span class="p">:</span> <span class="s2">&quot;100&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;portWait&quot;</span>         <span class="p">:</span> <span class="s2">&quot;1.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;socketTimeout&quot;</span>    <span class="p">:</span> <span class="s2">&quot;1.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;socketRetries&quot;</span>    <span class="p">:</span> <span class="s2">&quot;10&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;Metaserver&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;port&quot;</span>             <span class="p">:</span> <span class="s2">&quot;17999&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ip&quot;</span>               <span class="p">:</span> <span class="s2">&quot;192.168.1.11&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;checkerSleeping&quot;</span>  <span class="p">:</span> <span class="s2">&quot;30.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;searchServers&quot;</span>    <span class="p">:</span> <span class="s2">&quot;192.168.1.0/24,192.168.0.0/24&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;webhost&quot;</span>          <span class="p">:</span> <span class="s2">&quot;127.0.0.1:9000&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;doWebsync&quot;</span>        <span class="p">:</span> <span class="s2">&quot;True&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;websyncInterval&quot;</span>  <span class="p">:</span> <span class="s2">&quot;300.&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;IsAlive&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;maxTimeStart&quot;</span>     <span class="p">:</span> <span class="s2">&quot;30.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;isLivingMargin&quot;</span>   <span class="p">:</span> <span class="s2">&quot;1.1&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;Logging&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;default&quot;</span> <span class="p">:</span> <span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;server&quot;</span> <span class="p">:</span> <span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;OpenFOAM&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;Forks&quot;</span> <span class="p">:</span> <span class="s1">&#39;openfoam,extend,openfoamplus&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;DirPatterns-openfoam&quot;</span> <span class="p">:</span> <span class="s1">&#39;&quot;^OpenFOAM-(([0-9]\.[0-9]|dev).*)$&quot;,&quot;^openfoam([0-9]+)$&quot;&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;DirPatterns-extend&quot;</span> <span class="p">:</span> <span class="s1">&#39;&quot;^foam-extend-([0-9]\.[0-9].*)$&quot;&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;DirPatterns-openfoamplus&quot;</span> <span class="p">:</span> <span class="s1">&#39;&quot;^OpenFOAM-((v[0-9]\.[0-9]\+|plus).*)$&quot;&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;Installation-openfoam&quot;</span> <span class="p">:</span> <span class="s2">&quot;~/OpenFOAM&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Installation-openfoamplus&quot;</span> <span class="p">:</span> <span class="s2">&quot;~/OpenFOAM&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Installation-extend&quot;</span> <span class="p">:</span> <span class="s2">&quot;~/foam&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;AdditionalInstallation-openfoam&quot;</span> <span class="p">:</span> <span class="s1">&#39;&quot;~/OpenFOAM&quot;&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;Version&quot;</span> <span class="p">:</span> <span class="s2">&quot;1.5&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;MPI&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="c1">#    &quot;run_OPENMPI&quot;:&quot;mpirun&quot;,</span>
+<span class="c1">#    &quot;run_LAM&quot;:&quot;mpirun&quot;,</span>
+        <span class="s2">&quot;OpenMPI_add_prefix&quot;</span><span class="p">:</span><span class="s2">&quot;False&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;options_OPENMPI_pre&quot;</span><span class="p">:</span> <span class="s1">&#39;[&quot;--mca&quot;,&quot;pls&quot;,&quot;rsh&quot;,&quot;--mca&quot;,&quot;pls_rsh_agent&quot;,&quot;rsh&quot;]&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;options_OPENMPI_post&quot;</span><span class="p">:</span><span class="s1">&#39;[&quot;-x&quot;,&quot;PATH&quot;,&quot;-x&quot;,&quot;LD_LIBRARY_PATH&quot;,&quot;-x&quot;,&quot;WM_PROJECT_DIR&quot;,&quot;-x&quot;,&quot;PYTHONPATH&quot;,&quot;-x&quot;,&quot;FOAM_MPI_LIBBIN&quot;,&quot;-x&quot;,&quot;MPI_BUFFER_SIZE&quot;,&quot;-x&quot;,&quot;MPI_ARCH_PATH&quot;]&#39;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;Paths&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;python&quot;</span> <span class="p">:</span> <span class="s2">&quot;/usr/bin/python&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;bash&quot;</span> <span class="p">:</span> <span class="s2">&quot;/bin/bash&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;paraview&quot;</span> <span class="p">:</span> <span class="s2">&quot;paraview&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;ClusterJob&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;useFoamMPI&quot;</span><span class="p">:</span><span class="s1">&#39;[&quot;1.5&quot;]&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;path&quot;</span><span class="p">:</span><span class="s2">&quot;/opt/openmpi/bin&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ldpath&quot;</span><span class="p">:</span><span class="s2">&quot;/opt/openmpi/lib&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;doAutoReconstruct&quot;</span><span class="p">:</span><span class="s2">&quot;True&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;useMachineFile&quot;</span><span class="p">:</span><span class="s2">&quot;True&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;Debug&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="c1">#    &quot;ParallelExecution&quot;:&quot;True&quot;,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;Execution&quot;</span><span class="p">:{</span>
+        <span class="s2">&quot;controlDictRestoreWait&quot;</span><span class="p">:</span><span class="s2">&quot;60.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;DebuggerCall&quot;</span><span class="p">:</span><span class="s2">&quot;gdb -ex run --args {exe} {args}&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;DebuggerCall_Darwin&quot;</span><span class="p">:</span><span class="s2">&quot;lldb -o run -k bt -- {exe} {args}&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;CaseBuilder&quot;</span><span class="p">:{</span>
+        <span class="s2">&quot;descriptionPath&quot;</span><span class="p">:</span> <span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;[&quot;&#39;</span><span class="o">+</span><span class="n">path</span><span class="o">.</span><span class="n">curdir</span><span class="o">+</span><span class="s1">&#39;&quot;,&quot;&#39;</span><span class="o">+</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">userDirectory</span><span class="p">(),</span><span class="s2">&quot;caseBuilderDescriptions&quot;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;&quot;,&quot;&#39;</span><span class="o">+</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">globalDirectory</span><span class="p">(),</span><span class="s2">&quot;caseBuilderDescriptions&quot;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;&quot;]&#39;</span><span class="p">),</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;Formats&quot;</span><span class="p">:{</span>
+        <span class="s2">&quot;error&quot;</span>       <span class="p">:</span> <span class="s2">&quot;bold,red,standout&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;warning&quot;</span>     <span class="p">:</span> <span class="s2">&quot;under&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;source&quot;</span>      <span class="p">:</span> <span class="s2">&quot;red,bold&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;destination&quot;</span> <span class="p">:</span> <span class="s2">&quot;blue,bold&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;difference&quot;</span>  <span class="p">:</span> <span class="s2">&quot;green,back_black,bold&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;question&quot;</span>    <span class="p">:</span> <span class="s2">&quot;green,standout&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;input&quot;</span>       <span class="p">:</span> <span class="s2">&quot;cyan,under&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;CommandOptionDefaults&quot;</span><span class="p">:{</span>
+        <span class="s2">&quot;sortListCases&quot;</span><span class="p">:</span><span class="s2">&quot;mtime&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;Plotting&quot;</span><span class="p">:{</span>
+        <span class="s2">&quot;preferredImplementation&quot;</span><span class="p">:</span><span class="s2">&quot;gnuplot&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;gnuplot_terminal&quot;</span> <span class="p">:</span> <span class="s2">&quot;x11&quot;</span> <span class="p">,</span>
+        <span class="s2">&quot;gnuplotCommands&quot;</span><span class="p">:</span><span class="s2">&quot;set xzeroaxis linewidth 4;set grid xtics ytics back lw 0.5&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;hardcopyOptions_png&quot;</span> <span class="p">:</span> <span class="s2">&quot;large size 1024,800&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;hardcopyOptions_pdf&quot;</span> <span class="p">:</span> <span class="s2">&quot;color&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;hardcopyOptions_postscript&quot;</span> <span class="p">:</span> <span class="s2">&quot;color&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;hardcopyOptions_eps&quot;</span> <span class="p">:</span> <span class="s2">&quot;color&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;autoplots&quot;</span> <span class="p">:</span> <span class="p">[],</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;OutfileCollection&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;maximumOpenFiles&quot;</span><span class="p">:</span><span class="s2">&quot;100&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;SolverOutput&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;timeRegExp&quot;</span><span class="p">:</span> <span class="s2">&quot;^(Time =|Iteration:) (.+)$&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;stripSpaces&quot;</span><span class="p">:</span><span class="bp">False</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;Clearing&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;additionalPatterns&quot;</span><span class="p">:</span><span class="s2">&quot;[]&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;postRunHook_WriteMySqlite&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;enabled&quot;</span><span class="p">:</span><span class="bp">False</span><span class="p">,</span>
+        <span class="s2">&quot;module&quot;</span><span class="p">:</span><span class="s2">&quot;WriteToSqliteDatabase&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;createDatabase&quot;</span><span class="p">:</span><span class="bp">False</span><span class="p">,</span>
+        <span class="s2">&quot;database&quot;</span><span class="p">:</span><span class="s2">&quot;~/databaseOfAllMyRuns.db&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;postRunHook_SendToPushover&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;enabled&quot;</span><span class="p">:</span><span class="bp">False</span><span class="p">,</span>
+        <span class="s2">&quot;minRunTime&quot;</span><span class="p">:</span><span class="mi">600</span><span class="p">,</span>
+        <span class="s2">&quot;useSSL&quot;</span><span class="p">:</span><span class="bp">True</span><span class="p">,</span>
+        <span class="s2">&quot;module&quot;</span><span class="p">:</span><span class="s2">&quot;SendToWebservice&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;host&quot;</span><span class="p">:</span><span class="s2">&quot;api.pushover.net:443&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;method&quot;</span><span class="p">:</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span><span class="s2">&quot;/1/messages&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;param_token&quot;</span><span class="p">:</span><span class="s2">&quot;invalid_get_yourself_one_at_pushover.net&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;param_user&quot;</span><span class="p">:</span><span class="s2">&quot;invalid_get_yourself_an_account_at_pushover.net&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;param_title&quot;</span><span class="p">:</span><span class="s2">&quot;&lt;!--(if OK)--&gt;Finished&lt;!--(else)--&gt;Failed&lt;!--(end)--&gt;: |-casename-| (|-solver-|)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;param_message&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;&quot;Case |-casefullname-| ended after |-wallTime-|s</span>
+<span class="s2">Last timestep: t=|-time-|</span>
+<span class="s2">Machine: |-hostname-|</span>
+<span class="s2">Full command: |-commandLine-|&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;header_Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/x-www-form-urlencoded&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;templates&quot;</span><span class="p">:</span><span class="s2">&quot;title message&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;postRunHook_mailToMe&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;enabled&quot;</span><span class="p">:</span><span class="bp">False</span><span class="p">,</span>
+        <span class="s2">&quot;minRunTime&quot;</span><span class="p">:</span><span class="mi">600</span><span class="p">,</span>
+        <span class="s2">&quot;module&quot;</span><span class="p">:</span><span class="s2">&quot;MailToAddress&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;to&quot;</span><span class="p">:</span><span class="s2">&quot;nobody@here.there&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;from&quot;</span><span class="p">:</span><span class="s2">&quot;a_concerned_user@your.local.machine&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;smtpServer&quot;</span><span class="p">:</span><span class="s2">&quot;smtp.server.that.doesnt.need.authentication&#39;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;subject&quot;</span><span class="p">:</span><span class="s2">&quot;&lt;!--(if OK)--&gt;Finished&lt;!--(else)--&gt;Failed&lt;!--(end)--&gt;: |-casename-| (|-solver-|)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;message&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;&quot;Case |-casefullname-| ended after |-wallTime-|s</span>
+<span class="s2">Last timestep: t=|-time-|</span>
+<span class="s2">Machine: |-hostname-|</span>
+<span class="s2">Full command: |-commandLine-|&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mailFields_Reply-To&quot;</span><span class="p">:</span> <span class="s2">&quot;nobody@nowhere.com&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;Cloning&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;addItem&quot;</span><span class="p">:</span><span class="s2">&quot;[]&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;noForceSymlink&quot;</span><span class="p">:</span><span class="s2">&quot;[]&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;PrepareCase&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;MeshCreateScript&quot;</span><span class="p">:</span><span class="s2">&quot;meshCreate.sh&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CaseSetupScript&quot;</span><span class="p">:</span><span class="s2">&quot;caseSetup.sh&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;DefaultParameterFile&quot;</span><span class="p">:</span><span class="s2">&quot;default.parameters&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;AllowDerivedChanges&quot;</span><span class="p">:</span><span class="bp">False</span><span class="p">,</span>
+        <span class="s2">&quot;ignoreDirectories&quot;</span><span class="p">:</span> <span class="s1">&#39;&quot;processor[0-9]+&quot;,&quot;postProcessing&quot;,&quot;.*.analyzed&quot;,&quot;VTK&quot;&#39;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;Template&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;allowExecution&quot;</span>                <span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s2">&quot;assignmentDebug&quot;</span>               <span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s2">&quot;tolerantRender&quot;</span>                <span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s2">&quot;expressionDelimiter&quot;</span>           <span class="p">:</span> <span class="s2">&quot;|-&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;assignmentLineStart&quot;</span>           <span class="p">:</span> <span class="s2">&quot;$$&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;SolverBase&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="c1"># entries of form solvername: list of base-solvers</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;Blink1&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;baseurl&quot;</span> <span class="p">:</span> <span class="s2">&quot;http://localhost:8934/blink1&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;allowedTimeout&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;tictoccolor&quot;</span><span class="p">:</span> <span class="s2">&quot;#00FF00&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;timestepcolor&quot;</span><span class="p">:</span> <span class="s2">&quot;#000080&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;executepattern&quot;</span><span class="p">:</span> <span class="s2">&quot;RGB&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;executeinterleave&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;Autoplots&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;phaseFraction&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;solvers&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;.+[pP]haseEulerFoam&quot;</span><span class="p">,</span><span class="s2">&quot;.*[iI]nterFoam&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;plotinfo&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;theTitle&quot;</span> <span class="p">:</span> <span class="s2">&quot;Phase fractions&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;expr&quot;</span> <span class="p">:</span> <span class="s2">r&quot;alpha.(.+) volume fraction = (.+)  Min\(alpha1\) = (.+)  Max\(alpha1\) = (.+)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;dynamic&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;idNr&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;titles&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;average&quot;</span><span class="p">,</span><span class="s2">&quot;min&quot;</span><span class="p">,</span><span class="s2">&quot;max&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;phaseFractionNew&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;solvers&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;.+[pP]haseEulerFoam&quot;</span><span class="p">,</span><span class="s2">&quot;.*[iI]nterFoam&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;plotinfo&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;theTitle&quot;</span> <span class="p">:</span> <span class="s2">&quot;Phase fractions&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;expr&quot;</span> <span class="p">:</span> <span class="s2">r&quot;Phase.+ volume fraction = (.+)  Min\(alpha\.(.+)\) = (.+)  Max\(alpha\.\2\) = (.+)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;dynamic&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;idNr&quot;</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="s2">&quot;titles&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;average&quot;</span><span class="p">,</span><span class="s2">&quot;min&quot;</span><span class="p">,</span><span class="s2">&quot;max&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;interfaceTemperature&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;solvers&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;reacting.+EulerFoam&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;plotinfo&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;theTitle&quot;</span> <span class="p">:</span> <span class="s2">&quot;Interface temperature&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;expr&quot;</span> <span class="p">:</span> <span class="s2">r&quot;Tf.(.+): min = (.+), mean = (.+), max = (.+)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;dynamic&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;idNr&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;titles&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">,</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span><span class="s2">&quot;max&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;cloudNumberMass&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;solvers&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;coal.+Foam&quot;</span> <span class="p">,</span> <span class="s2">&quot;.+Parcel.*Foam&quot;</span> <span class="p">,</span> <span class="s2">&quot;sprayFoam&quot;</span> <span class="p">],</span>
+            <span class="s2">&quot;plotinfo&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;theTitle&quot;</span> <span class="p">:</span> <span class="s2">&quot;Particle number and mass&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;expr&quot;</span> <span class="p">:</span> <span class="s2">r&quot;Cloud: (.+)\n +Current number of parcels += (.+)\n +Current mass in system += (.+)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;dynamic&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;idNr&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;titles&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;nr&quot;</span> <span class="p">,</span> <span class="s2">&quot;mass&quot;</span> <span class="p">],</span>
+                <span class="s2">&quot;alternateAxis&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;.+_mass&quot;</span> <span class="p">],</span>
+                <span class="s2">&quot;ylabel&quot;</span> <span class="p">:</span> <span class="s2">&quot;Particle number&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;y2label&quot;</span> <span class="p">:</span> <span class="s2">&quot;Mass in system&quot;</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;chtPhase&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;solvers&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;chtMultiRegion.*Foam&quot;</span> <span class="p">],</span>
+            <span class="s2">&quot;plotinfo&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;phase&quot;</span> <span class="p">,</span>
+                <span class="s2">&quot;expr&quot;</span> <span class="p">:</span> <span class="s2">r&quot;Solving for .+ region (.+)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;idNr&quot;</span> <span class="p">:</span> <span class="mi">1</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;chtPhaseOff&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;solvers&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;chtMultiRegion.*Foam&quot;</span> <span class="p">],</span>
+            <span class="s2">&quot;plotinfo&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;phase&quot;</span> <span class="p">,</span>
+                <span class="s2">&quot;expr&quot;</span> <span class="p">:</span> <span class="s2">r&quot;ExecutionTime(x*) = .+&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;idNr&quot;</span> <span class="p">:</span> <span class="mi">1</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;chtFluidTemperature&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;solvers&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;chtMultiRegion.*Foam&quot;</span> <span class="p">],</span>
+            <span class="s2">&quot;plotinfo&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;expr&quot;</span> <span class="p">:</span> <span class="s2">r&quot;Min/max T:(\S+) (\S+)$&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;titles&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;min&quot;</span> <span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;theTitle&quot;</span> <span class="p">:</span> <span class="s2">&quot;Temperatures&quot;</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;chtSolidTemperature&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;solvers&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;chtMultiRegion.*Foam&quot;</span> <span class="p">],</span>
+            <span class="s2">&quot;plotinfo&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;slave&quot;</span> <span class="p">,</span>
+                <span class="s2">&quot;master&quot;</span> <span class="p">:</span> <span class="s2">&quot;chtfluidtemperature&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;expr&quot;</span> <span class="p">:</span> <span class="s2">r&quot;Min/max T:min\(T\) \[0 0 0 1 0 0 0\] (.+) max\(T\) \[0 0 0 1 0 0 0\] (.+)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;titles&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;solid min&quot;</span> <span class="p">,</span> <span class="s2">&quot;solid max&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;chtFluidCourant&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;solvers&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;chtMultiRegion.*Foam&quot;</span> <span class="p">],</span>
+            <span class="s2">&quot;plotinfo&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;theTitle&quot;</span> <span class="p">:</span> <span class="s2">&quot;Courant and diffusion number&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ylabel&quot;</span> <span class="p">:</span> <span class="s2">&quot;Courant&quot;</span> <span class="p">,</span>
+                <span class="s2">&quot;y2label&quot;</span> <span class="p">:</span> <span class="s2">&quot;Diffusion&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;dynamic&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;expr&quot;</span> <span class="p">:</span> <span class="s2">r&quot;Region: (.+) Number mean: (.+) max: (.+)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;titles&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;mean&quot;</span> <span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;alternateAxis&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;.+Diffusion.+&quot;</span> <span class="p">],</span>
+                <span class="s2">&quot;idNr&quot;</span> <span class="p">:</span> <span class="mi">1</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;cellVolumesDynamicMesh&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;solvers&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;move.*Mesh&quot;</span> <span class="p">,</span> <span class="s2">&quot;.*DyM.*&quot;</span> <span class="p">],</span>
+            <span class="s2">&quot;plotinfo&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;theTitle&quot;</span> <span class="p">:</span> <span class="s2">&quot;Cell volumes&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ylabel&quot;</span> <span class="p">:</span> <span class="s2">&quot;[m^3]&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;logscale&quot;</span> <span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="s2">&quot;expr&quot;</span> <span class="p">:</span> <span class="s2">r&quot;Min volume = (\S+)\. Max volume = (\S+)\.  Total volume = (\S+)\.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;titles&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Minimum&quot;</span><span class="p">,</span><span class="s2">&quot;Maximum&quot;</span><span class="p">,</span><span class="s2">&quot;Total&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;alternateAxis&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Total&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;faceAreaDynamicMesh&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;solvers&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;move.*Mesh&quot;</span> <span class="p">,</span> <span class="s2">&quot;.*DyM.*&quot;</span> <span class="p">],</span>
+            <span class="s2">&quot;plotinfo&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;theTitle&quot;</span> <span class="p">:</span> <span class="s2">&quot;Face areas&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ylabel&quot;</span> <span class="p">:</span> <span class="s2">&quot;[m^2]&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;logscale&quot;</span> <span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="s2">&quot;expr&quot;</span> <span class="p">:</span> <span class="s2">r&quot;Minimum face area = (\S+). Maximum face area = (\S+).&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;titles&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Minimum&quot;</span><span class="p">,</span><span class="s2">&quot;Maximum&quot;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;nonorhogonalityDynamicMesh&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;solvers&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;move.*Mesh&quot;</span> <span class="p">,</span> <span class="s2">&quot;.*DyM.*&quot;</span> <span class="p">],</span>
+            <span class="s2">&quot;plotinfo&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;theTitle&quot;</span> <span class="p">:</span> <span class="s2">&quot;Non-orthodonality and aspect ratio&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ylabel&quot;</span> <span class="p">:</span> <span class="s2">&quot;Non-orthogonality&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;y2label&quot;</span> <span class="p">:</span> <span class="s2">&quot;Aspect ratio&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;expr&quot;</span> <span class="p">:</span> <span class="s2">r&quot;Mesh non-orthogonality Max: (\S+) average: (\S+)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;titles&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Max non-orth&quot;</span><span class="p">,</span><span class="s2">&quot;Average non-orth&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;alternateAxis&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;max aspect&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;aspectRatioDynamicMesh&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;solvers&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;move.*Mesh&quot;</span> <span class="p">,</span> <span class="s2">&quot;.*DyM.*&quot;</span> <span class="p">],</span>
+            <span class="s2">&quot;plotinfo&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;slave&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;master&quot;</span> <span class="p">:</span> <span class="s2">&quot;nonorhogonalitydynamicmesh&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;expr&quot;</span> <span class="p">:</span> <span class="s2">r&quot;Max aspect ratio = (\S+)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;titles&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;max aspect&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<div class="viewcode-block" id="ConfigurationSectionProxy"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy">[docs]</a><span class="k">class</span> <span class="nc">ConfigurationSectionProxy</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wraps a Confguration so that the section automatically becomes the</span>
+<span class="sd">    first argument&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ConfigurationSectionProxy.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">conf</span><span class="p">,</span><span class="n">section</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="o">=</span><span class="n">conf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">section</span><span class="o">=</span><span class="n">section</span></div>
+
+<div class="viewcode-block" id="ConfigurationSectionProxy.__getattr__"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy.__getattr__">[docs]</a>    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="n">f</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">curried</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">section</span><span class="p">,)</span><span class="o">+</span><span class="n">args</span><span class="p">),</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">curried</span></div></div>
+
+<div class="viewcode-block" id="Configuration"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration">[docs]</a><span class="k">class</span> <span class="nc">Configuration</span><span class="p">(</span><span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Reads the settings from files (if existing). Otherwise uses hardcoded</span>
+<span class="sd">    defaults&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Configuration.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructs the ConfigParser and fills it with the hardcoded defaults&quot;&quot;&quot;</span>
+        <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">section</span><span class="p">,</span><span class="n">content</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">_defaults</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_section</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">value</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">content</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,(</span><span class="nb">dict</span><span class="p">,</span><span class="nb">list</span><span class="p">)):</span>
+                    <span class="kn">import</span> <span class="nn">pprint</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">configFiles</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">validSections</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
+            <span class="n">minusPos</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">minusPos</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">s</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">s</span><span class="p">[:</span><span class="n">minusPos</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">validSections</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">validSections</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span><span class="n">sections</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">validSections</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Invalid configuration for&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;there is no default section for it in&quot;</span><span class="p">,</span><span class="n">sections</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Configuration.sectionProxy"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.sectionProxy">[docs]</a>    <span class="k">def</span> <span class="nf">sectionProxy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">section</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a proxy object that makes it possible to avoid the section</span>
+<span class="sd">        specification&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ConfigurationSectionProxy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">section</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Configuration.bestSection"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.bestSection">[docs]</a>    <span class="k">def</span> <span class="nf">bestSection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the best-fitting section that has that option&quot;&quot;&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">foamVersionString</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">validSections</span><span class="p">[</span><span class="n">section</span><span class="p">])</span><span class="o">==</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">foamVersionString</span><span class="p">()</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">section</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">section</span>
+
+        <span class="n">result</span><span class="o">=</span><span class="n">section</span>
+        <span class="n">fullName</span><span class="o">=</span><span class="n">section</span><span class="o">+</span><span class="s2">&quot;-&quot;</span><span class="o">+</span><span class="n">foamVersionString</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">validSections</span><span class="p">[</span><span class="n">section</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">fullName</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">&gt;</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_option</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">option</span><span class="p">):</span>
+                    <span class="n">result</span><span class="o">=</span><span class="n">s</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="Configuration.configSearchPath"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.configSearchPath">[docs]</a>    <span class="k">def</span> <span class="nf">configSearchPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Defines a search path for the configuration files as a pare of type/name</span>
+<span class="sd">        pairs&quot;&quot;&quot;</span>
+        <span class="n">files</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;file&quot;</span><span class="p">,</span><span class="n">globalConfigFile</span><span class="p">()),</span>
+               <span class="p">(</span><span class="s2">&quot;directory&quot;</span><span class="p">,</span><span class="n">globalConfigDir</span><span class="p">())]</span>
+        <span class="k">if</span> <span class="n">pyFoamSiteVar</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+            <span class="n">files</span><span class="o">+=</span><span class="p">[(</span><span class="s2">&quot;file&quot;</span><span class="p">,</span><span class="n">siteConfigFile</span><span class="p">()),</span>
+                    <span class="p">(</span><span class="s2">&quot;directory&quot;</span><span class="p">,</span><span class="n">siteConfigDir</span><span class="p">())]</span>
+        <span class="n">files</span><span class="o">+=</span><span class="p">[(</span><span class="s2">&quot;file&quot;</span><span class="p">,</span><span class="n">userConfigFile</span><span class="p">()),</span>
+                <span class="p">(</span><span class="s2">&quot;directory&quot;</span><span class="p">,</span><span class="n">userConfigDir</span><span class="p">())]</span>
+        <span class="k">return</span> <span class="n">files</span></div>
+
+<div class="viewcode-block" id="Configuration.configFiles"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.configFiles">[docs]</a>    <span class="k">def</span> <span class="nf">configFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a list with the configurationfiles that are going to be used&quot;&quot;&quot;</span>
+        <span class="n">files</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span><span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">configSearchPath</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">t</span><span class="o">==</span><span class="s2">&quot;file&quot;</span><span class="p">:</span>
+                    <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">t</span><span class="o">==</span><span class="s2">&quot;directory&quot;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">ff</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="s2">&quot;*.cfg&quot;</span><span class="p">)):</span>
+                        <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ff</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown type&quot;</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="s2">&quot;for the search entry&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">files</span></div>
+
+<div class="viewcode-block" id="Configuration.addFile"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.addFile">[docs]</a>    <span class="k">def</span> <span class="nf">addFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span><span class="n">silent</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add another file to the configuration (if it exists)&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">silent</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s2">&quot;The configuration file&quot;</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span><span class="s2">&quot;is not there&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">([</span><span class="n">filename</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Configuration.dump"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dumps the contents in INI-Form</span>
+<span class="sd">        :return: a string with the contents&quot;&quot;&quot;</span>
+        <span class="n">result</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sections</span><span class="p">(),</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+            <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;[</span><span class="si">%s</span><span class="s2">]</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">section</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">value</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">section</span><span class="p">),</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+                <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="Configuration.getList"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.getList">[docs]</a>    <span class="k">def</span> <span class="nf">getList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">splitchar</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="n">stripQuotes</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get a list of strings (in the original they are separated by commas)</span>
+<span class="sd">        :param section: the section</span>
+<span class="sd">        :param option: the option</span>
+<span class="sd">        :param default: if set and the option is not found, then this value is used</span>
+<span class="sd">        :param splitchar: the character by which the values are separated</span>
+<span class="sd">        :param stripQuotes: remove quotes if present&quot;&quot;&quot;</span>
+
+        <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">val</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">splitchar</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;&quot;&#39;</span> <span class="ow">and</span> <span class="n">v</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;&quot;&#39;</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="Configuration.getboolean"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.getboolean">[docs]</a>    <span class="k">def</span> <span class="nf">getboolean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Overrides the original implementation from ConfigParser</span>
+<span class="sd">        :param section: the section</span>
+<span class="sd">        :param option: the option</span>
+<span class="sd">        :param default: if set and the option is not found, then this value is used&quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">bestSection</span><span class="p">(</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">),</span>
+                                           <span class="n">option</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">configparser</span><span class="o">.</span><span class="n">NoOptionError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">default</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">default</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="Configuration.getint"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.getint">[docs]</a>    <span class="k">def</span> <span class="nf">getint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Overrides the original implementation from ConfigParser</span>
+<span class="sd">        :param section: the section</span>
+<span class="sd">        :param option: the option</span>
+<span class="sd">        :param default: if set and the option is not found, then this value is used&quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                                     <span class="bp">self</span><span class="o">.</span><span class="n">bestSection</span><span class="p">(</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">),</span>
+                                                     <span class="n">option</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">configparser</span><span class="o">.</span><span class="n">NoOptionError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">default</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">default</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="Configuration.getfloat"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.getfloat">[docs]</a>    <span class="k">def</span> <span class="nf">getfloat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Overrides the original implementation from ConfigParser</span>
+<span class="sd">        :param section: the section</span>
+<span class="sd">        :param option: the option</span>
+<span class="sd">        :param default: if set and the option is not found, then this value is used&quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                                       <span class="bp">self</span><span class="o">.</span><span class="n">bestSection</span><span class="p">(</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">),</span>
+                                                       <span class="n">option</span><span class="p">))</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">configparser</span><span class="o">.</span><span class="n">NoOptionError</span><span class="p">,</span><span class="ne">ValueError</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">default</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">default</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="Configuration.getRegexp"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.getRegexp">[docs]</a>    <span class="k">def</span> <span class="nf">getRegexp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get an entry and interpret it as a regular expression. Subsitute</span>
+<span class="sd">        the usual regular expression value for floating point numbers</span>
+<span class="sd">        :param section: the section</span>
+<span class="sd">        :param option: the option</span>
+<span class="sd">        :param default: if set and the option is not found, then this value is used&quot;&quot;&quot;</span>
+        <span class="n">floatRegExp</span><span class="o">=</span><span class="s2">&quot;[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?&quot;</span>
+
+        <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%f</span><span class="s2">%&quot;</span><span class="p">,</span><span class="n">floatRegExp</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Configuration.getArch"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.getArch">[docs]</a>    <span class="k">def</span> <span class="nf">getArch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get an entry. If an entry with &lt;option&gt;_&lt;archname&gt; exists then this is</span>
+<span class="sd">        used instead of the plain &lt;option&gt;-entry</span>
+<span class="sd">        :param section: the section</span>
+<span class="sd">        :param option: the option&quot;&quot;&quot;</span>
+
+        <span class="kn">import</span> <span class="nn">os</span>
+        <span class="n">archName</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">uname</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">archName</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">configparser</span><span class="o">.</span><span class="n">NoOptionError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Configuration.get"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Overrides the original implementation from ConfigParser</span>
+<span class="sd">        :param section: the section</span>
+<span class="sd">        :param option: the option</span>
+<span class="sd">        :param default: if set and the option is not found, then this value is used&quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                                 <span class="bp">self</span><span class="o">.</span><span class="n">bestSection</span><span class="p">(</span><span class="n">section</span><span class="p">,</span><span class="n">option</span><span class="p">),</span>
+                                                 <span class="n">option</span><span class="p">,</span>
+                                                 <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">configparser</span><span class="o">.</span><span class="n">NoOptionError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">default</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">default</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="Configuration.getdebug"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Configuration.html#PyFoam.Infrastructure.Configuration.Configuration.getdebug">[docs]</a>    <span class="k">def</span> <span class="nf">getdebug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gets a debug switch&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;Debug&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,1267 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pandas.core.ops &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="../../../index.html" class="fa fa-home"> PyFoam</a>
+        
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/PyFoam.html">PyFoam package</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>pandas.core.ops</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for pandas.core.ops</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Arithmetic operations for PandasObjects</span>
+
+<span class="sd">This is not a public API.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c"># necessary to enforce truediv in Python 2.X</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">compat</span><span class="p">,</span> <span class="n">lib</span><span class="p">,</span> <span class="n">tslib</span>
+<span class="kn">import</span> <span class="nn">pandas.index</span> <span class="kn">as</span> <span class="nn">_index</span>
+<span class="kn">from</span> <span class="nn">pandas.util.decorators</span> <span class="kn">import</span> <span class="n">Appender</span>
+<span class="kn">import</span> <span class="nn">pandas.core.common</span> <span class="kn">as</span> <span class="nn">com</span>
+<span class="kn">import</span> <span class="nn">pandas.computation.expressions</span> <span class="kn">as</span> <span class="nn">expressions</span>
+<span class="kn">from</span> <span class="nn">pandas.core.common</span> <span class="kn">import</span><span class="p">(</span><span class="n">bind_method</span><span class="p">,</span> <span class="n">is_list_like</span><span class="p">,</span> <span class="n">notnull</span><span class="p">,</span> <span class="n">isnull</span><span class="p">,</span>
+                               <span class="n">_values_from_object</span><span class="p">,</span> <span class="n">_maybe_match_name</span><span class="p">)</span>
+
+<span class="c"># -----------------------------------------------------------------------------</span>
+<span class="c"># Functions that add arithmetic methods to objects, given arithmetic factory</span>
+<span class="c"># methods</span>
+
+
+<span class="k">def</span> <span class="nf">_create_methods</span><span class="p">(</span><span class="n">arith_method</span><span class="p">,</span> <span class="n">radd_func</span><span class="p">,</span> <span class="n">comp_method</span><span class="p">,</span> <span class="n">bool_method</span><span class="p">,</span>
+                    <span class="n">use_numexpr</span><span class="p">,</span> <span class="n">special</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">default_axis</span><span class="o">=</span><span class="s">&#39;columns&#39;</span><span class="p">):</span>
+    <span class="c"># creates actual methods based upon arithmetic, comp and bool method</span>
+    <span class="c"># constructors.</span>
+
+    <span class="c"># NOTE: Only frame cares about default_axis, specifically: special methods</span>
+    <span class="c"># have default axis None, whereas flex methods have default axis &#39;columns&#39;</span>
+    <span class="c"># if we&#39;re not using numexpr, then don&#39;t pass a str_rep</span>
+    <span class="k">if</span> <span class="n">use_numexpr</span><span class="p">:</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">special</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;_&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s">&quot;__</span><span class="si">%s</span><span class="s">_&quot;</span> <span class="o">%</span> <span class="n">x</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s">&quot;__</span><span class="si">%s</span><span class="s">__&quot;</span> <span class="o">%</span> <span class="n">x</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+    <span class="n">radd_func</span> <span class="o">=</span> <span class="n">radd_func</span> <span class="ow">or</span> <span class="n">operator</span><span class="o">.</span><span class="n">add</span>
+    <span class="c"># Inframe, all special methods have default_axis=None, flex methods have</span>
+    <span class="c"># default_axis set to the default (columns)</span>
+    <span class="n">new_methods</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">add</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">add</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;add&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;+&#39;</span><span class="p">),</span>
+                         <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">),</span>
+        <span class="n">radd</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="n">radd_func</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;radd&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;+&#39;</span><span class="p">),</span>
+                          <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">),</span>
+        <span class="n">sub</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">sub</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;sub&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">),</span>
+                         <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">),</span>
+        <span class="n">mul</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">mul</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;mul&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">),</span>
+                         <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">),</span>
+        <span class="n">truediv</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">truediv</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;truediv&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">),</span>
+                             <span class="n">truediv</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fill_zeros</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                             <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">),</span>
+        <span class="n">floordiv</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">floordiv</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;floordiv&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;//&#39;</span><span class="p">),</span>
+                              <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">,</span> <span class="n">fill_zeros</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">),</span>
+        <span class="c"># Causes a floating point exception in the tests when numexpr</span>
+        <span class="c"># enabled, so for now no speedup</span>
+        <span class="n">mod</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">mod</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;mod&#39;</span><span class="p">),</span> <span class="bp">None</span><span class="p">,</span>
+                         <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">,</span> <span class="n">fill_zeros</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
+        <span class="nb">pow</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">pow</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;pow&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;**&#39;</span><span class="p">),</span>
+                         <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">),</span>
+        <span class="c"># not entirely sure why this is necessary, but previously was included</span>
+        <span class="c"># so it&#39;s here to maintain compatibility</span>
+        <span class="n">rmul</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">mul</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;rmul&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;*&#39;</span><span class="p">),</span>
+                          <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">,</span> <span class="nb">reversed</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">rsub</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">-</span> <span class="n">x</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;rsub&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">),</span>
+                          <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">,</span> <span class="nb">reversed</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">rtruediv</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">operator</span><span class="o">.</span><span class="n">truediv</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span>
+                              <span class="n">names</span><span class="p">(</span><span class="s">&#39;rtruediv&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">),</span> <span class="n">truediv</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                              <span class="n">fill_zeros</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">,</span>
+                              <span class="nb">reversed</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">rfloordiv</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">operator</span><span class="o">.</span><span class="n">floordiv</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span>
+                               <span class="n">names</span><span class="p">(</span><span class="s">&#39;rfloordiv&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;//&#39;</span><span class="p">),</span>
+                               <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">,</span> <span class="n">fill_zeros</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                               <span class="nb">reversed</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">rpow</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">**</span> <span class="n">x</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;rpow&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;**&#39;</span><span class="p">),</span>
+                          <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">,</span> <span class="nb">reversed</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">rmod</span><span class="o">=</span><span class="n">arith_method</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">%</span> <span class="n">x</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;rmod&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;%&#39;</span><span class="p">),</span>
+                          <span class="n">default_axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">,</span> <span class="n">fill_zeros</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+                          <span class="nb">reversed</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">new_methods</span><span class="p">[</span><span class="s">&#39;div&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_methods</span><span class="p">[</span><span class="s">&#39;truediv&#39;</span><span class="p">]</span>
+    <span class="n">new_methods</span><span class="p">[</span><span class="s">&#39;rdiv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_methods</span><span class="p">[</span><span class="s">&#39;rtruediv&#39;</span><span class="p">]</span>
+
+    <span class="c"># Comp methods never had a default axis set</span>
+    <span class="k">if</span> <span class="n">comp_method</span><span class="p">:</span>
+        <span class="n">new_methods</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">eq</span><span class="o">=</span><span class="n">comp_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">eq</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;eq&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;==&#39;</span><span class="p">)),</span>
+            <span class="n">ne</span><span class="o">=</span><span class="n">comp_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">ne</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;ne&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;!=&#39;</span><span class="p">),</span> <span class="n">masker</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+            <span class="n">lt</span><span class="o">=</span><span class="n">comp_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">lt</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;lt&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;&lt;&#39;</span><span class="p">)),</span>
+            <span class="n">gt</span><span class="o">=</span><span class="n">comp_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">gt</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;gt&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;&gt;&#39;</span><span class="p">)),</span>
+            <span class="n">le</span><span class="o">=</span><span class="n">comp_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">le</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;le&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;&lt;=&#39;</span><span class="p">)),</span>
+            <span class="n">ge</span><span class="o">=</span><span class="n">comp_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">ge</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;ge&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;&gt;=&#39;</span><span class="p">)),</span>
+        <span class="p">))</span>
+    <span class="k">if</span> <span class="n">bool_method</span><span class="p">:</span>
+        <span class="n">new_methods</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">and_</span><span class="o">=</span><span class="n">bool_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">and_</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;and_&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;&amp;&#39;</span><span class="p">)),</span>
+            <span class="n">or_</span><span class="o">=</span><span class="n">bool_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">or_</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;or_&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;|&#39;</span><span class="p">)),</span>
+            <span class="c"># For some reason ``^`` wasn&#39;t used in original.</span>
+            <span class="n">xor</span><span class="o">=</span><span class="n">bool_method</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">xor</span><span class="p">,</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;xor&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;^&#39;</span><span class="p">)),</span>
+            <span class="n">rand_</span><span class="o">=</span><span class="n">bool_method</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">operator</span><span class="o">.</span><span class="n">and_</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span>
+                              <span class="n">names</span><span class="p">(</span><span class="s">&#39;rand_&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;&amp;&#39;</span><span class="p">)),</span>
+            <span class="n">ror_</span><span class="o">=</span><span class="n">bool_method</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">operator</span><span class="o">.</span><span class="n">or_</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;ror_&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;|&#39;</span><span class="p">)),</span>
+            <span class="n">rxor</span><span class="o">=</span><span class="n">bool_method</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">operator</span><span class="o">.</span><span class="n">xor</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="n">names</span><span class="p">(</span><span class="s">&#39;rxor&#39;</span><span class="p">),</span> <span class="n">op</span><span class="p">(</span><span class="s">&#39;^&#39;</span><span class="p">))</span>
+        <span class="p">))</span>
+
+    <span class="n">new_methods</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">names</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">new_methods</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">new_methods</span>
+
+
+<span class="k">def</span> <span class="nf">add_methods</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">new_methods</span><span class="p">,</span> <span class="n">force</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">exclude</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">select</span> <span class="ow">and</span> <span class="n">exclude</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;May only pass either select or exclude&quot;</span><span class="p">)</span>
+    <span class="n">methods</span> <span class="o">=</span> <span class="n">new_methods</span>
+    <span class="k">if</span> <span class="n">select</span><span class="p">:</span>
+        <span class="n">select</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">select</span><span class="p">)</span>
+        <span class="n">methods</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">new_methods</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">select</span><span class="p">:</span>
+                <span class="n">methods</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">method</span>
+    <span class="k">if</span> <span class="n">exclude</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">exclude</span><span class="p">:</span>
+            <span class="n">new_methods</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">new_methods</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">force</span> <span class="ow">or</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+            <span class="n">bind_method</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+
+
+<span class="c">#----------------------------------------------------------------------</span>
+<span class="c"># Arithmetic</span>
+<span class="k">def</span> <span class="nf">add_special_arithmetic_methods</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">arith_method</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">radd_func</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                   <span class="n">comp_method</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">bool_method</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                   <span class="n">use_numexpr</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">select</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                   <span class="n">exclude</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds the full suite of special arithmetic methods (``__add__``,</span>
+<span class="sd">    ``__sub__``, etc.) to the class.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arith_method : function (optional)</span>
+<span class="sd">        factory for special arithmetic methods, with op string:</span>
+<span class="sd">        f(op, name, str_rep, default_axis=None, fill_zeros=None, **eval_kwargs)</span>
+<span class="sd">    radd_func :  function (optional)</span>
+<span class="sd">        Possible replacement for ``operator.add`` for compatibility</span>
+<span class="sd">    comp_method : function, optional,</span>
+<span class="sd">        factory for rich comparison - signature: f(op, name, str_rep)</span>
+<span class="sd">    use_numexpr : bool, default True</span>
+<span class="sd">        whether to accelerate with numexpr, defaults to True</span>
+<span class="sd">    force : bool, default False</span>
+<span class="sd">        if False, checks whether function is defined **on ``cls.__dict__``**</span>
+<span class="sd">        before defining if True, always defines functions on class base</span>
+<span class="sd">    select : iterable of strings (optional)</span>
+<span class="sd">        if passed, only sets functions with names in select</span>
+<span class="sd">    exclude : iterable of strings (optional)</span>
+<span class="sd">        if passed, will not set functions with names in exclude</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">radd_func</span> <span class="o">=</span> <span class="n">radd_func</span> <span class="ow">or</span> <span class="n">operator</span><span class="o">.</span><span class="n">add</span>
+
+    <span class="c"># in frame, special methods have default_axis = None, comp methods use</span>
+    <span class="c"># &#39;columns&#39;</span>
+
+    <span class="n">new_methods</span> <span class="o">=</span> <span class="n">_create_methods</span><span class="p">(</span><span class="n">arith_method</span><span class="p">,</span> <span class="n">radd_func</span><span class="p">,</span> <span class="n">comp_method</span><span class="p">,</span>
+                                  <span class="n">bool_method</span><span class="p">,</span> <span class="n">use_numexpr</span><span class="p">,</span> <span class="n">default_axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                  <span class="n">special</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="c"># inplace operators (I feel like these should get passed an `inplace=True`</span>
+    <span class="c"># or just be removed</span>
+
+    <span class="k">def</span> <span class="nf">_wrap_inplace_method</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        return an inplace wrapper for this method</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+
+            <span class="c"># this makes sure that we are aligned like the input</span>
+            <span class="c"># we are updating inplace so we want to ignore is_copy</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_inplace</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">reindex_like</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">_data</span><span class="p">,</span>
+                                 <span class="n">verify_is_copy</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">f</span>
+
+    <span class="n">new_methods</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">__iadd__</span><span class="o">=</span><span class="n">_wrap_inplace_method</span><span class="p">(</span><span class="n">new_methods</span><span class="p">[</span><span class="s">&quot;__add__&quot;</span><span class="p">]),</span>
+        <span class="n">__isub__</span><span class="o">=</span><span class="n">_wrap_inplace_method</span><span class="p">(</span><span class="n">new_methods</span><span class="p">[</span><span class="s">&quot;__sub__&quot;</span><span class="p">]),</span>
+        <span class="n">__imul__</span><span class="o">=</span><span class="n">_wrap_inplace_method</span><span class="p">(</span><span class="n">new_methods</span><span class="p">[</span><span class="s">&quot;__mul__&quot;</span><span class="p">]),</span>
+        <span class="n">__itruediv__</span><span class="o">=</span><span class="n">_wrap_inplace_method</span><span class="p">(</span><span class="n">new_methods</span><span class="p">[</span><span class="s">&quot;__truediv__&quot;</span><span class="p">]),</span>
+        <span class="n">__ipow__</span><span class="o">=</span><span class="n">_wrap_inplace_method</span><span class="p">(</span><span class="n">new_methods</span><span class="p">[</span><span class="s">&quot;__pow__&quot;</span><span class="p">]),</span>
+    <span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">compat</span><span class="o">.</span><span class="n">PY3</span><span class="p">:</span>
+        <span class="n">new_methods</span><span class="p">[</span><span class="s">&quot;__idiv__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_methods</span><span class="p">[</span><span class="s">&quot;__div__&quot;</span><span class="p">]</span>
+
+    <span class="n">add_methods</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">new_methods</span><span class="o">=</span><span class="n">new_methods</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">,</span> <span class="n">select</span><span class="o">=</span><span class="n">select</span><span class="p">,</span>
+                <span class="n">exclude</span><span class="o">=</span><span class="n">exclude</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">add_flex_arithmetic_methods</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">flex_arith_method</span><span class="p">,</span> <span class="n">radd_func</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">flex_comp_method</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">flex_bool_method</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">use_numexpr</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">select</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">exclude</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds the full suite of flex arithmetic methods (``pow``, ``mul``, ``add``)</span>
+<span class="sd">    to the class.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    flex_arith_method : function</span>
+<span class="sd">        factory for special arithmetic methods, with op string:</span>
+<span class="sd">        f(op, name, str_rep, default_axis=None, fill_zeros=None, **eval_kwargs)</span>
+<span class="sd">    radd_func :  function (optional)</span>
+<span class="sd">        Possible replacement for ``lambda x, y: operator.add(y, x)`` for</span>
+<span class="sd">        compatibility</span>
+<span class="sd">    flex_comp_method : function, optional,</span>
+<span class="sd">        factory for rich comparison - signature: f(op, name, str_rep)</span>
+<span class="sd">    use_numexpr : bool, default True</span>
+<span class="sd">        whether to accelerate with numexpr, defaults to True</span>
+<span class="sd">    force : bool, default False</span>
+<span class="sd">        if False, checks whether function is defined **on ``cls.__dict__``**</span>
+<span class="sd">        before defining if True, always defines functions on class base</span>
+<span class="sd">    select : iterable of strings (optional)</span>
+<span class="sd">        if passed, only sets functions with names in select</span>
+<span class="sd">    exclude : iterable of strings (optional)</span>
+<span class="sd">        if passed, will not set functions with names in exclude</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">radd_func</span> <span class="o">=</span> <span class="n">radd_func</span> <span class="ow">or</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">operator</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span>
+    <span class="c"># in frame, default axis is &#39;columns&#39;, doesn&#39;t matter for series and panel</span>
+    <span class="n">new_methods</span> <span class="o">=</span> <span class="n">_create_methods</span><span class="p">(</span>
+        <span class="n">flex_arith_method</span><span class="p">,</span> <span class="n">radd_func</span><span class="p">,</span> <span class="n">flex_comp_method</span><span class="p">,</span> <span class="n">flex_bool_method</span><span class="p">,</span>
+        <span class="n">use_numexpr</span><span class="p">,</span> <span class="n">default_axis</span><span class="o">=</span><span class="s">&#39;columns&#39;</span><span class="p">,</span> <span class="n">special</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">new_methods</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">multiply</span><span class="o">=</span><span class="n">new_methods</span><span class="p">[</span><span class="s">&#39;mul&#39;</span><span class="p">],</span>
+        <span class="n">subtract</span><span class="o">=</span><span class="n">new_methods</span><span class="p">[</span><span class="s">&#39;sub&#39;</span><span class="p">],</span>
+        <span class="n">divide</span><span class="o">=</span><span class="n">new_methods</span><span class="p">[</span><span class="s">&#39;div&#39;</span><span class="p">]</span>
+    <span class="p">))</span>
+    <span class="c"># opt out of bool flex methods for now</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;ror_&#39;</span><span class="p">,</span> <span class="s">&#39;rxor&#39;</span><span class="p">,</span> <span class="s">&#39;rand_&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">new_methods</span><span class="p">:</span>
+            <span class="n">new_methods</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+    <span class="n">add_methods</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">new_methods</span><span class="o">=</span><span class="n">new_methods</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">,</span> <span class="n">select</span><span class="o">=</span><span class="n">select</span><span class="p">,</span>
+                <span class="n">exclude</span><span class="o">=</span><span class="n">exclude</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_TimeOp</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper around Series datetime/time/timedelta arithmetic operations.</span>
+<span class="sd">    Generally, you should use classmethod ``maybe_convert_for_time_op`` as an</span>
+<span class="sd">    entry point.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fill_value</span> <span class="o">=</span> <span class="n">tslib</span><span class="o">.</span><span class="n">iNaT</span>
+    <span class="n">wrap_results</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="c"># need to make sure that we are aligning the data</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">right</span><span class="p">,</span><span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="n">left</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">right</span> <span class="o">=</span> <span class="n">right</span>
+        <span class="n">lvalues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_to_array</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">rvalues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_to_array</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="n">lvalues</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_timedelta_lhs</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">is_timedelta64_dtype</span><span class="p">(</span><span class="n">left</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_datetime_lhs</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">is_datetime64_dtype</span><span class="p">(</span><span class="n">left</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_integer_lhs</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="s">&#39;u&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_datetime_rhs</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">is_datetime64_dtype</span><span class="p">(</span><span class="n">rvalues</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_timedelta_rhs</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">is_timedelta64_dtype</span><span class="p">(</span><span class="n">rvalues</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_integer_rhs</span> <span class="o">=</span> <span class="n">rvalues</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="s">&#39;u&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_convert_for_datetime</span><span class="p">(</span><span class="n">lvalues</span><span class="p">,</span> <span class="n">rvalues</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># timedelta and integer mul/div</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_timedelta_lhs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_integer_rhs</span><span class="p">)</span> <span class="ow">or</span>\
+           <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_integer_lhs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_timedelta_rhs</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;__truediv__&#39;</span><span class="p">,</span> <span class="s">&#39;__div__&#39;</span><span class="p">,</span> <span class="s">&#39;__mul__&#39;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;can only operate on a timedelta and an &quot;</span>
+                                <span class="s">&quot;integer for division, but the operator [</span><span class="si">%s</span><span class="s">]&quot;</span>
+                                <span class="s">&quot;was passed&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c"># 2 datetimes</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_datetime_lhs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_datetime_rhs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s">&#39;__sub__&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;can only operate on a datetimes for&quot;</span>
+                                <span class="s">&quot; subtraction, but the operator [</span><span class="si">%s</span><span class="s">] was&quot;</span>
+                                <span class="s">&quot; passed&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c"># 2 timedeltas</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_timedelta_lhs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_timedelta_rhs</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;__div__&#39;</span><span class="p">,</span> <span class="s">&#39;__truediv__&#39;</span><span class="p">,</span> <span class="s">&#39;__add__&#39;</span><span class="p">,</span>
+                                 <span class="s">&#39;__sub__&#39;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;can only operate on a timedeltas for &quot;</span>
+                                <span class="s">&quot;addition, subtraction, and division, but the&quot;</span>
+                                <span class="s">&quot; operator [</span><span class="si">%s</span><span class="s">] was passed&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c"># datetime and timedelta</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_datetime_lhs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_timedelta_rhs</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;__add__&#39;</span><span class="p">,</span> <span class="s">&#39;__sub__&#39;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;can only operate on a datetime with a rhs of&quot;</span>
+                                <span class="s">&quot; a timedelta for addition and subtraction, &quot;</span>
+                                <span class="s">&quot; but the operator [</span><span class="si">%s</span><span class="s">] was passed&quot;</span> <span class="o">%</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_timedelta_lhs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_datetime_rhs</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s">&#39;__add__&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;can only operate on a timedelta and&quot;</span>
+                                <span class="s">&quot; a datetime for addition, but the operator&quot;</span>
+                                <span class="s">&quot; [</span><span class="si">%s</span><span class="s">] was passed&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;cannot operate on a series with out a rhs &#39;</span>
+                            <span class="s">&#39;of a series/ndarray of type datetime64[ns] &#39;</span>
+                            <span class="s">&#39;or a timedelta&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_convert_to_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;converts values to ndarray&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pandas.tseries.timedeltas</span> <span class="kn">import</span> <span class="n">to_timedelta</span>
+
+        <span class="nb">coerce</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_list_like</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">values</span><span class="p">])</span>
+        <span class="n">inferred_type</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">infer_dtype</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">inferred_type</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;datetime64&#39;</span><span class="p">,</span> <span class="s">&#39;datetime&#39;</span><span class="p">,</span> <span class="s">&#39;date&#39;</span><span class="p">,</span> <span class="s">&#39;time&#39;</span><span class="p">):</span>
+            <span class="c"># if we have a other of timedelta, but use pd.NaT here we</span>
+            <span class="c"># we are in the wrong path</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s">&#39;timedelta64[ns]&#39;</span> <span class="ow">and</span>
+                    <span class="nb">all</span><span class="p">(</span><span class="n">isnull</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">)):</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">other</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="n">values</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">tslib</span><span class="o">.</span><span class="n">iNaT</span>
+
+            <span class="c"># a datelike</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">):</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">))</span> <span class="ow">and</span>
+                      <span class="n">com</span><span class="o">.</span><span class="n">is_datetime64_dtype</span><span class="p">(</span><span class="n">values</span><span class="p">)):</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">tslib</span><span class="o">.</span><span class="n">array_to_datetime</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">inferred_type</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;timedelta&#39;</span><span class="p">,</span> <span class="s">&#39;timedelta64&#39;</span><span class="p">):</span>
+            <span class="c"># have a timedelta, convert to to ns here</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">to_timedelta</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="nb">coerce</span><span class="o">=</span><span class="nb">coerce</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">inferred_type</span> <span class="o">==</span> <span class="s">&#39;integer&#39;</span><span class="p">:</span>
+            <span class="c"># py3 compat where dtype is &#39;m&#39; but is an integer</span>
+            <span class="k">if</span> <span class="n">values</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s">&#39;m&#39;</span><span class="p">:</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s">&#39;timedelta64[ns]&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">PeriodIndex</span><span class="p">):</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">to_timestamp</span><span class="p">()</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;__truediv__&#39;</span><span class="p">,</span> <span class="s">&#39;__div__&#39;</span><span class="p">,</span> <span class="s">&#39;__mul__&#39;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;incompatible type for a datetime/timedelta &quot;</span>
+                                <span class="s">&quot;operation [{0}]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">DateOffset</span><span class="p">):</span>
+            <span class="c"># handle DateOffsets</span>
+            <span class="n">os</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s">&#39;delta&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">])</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">isnull</span><span class="p">(</span><span class="n">os</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;cannot use a non-absolute DateOffset in &quot;</span>
+                                <span class="s">&quot;datetime/timedelta operations [{0}]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                    <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">com</span><span class="o">.</span><span class="n">pprint_thing</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                                               <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">[</span><span class="n">mask</span><span class="p">]])))</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">to_timedelta</span><span class="p">(</span><span class="n">os</span><span class="p">,</span> <span class="nb">coerce</span><span class="o">=</span><span class="nb">coerce</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">inferred_type</span> <span class="o">==</span> <span class="s">&#39;floating&#39;</span><span class="p">:</span>
+
+            <span class="c"># all nan, so ok, use the other dtype (e.g. timedelta or datetime)</span>
+            <span class="k">if</span> <span class="n">isnull</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">other</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="n">values</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">tslib</span><span class="o">.</span><span class="n">iNaT</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s">&#39;incompatible type [{0}] for a datetime/timedelta &#39;</span>
+                    <span class="s">&#39;operation&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;incompatible type [{0}] for a datetime/timedelta&quot;</span>
+                            <span class="s">&quot; operation&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">values</span>
+
+    <span class="k">def</span> <span class="nf">_convert_for_datetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lvalues</span><span class="p">,</span> <span class="n">rvalues</span><span class="p">):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c"># datetimes require views</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_datetime_lhs</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_datetime_rhs</span><span class="p">:</span>
+            <span class="c"># datetime subtraction means timedelta</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_datetime_lhs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_datetime_rhs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="s">&#39;timedelta64[ns]&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="s">&#39;datetime64[ns]&#39;</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">isnull</span><span class="p">(</span><span class="n">lvalues</span><span class="p">)</span> <span class="o">|</span> <span class="n">isnull</span><span class="p">(</span><span class="n">rvalues</span><span class="p">)</span>
+            <span class="n">lvalues</span> <span class="o">=</span> <span class="n">lvalues</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+            <span class="n">rvalues</span> <span class="o">=</span> <span class="n">rvalues</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+
+        <span class="c"># otherwise it&#39;s a timedelta</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="s">&#39;timedelta64[ns]&#39;</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">isnull</span><span class="p">(</span><span class="n">lvalues</span><span class="p">)</span> <span class="o">|</span> <span class="n">isnull</span><span class="p">(</span><span class="n">rvalues</span><span class="p">)</span>
+            <span class="n">lvalues</span> <span class="o">=</span> <span class="n">lvalues</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+            <span class="n">rvalues</span> <span class="o">=</span> <span class="n">rvalues</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+
+            <span class="c"># time delta division -&gt; unit less</span>
+            <span class="c"># integer gets converted to timedelta in np &lt; 1.6</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_timedelta_lhs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_timedelta_rhs</span><span class="p">)</span> <span class="ow">and</span>\
+               <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_integer_rhs</span> <span class="ow">and</span>\
+               <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_integer_lhs</span> <span class="ow">and</span>\
+               <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;__div__&#39;</span><span class="p">,</span> <span class="s">&#39;__truediv__&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="s">&#39;float64&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fill_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                <span class="n">lvalues</span> <span class="o">=</span> <span class="n">lvalues</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+                <span class="n">rvalues</span> <span class="o">=</span> <span class="n">rvalues</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+        <span class="c"># if we need to mask the results</span>
+        <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">putmask</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_value</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">x</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">wrap_results</span> <span class="o">=</span> <span class="n">f</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lvalues</span> <span class="o">=</span> <span class="n">lvalues</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rvalues</span> <span class="o">=</span> <span class="n">rvalues</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">maybe_convert_for_time_op</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        if ``left`` and ``right`` are appropriate for datetime arithmetic with</span>
+<span class="sd">        operation ``name``, processes them and returns a ``_TimeOp`` object</span>
+<span class="sd">        that stores all the required values.  Otherwise, it will generate</span>
+<span class="sd">        either a ``NotImplementedError`` or ``None``, indicating that the</span>
+<span class="sd">        operation is unsupported for datetimes (e.g., an unsupported r_op) or</span>
+<span class="sd">        that the data is not the right type for time ops.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># decide if we can do it</span>
+        <span class="n">is_timedelta_lhs</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">is_timedelta64_dtype</span><span class="p">(</span><span class="n">left</span><span class="p">)</span>
+        <span class="n">is_datetime_lhs</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">is_datetime64_dtype</span><span class="p">(</span><span class="n">left</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">is_datetime_lhs</span> <span class="ow">or</span> <span class="n">is_timedelta_lhs</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="c"># rops are allowed. No need for special checks, just strip off</span>
+        <span class="c"># r part.</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;__r&#39;</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;__&quot;</span> <span class="o">+</span> <span class="n">name</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_arith_method_SERIES</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">str_rep</span><span class="p">,</span> <span class="n">fill_zeros</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                         <span class="n">default_axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">eval_kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper function for Series arithmetic operations, to avoid</span>
+<span class="sd">    code duplication.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">na_op</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">expressions</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">str_rep</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
+                                          <span class="n">raise_on_error</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">eval_kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">)):</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">find_common_type</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">dtype</span><span class="p">],</span> <span class="p">[])</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">notnull</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">notnull</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">_values_from_object</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">mask</span><span class="p">]))</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">notnull</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">y</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;{typ} cannot perform the operation {op}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">typ</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span><span class="n">op</span><span class="o">=</span><span class="n">str_rep</span><span class="p">))</span>
+
+            <span class="n">result</span><span class="p">,</span> <span class="n">changed</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">_maybe_upcast_putmask</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">~</span><span class="n">mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">_fill_zeros</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">fill_zeros</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+
+        <span class="n">time_converted</span> <span class="o">=</span> <span class="n">_TimeOp</span><span class="o">.</span><span class="n">maybe_convert_for_time_op</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">time_converted</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">lvalues</span><span class="p">,</span> <span class="n">rvalues</span> <span class="o">=</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">wrap_results</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+        <span class="k">elif</span> <span class="n">time_converted</span> <span class="o">==</span> <span class="bp">NotImplemented</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">time_converted</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">time_converted</span><span class="o">.</span><span class="n">right</span>
+            <span class="n">lvalues</span><span class="p">,</span> <span class="n">rvalues</span> <span class="o">=</span> <span class="n">time_converted</span><span class="o">.</span><span class="n">lvalues</span><span class="p">,</span> <span class="n">time_converted</span><span class="o">.</span><span class="n">rvalues</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="n">time_converted</span><span class="o">.</span><span class="n">dtype</span>
+            <span class="n">wrap_results</span> <span class="o">=</span> <span class="n">time_converted</span><span class="o">.</span><span class="n">wrap_results</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rvalues</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="n">rindex</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">rvalues</span><span class="p">,</span><span class="s">&#39;index&#39;</span><span class="p">,</span><span class="n">rvalues</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">_maybe_match_name</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">rvalues</span><span class="p">)</span>
+            <span class="n">lvalues</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">lvalues</span><span class="p">,</span> <span class="s">&#39;values&#39;</span><span class="p">,</span> <span class="n">lvalues</span><span class="p">)</span>
+            <span class="n">rvalues</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">rvalues</span><span class="p">,</span> <span class="s">&#39;values&#39;</span><span class="p">,</span> <span class="n">rvalues</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">left</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">rindex</span><span class="p">):</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">index</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">index</span><span class="p">,</span> <span class="n">lidx</span><span class="p">,</span> <span class="n">ridx</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rindex</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s">&#39;outer&#39;</span><span class="p">,</span>
+                                                       <span class="n">return_indexers</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">lidx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">lvalues</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">take_1d</span><span class="p">(</span><span class="n">lvalues</span><span class="p">,</span> <span class="n">lidx</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">ridx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">rvalues</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">take_1d</span><span class="p">(</span><span class="n">rvalues</span><span class="p">,</span> <span class="n">ridx</span><span class="p">)</span>
+
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">na_op</span><span class="p">(</span><span class="n">lvalues</span><span class="p">,</span> <span class="n">rvalues</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">left</span><span class="o">.</span><span class="n">_constructor</span><span class="p">(</span><span class="n">wrap_results</span><span class="p">(</span><span class="n">arr</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
+                                     <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># scalars</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">lvalues</span><span class="p">,</span> <span class="s">&#39;values&#39;</span><span class="p">):</span>
+                <span class="n">lvalues</span> <span class="o">=</span> <span class="n">lvalues</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">return</span> <span class="n">left</span><span class="o">.</span><span class="n">_constructor</span><span class="p">(</span><span class="n">wrap_results</span><span class="p">(</span><span class="n">na_op</span><span class="p">(</span><span class="n">lvalues</span><span class="p">,</span> <span class="n">rvalues</span><span class="p">)),</span>
+                                     <span class="n">index</span><span class="o">=</span><span class="n">left</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">left</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                     <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+
+<span class="k">def</span> <span class="nf">_comp_method_SERIES</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">str_rep</span><span class="p">,</span> <span class="n">masker</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper function for Series arithmetic operations, to avoid</span>
+<span class="sd">    code duplication.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">na_op</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+
+        <span class="c"># dispatch to the categorical if we have a categorical</span>
+        <span class="c"># in either operand</span>
+        <span class="k">if</span> <span class="n">com</span><span class="o">.</span><span class="n">is_categorical_dtype</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">op</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">com</span><span class="o">.</span><span class="n">is_categorical_dtype</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">lib</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">op</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">object_</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">list_to_object_array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">y</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">object_</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">vec_compare</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">object_</span><span class="p">),</span> <span class="n">op</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">vec_compare</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">scalar_compare</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">name</span><span class="p">)(</span><span class="n">y</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="bp">NotImplemented</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;invalid type comparison&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">):</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c"># Validate the axis parameter</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_axis_number</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">_maybe_match_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Series lengths must match to compare&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constructor</span><span class="p">(</span><span class="n">na_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">values</span><span class="p">),</span>
+                                     <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>  <span class="c"># pragma: no cover</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Lengths must match to compare&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constructor</span><span class="p">(</span><span class="n">na_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">other</span><span class="p">)),</span>
+                                     <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">__finalize__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">com</span><span class="o">.</span><span class="n">is_categorical_dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;Cannot compare a Categorical for op {op} with Series of dtype {typ}.</span><span class="se">\n</span><span class="s">&quot;</span>\
+                      <span class="s">&quot;If you want to compare values, use &#39;series &lt;op&gt; np.asarray(other)&#39;.&quot;</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">,</span><span class="n">typ</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+
+
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">isnull</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">com</span><span class="o">.</span><span class="n">is_categorical_dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="c"># cats are a special case as get_values() would return an ndarray, which would then</span>
+            <span class="c"># not take categories ordering into account</span>
+            <span class="c"># we can go directly to op, as the na_op would just test again and dispatch to it.</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_values</span><span class="p">()</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">_index</span><span class="o">.</span><span class="n">convert_scalar</span><span class="p">(</span><span class="n">values</span><span class="p">,</span><span class="n">_values_from_object</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">)):</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s">&#39;i8&#39;</span><span class="p">)</span>
+
+            <span class="c"># scalars</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">na_op</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">res</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;Could not compare </span><span class="si">%s</span><span class="s"> type with Series&#39;</span>
+                                <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
+
+            <span class="c"># always return a full value series here</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">_values_from_object</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                        <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;bool&#39;</span><span class="p">)</span>
+
+        <span class="c"># mask out the invalids</span>
+        <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">res</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">masker</span>
+
+        <span class="k">return</span> <span class="n">res</span>
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+
+<span class="k">def</span> <span class="nf">_bool_method_SERIES</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">str_rep</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper function for Series arithmetic operations, to avoid</span>
+<span class="sd">    code duplication.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">na_op</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">list_to_object_array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span> <span class="ow">and</span>
+                        <span class="n">y</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">):</span>  <span class="c"># pragma: no cover</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c"># when would this be hit?</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">_ensure_object</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">_ensure_object</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">vec_binop</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+
+                    <span class="c"># let null fall thru</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">isnull</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+                        <span class="n">y</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">scalar_binop</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;cannot compare a dtyped [{0}] array with &quot;</span>
+                                    <span class="s">&quot;a scalar of type [{1}]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                        <span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="n">is_self_int_dtype</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">is_integer_dtype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="n">fill_int</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">fill_bool</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">_maybe_match_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">reindex_like</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">is_other_int_dtype</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">is_integer_dtype</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">fill_int</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_other_int_dtype</span> <span class="k">else</span> <span class="n">fill_bool</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+            <span class="n">filler</span> <span class="o">=</span> <span class="n">fill_int</span> <span class="k">if</span> <span class="n">is_self_int_dtype</span> <span class="ow">and</span> <span class="n">is_other_int_dtype</span> <span class="k">else</span> <span class="n">fill_bool</span>
+            <span class="k">return</span> <span class="n">filler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_constructor</span><span class="p">(</span><span class="n">na_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">values</span><span class="p">),</span>
+                                     <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                                     <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># scalars, list, tuple, np.array</span>
+            <span class="n">filler</span> <span class="o">=</span> <span class="n">fill_int</span> <span class="k">if</span> <span class="n">is_self_int_dtype</span> <span class="ow">and</span> <span class="n">com</span><span class="o">.</span><span class="n">is_integer_dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">other</span><span class="p">))</span> <span class="k">else</span> <span class="n">fill_bool</span>
+            <span class="k">return</span> <span class="n">filler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_constructor</span><span class="p">(</span><span class="n">na_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">other</span><span class="p">),</span>
+                                    <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">))</span><span class="o">.</span><span class="n">__finalize__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+
+<span class="k">def</span> <span class="nf">_radd_compat</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">):</span>
+    <span class="n">radd</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">+</span> <span class="n">x</span>
+    <span class="c"># GH #353, NumPy 1.5.1 workaround</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">radd</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">raise</span>
+
+    <span class="k">return</span> <span class="n">output</span>
+
+<span class="n">_op_descriptions</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;add&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;op&#39;</span><span class="p">:</span> <span class="s">&#39;+&#39;</span><span class="p">,</span> <span class="s">&#39;desc&#39;</span><span class="p">:</span> <span class="s">&#39;Addition&#39;</span><span class="p">,</span> <span class="s">&#39;reversed&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;reverse&#39;</span><span class="p">:</span> <span class="s">&#39;radd&#39;</span><span class="p">},</span>
+                    <span class="s">&#39;sub&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;op&#39;</span><span class="p">:</span> <span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="s">&#39;desc&#39;</span><span class="p">:</span> <span class="s">&#39;Subtraction&#39;</span><span class="p">,</span> <span class="s">&#39;reversed&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;reverse&#39;</span><span class="p">:</span> <span class="s">&#39;rsub&#39;</span><span class="p">},</span>
+                    <span class="s">&#39;mul&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;op&#39;</span><span class="p">:</span> <span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="s">&#39;desc&#39;</span><span class="p">:</span> <span class="s">&#39;Multiplication&#39;</span><span class="p">,</span> <span class="s">&#39;reversed&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;reverse&#39;</span><span class="p">:</span> <span class="s">&#39;rmul&#39;</span><span class="p">},</span>
+                    <span class="s">&#39;mod&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;op&#39;</span><span class="p">:</span> <span class="s">&#39;%&#39;</span><span class="p">,</span> <span class="s">&#39;desc&#39;</span><span class="p">:</span> <span class="s">&#39;Modulo&#39;</span><span class="p">,</span> <span class="s">&#39;reversed&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;reverse&#39;</span><span class="p">:</span> <span class="s">&#39;rmod&#39;</span><span class="p">},</span>
+                    <span class="s">&#39;pow&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;op&#39;</span><span class="p">:</span> <span class="s">&#39;**&#39;</span><span class="p">,</span> <span class="s">&#39;desc&#39;</span><span class="p">:</span> <span class="s">&#39;Exponential power&#39;</span><span class="p">,</span> <span class="s">&#39;reversed&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;reverse&#39;</span><span class="p">:</span> <span class="s">&#39;rpow&#39;</span><span class="p">},</span>
+                    <span class="s">&#39;truediv&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;op&#39;</span><span class="p">:</span> <span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="s">&#39;desc&#39;</span><span class="p">:</span> <span class="s">&#39;Floating division&#39;</span><span class="p">,</span> <span class="s">&#39;reversed&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;reverse&#39;</span><span class="p">:</span> <span class="s">&#39;rtruediv&#39;</span><span class="p">},</span>
+                    <span class="s">&#39;floordiv&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;op&#39;</span><span class="p">:</span> <span class="s">&#39;//&#39;</span><span class="p">,</span> <span class="s">&#39;desc&#39;</span><span class="p">:</span> <span class="s">&#39;Integer division&#39;</span><span class="p">,</span> <span class="s">&#39;reversed&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;reverse&#39;</span><span class="p">:</span> <span class="s">&#39;rfloordiv&#39;</span><span class="p">}}</span>
+
+<span class="n">_op_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_op_descriptions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_op_names</span><span class="p">:</span>
+    <span class="n">reverse_op</span> <span class="o">=</span> <span class="n">_op_descriptions</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s">&#39;reverse&#39;</span><span class="p">]</span>
+    <span class="n">_op_descriptions</span><span class="p">[</span><span class="n">reverse_op</span><span class="p">]</span> <span class="o">=</span> <span class="n">_op_descriptions</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">_op_descriptions</span><span class="p">[</span><span class="n">reverse_op</span><span class="p">][</span><span class="s">&#39;reversed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">_op_descriptions</span><span class="p">[</span><span class="n">reverse_op</span><span class="p">][</span><span class="s">&#39;reverse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span>
+
+<span class="k">def</span> <span class="nf">_flex_method_SERIES</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">str_rep</span><span class="p">,</span> <span class="n">default_axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">fill_zeros</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">eval_kwargs</span><span class="p">):</span>
+    <span class="n">op_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;__&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">op_desc</span> <span class="o">=</span> <span class="n">_op_descriptions</span><span class="p">[</span><span class="n">op_name</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">op_desc</span><span class="p">[</span><span class="s">&#39;reversed&#39;</span><span class="p">]:</span>
+        <span class="n">equiv</span> <span class="o">=</span> <span class="s">&#39;other &#39;</span> <span class="o">+</span> <span class="n">op_desc</span><span class="p">[</span><span class="s">&#39;op&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39; series&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">equiv</span> <span class="o">=</span> <span class="s">&#39;series &#39;</span> <span class="o">+</span> <span class="n">op_desc</span><span class="p">[</span><span class="s">&#39;op&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39; other&#39;</span>
+
+    <span class="n">doc</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">    </span><span class="si">%s</span><span class="s"> of series and other, element-wise (binary operator `</span><span class="si">%s</span><span class="s">`).</span>
+
+<span class="s">    Equivalent to ``</span><span class="si">%s</span><span class="s">``, but with support to substitute a fill_value for</span>
+<span class="s">    missing data in one of the inputs.</span>
+
+<span class="s">    Parameters</span>
+<span class="s">    ----------</span>
+<span class="s">    other: Series or scalar value</span>
+<span class="s">    fill_value : None or float value, default None (NaN)</span>
+<span class="s">        Fill missing (NaN) values with this value. If both Series are</span>
+<span class="s">        missing, the result will be missing</span>
+<span class="s">    level : int or name</span>
+<span class="s">        Broadcast across a level, matching Index values on the</span>
+<span class="s">        passed MultiIndex level</span>
+
+<span class="s">    Returns</span>
+<span class="s">    -------</span>
+<span class="s">    result : Series</span>
+
+<span class="s">    See also</span>
+<span class="s">    --------</span>
+<span class="s">    Series.</span><span class="si">%s</span><span class="s"></span>
+<span class="s">    &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">op_desc</span><span class="p">[</span><span class="s">&#39;desc&#39;</span><span class="p">],</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">equiv</span><span class="p">,</span> <span class="n">op_desc</span><span class="p">[</span><span class="s">&#39;reverse&#39;</span><span class="p">])</span>
+
+    <span class="nd">@Appender</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">flex_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="c"># validate axis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_axis_number</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binop</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Lengths must be equal&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_binop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_constructor</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">op</span><span class="p">,</span>
+                               <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constructor</span><span class="p">(</span><span class="n">op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">other</span><span class="p">),</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">__finalize__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="n">flex_wrapper</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="k">return</span> <span class="n">flex_wrapper</span>
+
+<span class="n">series_flex_funcs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">flex_arith_method</span><span class="o">=</span><span class="n">_flex_method_SERIES</span><span class="p">,</span>
+                         <span class="n">radd_func</span><span class="o">=</span><span class="n">_radd_compat</span><span class="p">,</span>
+                         <span class="n">flex_comp_method</span><span class="o">=</span><span class="n">_comp_method_SERIES</span><span class="p">)</span>
+
+<span class="n">series_special_funcs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">arith_method</span><span class="o">=</span><span class="n">_arith_method_SERIES</span><span class="p">,</span>
+                            <span class="n">radd_func</span><span class="o">=</span><span class="n">_radd_compat</span><span class="p">,</span>
+                            <span class="n">comp_method</span><span class="o">=</span><span class="n">_comp_method_SERIES</span><span class="p">,</span>
+                            <span class="n">bool_method</span><span class="o">=</span><span class="n">_bool_method_SERIES</span><span class="p">)</span>
+
+
+<span class="n">_arith_doc_FRAME</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">Binary operator </span><span class="si">%s</span><span class="s"> with support to substitute a fill_value for missing data in</span>
+<span class="s">one of the inputs</span>
+
+<span class="s">Parameters</span>
+<span class="s">----------</span>
+<span class="s">other : Series, DataFrame, or constant</span>
+<span class="s">axis : {0, 1, &#39;index&#39;, &#39;columns&#39;}</span>
+<span class="s">    For Series input, axis to match Series index on</span>
+<span class="s">fill_value : None or float value, default None</span>
+<span class="s">    Fill missing (NaN) values with this value. If both DataFrame locations are</span>
+<span class="s">    missing, the result will be missing</span>
+<span class="s">level : int or name</span>
+<span class="s">    Broadcast across a level, matching Index values on the</span>
+<span class="s">    passed MultiIndex level</span>
+
+<span class="s">Notes</span>
+<span class="s">-----</span>
+<span class="s">Mismatched indices will be unioned together</span>
+
+<span class="s">Returns</span>
+<span class="s">-------</span>
+<span class="s">result : DataFrame</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">_arith_method_FRAME</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">str_rep</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default_axis</span><span class="o">=</span><span class="s">&#39;columns&#39;</span><span class="p">,</span>
+                        <span class="n">fill_zeros</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">eval_kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">na_op</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">expressions</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
+                <span class="n">op</span><span class="p">,</span> <span class="n">str_rep</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">raise_on_error</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">eval_kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">xrav</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">find_common_type</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">dtype</span><span class="p">],</span> <span class="p">[])</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="n">yrav</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">notnull</span><span class="p">(</span><span class="n">xrav</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">notnull</span><span class="p">(</span><span class="n">yrav</span><span class="p">)</span>
+                <span class="n">xrav</span> <span class="o">=</span> <span class="n">xrav</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+                <span class="n">yrav</span> <span class="o">=</span> <span class="n">yrav</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">xrav</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">yrav</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">xrav</span><span class="p">,</span> <span class="n">yrav</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="s">&#39;size&#39;</span><span class="p">):</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">notnull</span><span class="p">(</span><span class="n">xrav</span><span class="p">)</span>
+                <span class="n">xrav</span> <span class="o">=</span> <span class="n">xrav</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">xrav</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">xrav</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;cannot perform operation {op} between objects &quot;</span>
+                                <span class="s">&quot;of type {x} and {y}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op</span><span class="o">=</span><span class="n">name</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="n">y</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">)))</span>
+
+            <span class="n">result</span><span class="p">,</span> <span class="n">changed</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">_maybe_upcast_putmask</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">~</span><span class="n">mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">_fill_zeros</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">fill_zeros</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_op_descriptions</span><span class="p">:</span>
+        <span class="n">op_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;__&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">op_desc</span> <span class="o">=</span> <span class="n">_op_descriptions</span><span class="p">[</span><span class="n">op_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">op_desc</span><span class="p">[</span><span class="s">&#39;reversed&#39;</span><span class="p">]:</span>
+            <span class="n">equiv</span> <span class="o">=</span> <span class="s">&#39;other &#39;</span> <span class="o">+</span> <span class="n">op_desc</span><span class="p">[</span><span class="s">&#39;op&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39; dataframe&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">equiv</span> <span class="o">=</span> <span class="s">&#39;dataframe &#39;</span> <span class="o">+</span> <span class="n">op_desc</span><span class="p">[</span><span class="s">&#39;op&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39; other&#39;</span>
+
+        <span class="n">doc</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">        </span><span class="si">%s</span><span class="s"> of dataframe and other, element-wise (binary operator `</span><span class="si">%s</span><span class="s">`).</span>
+
+<span class="s">        Equivalent to ``</span><span class="si">%s</span><span class="s">``, but with support to substitute a fill_value for</span>
+<span class="s">        missing data in one of the inputs.</span>
+
+<span class="s">        Parameters</span>
+<span class="s">        ----------</span>
+<span class="s">        other : Series, DataFrame, or constant</span>
+<span class="s">        axis : {0, 1, &#39;index&#39;, &#39;columns&#39;}</span>
+<span class="s">            For Series input, axis to match Series index on</span>
+<span class="s">        fill_value : None or float value, default None</span>
+<span class="s">            Fill missing (NaN) values with this value. If both DataFrame locations are</span>
+<span class="s">            missing, the result will be missing</span>
+<span class="s">        level : int or name</span>
+<span class="s">            Broadcast across a level, matching Index values on the</span>
+<span class="s">            passed MultiIndex level</span>
+
+<span class="s">        Notes</span>
+<span class="s">        -----</span>
+<span class="s">        Mismatched indices will be unioned together</span>
+
+<span class="s">        Returns</span>
+<span class="s">        -------</span>
+<span class="s">        result : DataFrame</span>
+
+<span class="s">        See also</span>
+<span class="s">        --------</span>
+<span class="s">        DataFrame.</span><span class="si">%s</span><span class="s"></span>
+<span class="s">        &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">op_desc</span><span class="p">[</span><span class="s">&#39;desc&#39;</span><span class="p">],</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">equiv</span><span class="p">,</span> <span class="n">op_desc</span><span class="p">[</span><span class="s">&#39;reverse&#39;</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">_arith_doc_FRAME</span> <span class="o">%</span> <span class="n">name</span>
+
+    <span class="nd">@Appender</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>    <span class="c"># Another DataFrame</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_frame</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">na_op</span><span class="p">,</span> <span class="n">fill_value</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_series</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">na_op</span><span class="p">,</span> <span class="n">fill_value</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_axis_name</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;index&#39;</span><span class="p">:</span>
+                <span class="c"># TODO: Get all of these to use _constructor_sliced</span>
+                <span class="c"># casted = self._constructor_sliced(other, index=self.index)</span>
+                <span class="n">casted</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># casted = self._constructor_sliced(other, index=self.columns)</span>
+                <span class="n">casted</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_series</span><span class="p">(</span><span class="n">casted</span><span class="p">,</span> <span class="n">na_op</span><span class="p">,</span> <span class="n">fill_value</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>  <span class="c"># skips np scalar</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_axis_name</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;index&#39;</span><span class="p">:</span>
+                    <span class="c"># casted = self._constructor_sliced(other,</span>
+                    <span class="c">#                                   index=self.index)</span>
+                    <span class="n">casted</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c"># casted = self._constructor_sliced(other,</span>
+                    <span class="c">#                                   index=self.columns)</span>
+                    <span class="n">casted</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_series</span><span class="p">(</span><span class="n">casted</span><span class="p">,</span> <span class="n">na_op</span><span class="p">,</span> <span class="n">fill_value</span><span class="p">,</span>
+                                            <span class="n">axis</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="c"># casted = self._constructor(other, index=self.index,</span>
+                <span class="c">#                            columns=self.columns)</span>
+                <span class="n">casted</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                                      <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_frame</span><span class="p">(</span><span class="n">casted</span><span class="p">,</span> <span class="n">na_op</span><span class="p">,</span> <span class="n">fill_value</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Incompatible argument shape: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
+                                 <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_const</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">na_op</span><span class="p">)</span>
+
+    <span class="n">f</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">return</span> <span class="n">f</span>
+
+
+<span class="c"># Masker unused for now</span>
+<span class="k">def</span> <span class="nf">_flex_comp_method_FRAME</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">str_rep</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default_axis</span><span class="o">=</span><span class="s">&#39;columns&#39;</span><span class="p">,</span>
+                            <span class="n">masker</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">na_op</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">xrav</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
+                <span class="n">yrav</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">notnull</span><span class="p">(</span><span class="n">xrav</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">notnull</span><span class="p">(</span><span class="n">yrav</span><span class="p">)</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">xrav</span><span class="p">[</span><span class="n">mask</span><span class="p">])),</span>
+                                  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">yrav</span><span class="p">[</span><span class="n">mask</span><span class="p">])))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">notnull</span><span class="p">(</span><span class="n">xrav</span><span class="p">)</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">xrav</span><span class="p">[</span><span class="n">mask</span><span class="p">])),</span> <span class="n">y</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="n">operator</span><span class="o">.</span><span class="n">ne</span><span class="p">:</span>  <span class="c"># pragma: no cover</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">putmask</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">~</span><span class="n">mask</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">putmask</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">~</span><span class="n">mask</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="nd">@Appender</span><span class="p">(</span><span class="s">&#39;Wrapper for flexible comparison methods </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">default_axis</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>    <span class="c"># Another DataFrame</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flex_compare_frame</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">na_op</span><span class="p">,</span> <span class="n">str_rep</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_series</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">na_op</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_axis_name</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;index&#39;</span><span class="p">:</span>
+                <span class="n">casted</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">casted</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_series</span><span class="p">(</span><span class="n">casted</span><span class="p">,</span> <span class="n">na_op</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_axis_name</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;index&#39;</span><span class="p">:</span>
+                    <span class="n">casted</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">casted</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_series</span><span class="p">(</span><span class="n">casted</span><span class="p">,</span> <span class="n">na_op</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">casted</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                                      <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flex_compare_frame</span><span class="p">(</span><span class="n">casted</span><span class="p">,</span> <span class="n">na_op</span><span class="p">,</span> <span class="n">str_rep</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Incompatible argument shape: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
+                                 <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_const</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">na_op</span><span class="p">)</span>
+
+    <span class="n">f</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">return</span> <span class="n">f</span>
+
+
+<span class="k">def</span> <span class="nf">_comp_method_FRAME</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">str_rep</span><span class="p">,</span> <span class="n">masker</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="nd">@Appender</span><span class="p">(</span><span class="s">&#39;Wrapper for comparison method </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>    <span class="c"># Another DataFrame</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compare_frame</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">str_rep</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_series_infer</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="c"># straight boolean comparisions we want to allow all columns</span>
+            <span class="c"># (regardless of dtype to pass thru) See #4537 for discussion.</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_const</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">raise_on_error</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+    <span class="n">f</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">return</span> <span class="n">f</span>
+
+
+<span class="n">frame_flex_funcs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">flex_arith_method</span><span class="o">=</span><span class="n">_arith_method_FRAME</span><span class="p">,</span>
+                        <span class="n">radd_func</span><span class="o">=</span><span class="n">_radd_compat</span><span class="p">,</span>
+                        <span class="n">flex_comp_method</span><span class="o">=</span><span class="n">_flex_comp_method_FRAME</span><span class="p">)</span>
+
+
+<span class="n">frame_special_funcs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">arith_method</span><span class="o">=</span><span class="n">_arith_method_FRAME</span><span class="p">,</span>
+                           <span class="n">radd_func</span><span class="o">=</span><span class="n">_radd_compat</span><span class="p">,</span>
+                           <span class="n">comp_method</span><span class="o">=</span><span class="n">_comp_method_FRAME</span><span class="p">,</span>
+                           <span class="n">bool_method</span><span class="o">=</span><span class="n">_arith_method_FRAME</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_arith_method_PANEL</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">str_rep</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fill_zeros</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">default_axis</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">eval_kwargs</span><span class="p">):</span>
+    <span class="c"># copied from Series na_op above, but without unnecessary branch for</span>
+    <span class="c"># non-scalar</span>
+    <span class="k">def</span> <span class="nf">na_op</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">expressions</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">str_rep</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
+                                          <span class="n">raise_on_error</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">eval_kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+
+            <span class="c"># TODO: might need to find_common_type here?</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">notnull</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">y</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">,</span> <span class="n">changed</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">_maybe_upcast_putmask</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">~</span><span class="n">mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">_fill_zeros</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">fill_zeros</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="c"># work only for scalars</span>
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Simple arithmetic with </span><span class="si">%s</span><span class="s"> can only be &#39;</span>
+                             <span class="s">&#39;done with scalar values&#39;</span> <span class="o">%</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">_constructor</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="k">return</span> <span class="n">f</span>
+
+
+<span class="k">def</span> <span class="nf">_comp_method_PANEL</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">str_rep</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">masker</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">na_op</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">expressions</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">str_rep</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
+                                          <span class="n">raise_on_error</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">xrav</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">yrav</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">notnull</span><span class="p">(</span><span class="n">xrav</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">notnull</span><span class="p">(</span><span class="n">yrav</span><span class="p">)</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">xrav</span><span class="p">[</span><span class="n">mask</span><span class="p">])),</span>
+                                  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">yrav</span><span class="p">[</span><span class="n">mask</span><span class="p">])))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">notnull</span><span class="p">(</span><span class="n">xrav</span><span class="p">)</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">xrav</span><span class="p">[</span><span class="n">mask</span><span class="p">])),</span> <span class="n">y</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="n">operator</span><span class="o">.</span><span class="n">ne</span><span class="p">:</span>  <span class="c"># pragma: no cover</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">putmask</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">~</span><span class="n">mask</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">putmask</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">~</span><span class="n">mask</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="nd">@Appender</span><span class="p">(</span><span class="s">&#39;Wrapper for comparison method </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constructor</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compare_constructor</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">na_op</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_constructor_sliced</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                                <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;input needs alignment for this object [</span><span class="si">%s</span><span class="s">]&quot;</span> <span class="o">%</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_constructor</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_const</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">na_op</span><span class="p">)</span>
+
+    <span class="n">f</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">return</span> <span class="n">f</span>
+
+
+<span class="n">panel_special_funcs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">arith_method</span><span class="o">=</span><span class="n">_arith_method_PANEL</span><span class="p">,</span>
+                           <span class="n">comp_method</span><span class="o">=</span><span class="n">_comp_method_PANEL</span><span class="p">,</span>
+                           <span class="n">bool_method</span><span class="o">=</span><span class="n">_arith_method_PANEL</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+    </p>
+  </div>
+
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

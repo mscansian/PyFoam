@@ -1,0 +1,1249 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.ThirdParty.ply.lex &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../../PyFoam.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.ThirdParty.ply.lex</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.ThirdParty.ply.lex</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># ply: lex.py</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (C) 2001-2011,</span>
+<span class="c1"># David M. Beazley (Dabeaz LLC)</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Redistribution and use in source and binary forms, with or without</span>
+<span class="c1"># modification, are permitted provided that the following conditions are</span>
+<span class="c1"># met:</span>
+<span class="c1">#</span>
+<span class="c1"># * Redistributions of source code must retain the above copyright notice,</span>
+<span class="c1">#   this list of conditions and the following disclaimer.</span>
+<span class="c1"># * Redistributions in binary form must reproduce the above copyright notice,</span>
+<span class="c1">#   this list of conditions and the following disclaimer in the documentation</span>
+<span class="c1">#   and/or other materials provided with the distribution.</span>
+<span class="c1"># * Neither the name of the David Beazley or Dabeaz LLC may be used to</span>
+<span class="c1">#   endorse or promote products derived from this software without</span>
+<span class="c1">#  specific prior written permission.</span>
+<span class="c1">#</span>
+<span class="c1"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS</span>
+<span class="c1"># &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT</span>
+<span class="c1"># LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR</span>
+<span class="c1"># A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT</span>
+<span class="c1"># OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,</span>
+<span class="c1"># SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT</span>
+<span class="c1"># LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,</span>
+<span class="c1"># DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY</span>
+<span class="c1"># THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT</span>
+<span class="c1"># (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE</span>
+<span class="c1"># OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="n">__version__</span>    <span class="o">=</span> <span class="s2">&quot;3.4&quot;</span>
+<span class="n">__tabversion__</span> <span class="o">=</span> <span class="s2">&quot;3.2&quot;</span>       <span class="c1"># Version of table file used</span>
+
+<span class="kn">import</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">types</span><span class="o">,</span> <span class="nn">copy</span><span class="o">,</span> <span class="nn">os</span>
+
+<span class="c1"># This tuple contains known string types</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Python 2.6</span>
+    <span class="n">StringTypes</span> <span class="o">=</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">StringType</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">UnicodeType</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+    <span class="c1"># Python 3.0</span>
+    <span class="n">StringTypes</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span>
+
+<span class="c1"># Extract the code attribute of a function. Different implementations</span>
+<span class="c1"># are for Python 2/3 compatibility.</span>
+
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">func_code</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">func_code</span>
+<span class="k">else</span><span class="p">:</span>
+<div class="viewcode-block" id="func_code"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.func_code">[docs]</a>    <span class="k">def</span> <span class="nf">func_code</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">__code__</span></div>
+
+<span class="c1"># This regular expression is used to match valid token names</span>
+<span class="n">_is_identifier</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">r&#39;^[a-zA-Z0-9_]+$&#39;</span><span class="p">)</span>
+
+<span class="c1"># Exception thrown when invalid token encountered and no default error</span>
+<span class="c1"># handler is defined.</span>
+
+<div class="viewcode-block" id="LexError"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexError">[docs]</a><span class="k">class</span> <span class="nc">LexError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="LexError.__init__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexError.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">message</span><span class="p">,</span><span class="n">s</span><span class="p">):</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">message</span><span class="p">,)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">s</span></div></div>
+
+<span class="c1"># Token class.  This class is used to represent the tokens produced.</span>
+<div class="viewcode-block" id="LexToken"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexToken">[docs]</a><span class="k">class</span> <span class="nc">LexToken</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="LexToken.__str__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexToken.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;LexToken(</span><span class="si">%s</span><span class="s2">,</span><span class="si">%r</span><span class="s2">,</span><span class="si">%d</span><span class="s2">,</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span><span class="p">)</span></div>
+<div class="viewcode-block" id="LexToken.__repr__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexToken.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div></div>
+
+<span class="c1"># This object is a stand-in for a logging object created by the</span>
+<span class="c1"># logging module.</span>
+
+<div class="viewcode-block" id="PlyLogger"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.PlyLogger">[docs]</a><span class="k">class</span> <span class="nc">PlyLogger</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="PlyLogger.__init__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.PlyLogger.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">f</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span></div>
+<div class="viewcode-block" id="PlyLogger.critical"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.PlyLogger.critical">[docs]</a>    <span class="k">def</span> <span class="nf">critical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">msg</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">((</span><span class="n">msg</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PlyLogger.warning"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.PlyLogger.warning">[docs]</a>    <span class="k">def</span> <span class="nf">warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">msg</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;WARNING: &quot;</span><span class="o">+</span> <span class="p">(</span><span class="n">msg</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PlyLogger.error"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.PlyLogger.error">[docs]</a>    <span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">msg</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ERROR: &quot;</span> <span class="o">+</span> <span class="p">(</span><span class="n">msg</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+    <span class="n">info</span> <span class="o">=</span> <span class="n">critical</span>
+    <span class="n">debug</span> <span class="o">=</span> <span class="n">critical</span></div>
+
+<span class="c1"># Null logger is used when no output is generated. Does nothing.</span>
+<div class="viewcode-block" id="NullLogger"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.NullLogger">[docs]</a><span class="k">class</span> <span class="nc">NullLogger</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="NullLogger.__getattribute__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.NullLogger.__getattribute__">[docs]</a>    <span class="k">def</span> <span class="nf">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+<div class="viewcode-block" id="NullLogger.__call__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.NullLogger.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1">#                        === Lexing Engine ===</span>
+<span class="c1">#</span>
+<span class="c1"># The following Lexer class implements the lexer runtime.   There are only</span>
+<span class="c1"># a few public methods and attributes:</span>
+<span class="c1">#</span>
+<span class="c1">#    input()          -  Store a new string in the lexer</span>
+<span class="c1">#    token()          -  Get the next token</span>
+<span class="c1">#    clone()          -  Clone the lexer</span>
+<span class="c1">#</span>
+<span class="c1">#    lineno           -  Current line number</span>
+<span class="c1">#    lexpos           -  Current position in the input string</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Lexer"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer">[docs]</a><span class="k">class</span> <span class="nc">Lexer</span><span class="p">:</span>
+<div class="viewcode-block" id="Lexer.__init__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexre</span> <span class="o">=</span> <span class="bp">None</span>             <span class="c1"># Master regular expression. This is a list of</span>
+                                      <span class="c1"># tuples (re,findex) where re is a compiled</span>
+                                      <span class="c1"># regular expression and findex is a list</span>
+                                      <span class="c1"># mapping regex group numbers to rules</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexretext</span> <span class="o">=</span> <span class="bp">None</span>         <span class="c1"># Current regular expression strings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstatere</span> <span class="o">=</span> <span class="p">{}</span>          <span class="c1"># Dictionary mapping lexer states to master regexs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstateretext</span> <span class="o">=</span> <span class="p">{}</span>      <span class="c1"># Dictionary mapping lexer states to regex strings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstaterenames</span> <span class="o">=</span> <span class="p">{}</span>     <span class="c1"># Dictionary mapping lexer states to symbol names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstate</span> <span class="o">=</span> <span class="s2">&quot;INITIAL&quot;</span>     <span class="c1"># Current lexer state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstatestack</span> <span class="o">=</span> <span class="p">[]</span>       <span class="c1"># Stack of lexer states</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstateinfo</span> <span class="o">=</span> <span class="bp">None</span>      <span class="c1"># State information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstateignore</span> <span class="o">=</span> <span class="p">{}</span>      <span class="c1"># Dictionary of ignored characters for each state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstateerrorf</span> <span class="o">=</span> <span class="p">{}</span>      <span class="c1"># Dictionary of error functions for each state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexreflags</span> <span class="o">=</span> <span class="mi">0</span>           <span class="c1"># Optional re compile flags</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexdata</span> <span class="o">=</span> <span class="bp">None</span>           <span class="c1"># Actual input data (as a string)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span> <span class="o">=</span> <span class="mi">0</span>               <span class="c1"># Current position in input text</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexlen</span> <span class="o">=</span> <span class="mi">0</span>               <span class="c1"># Length of the input text</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexerrorf</span> <span class="o">=</span> <span class="bp">None</span>         <span class="c1"># Error rule (if any)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lextokens</span> <span class="o">=</span> <span class="bp">None</span>         <span class="c1"># List of valid tokens</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexignore</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>           <span class="c1"># Ignored characters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexliterals</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>         <span class="c1"># Literal characters that can be passed through</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexmodule</span> <span class="o">=</span> <span class="bp">None</span>         <span class="c1"># Module</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineno</span> <span class="o">=</span> <span class="mi">1</span>               <span class="c1"># Current line number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexoptimize</span> <span class="o">=</span> <span class="mi">0</span>          <span class="c1"># Optimized mode</span></div>
+
+<div class="viewcode-block" id="Lexer.clone"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer.clone">[docs]</a>    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="nb">object</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="c1"># If the object parameter has been supplied, it means we are attaching the</span>
+        <span class="c1"># lexer to a new object.  In this case, we have to rebind all methods in</span>
+        <span class="c1"># the lexstatere and lexstateerrorf tables.</span>
+
+        <span class="k">if</span> <span class="nb">object</span><span class="p">:</span>
+            <span class="n">newtab</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">ritem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexstatere</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">newre</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">cre</span><span class="p">,</span> <span class="n">findex</span> <span class="ow">in</span> <span class="n">ritem</span><span class="p">:</span>
+                     <span class="n">newfindex</span> <span class="o">=</span> <span class="p">[]</span>
+                     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">findex</span><span class="p">:</span>
+                         <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                             <span class="n">newfindex</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                             <span class="k">continue</span>
+                         <span class="n">newfindex</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">getattr</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">__name__</span><span class="p">),</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="n">newre</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cre</span><span class="p">,</span><span class="n">newfindex</span><span class="p">))</span>
+                <span class="n">newtab</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">newre</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">lexstatere</span> <span class="o">=</span> <span class="n">newtab</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">lexstateerrorf</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">ef</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexstateerrorf</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">lexstateerrorf</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span><span class="n">ef</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">lexmodule</span> <span class="o">=</span> <span class="nb">object</span>
+        <span class="k">return</span> <span class="n">c</span></div>
+
+    <span class="c1"># ------------------------------------------------------------</span>
+    <span class="c1"># writetab() - Write lexer information to a table file</span>
+    <span class="c1"># ------------------------------------------------------------</span>
+<div class="viewcode-block" id="Lexer.writetab"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer.writetab">[docs]</a>    <span class="k">def</span> <span class="nf">writetab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tabfile</span><span class="p">,</span><span class="n">outputdir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tabfile</span><span class="p">,</span><span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">basetabfilename</span> <span class="o">=</span> <span class="n">tabfile</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outputdir</span><span class="p">,</span><span class="n">basetabfilename</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;.py&quot;</span>
+        <span class="n">tf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# </span><span class="si">%s</span><span class="s2">.py. This file automatically created by PLY (version </span><span class="si">%s</span><span class="s2">). Don&#39;t edit!</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tabfile</span><span class="p">,</span><span class="n">__version__</span><span class="p">))</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;_tabversion   = </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">__version__</span><span class="p">))</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;_lextokens    = </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lextokens</span><span class="p">))</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;_lexreflags   = </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lexreflags</span><span class="p">))</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;_lexliterals  = </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lexliterals</span><span class="p">))</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;_lexstateinfo = </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lexstateinfo</span><span class="p">))</span>
+
+        <span class="n">tabre</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+        <span class="c1"># Collect all functions in the initial state</span>
+        <span class="n">initial</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexstatere</span><span class="p">[</span><span class="s2">&quot;INITIAL&quot;</span><span class="p">]</span>
+        <span class="n">initialfuncs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">initial</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">part</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">f</span> <span class="ow">and</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">initialfuncs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">lre</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexstatere</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+             <span class="n">titem</span> <span class="o">=</span> <span class="p">[]</span>
+             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lre</span><span class="p">)):</span>
+                  <span class="n">titem</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">lexstateretext</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">i</span><span class="p">],</span><span class="n">_funcs_to_names</span><span class="p">(</span><span class="n">lre</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">lexstaterenames</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">i</span><span class="p">])))</span>
+             <span class="n">tabre</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">titem</span>
+
+        <span class="n">tf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;_lexstatere   = </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">tabre</span><span class="p">))</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;_lexstateignore = </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lexstateignore</span><span class="p">))</span>
+
+        <span class="n">taberr</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">ef</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexstateerrorf</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+             <span class="k">if</span> <span class="n">ef</span><span class="p">:</span>
+                  <span class="n">taberr</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">ef</span><span class="o">.</span><span class="n">__name__</span>
+             <span class="k">else</span><span class="p">:</span>
+                  <span class="n">taberr</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;_lexstateerrorf = </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">taberr</span><span class="p">))</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+    <span class="c1"># ------------------------------------------------------------</span>
+    <span class="c1"># readtab() - Read lexer information from a tab file</span>
+    <span class="c1"># ------------------------------------------------------------</span>
+<div class="viewcode-block" id="Lexer.readtab"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer.readtab">[docs]</a>    <span class="k">def</span> <span class="nf">readtab</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tabfile</span><span class="p">,</span><span class="n">fdict</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tabfile</span><span class="p">,</span><span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">):</span>
+            <span class="n">lextab</span> <span class="o">=</span> <span class="n">tabfile</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">exec</span><span class="p">(</span><span class="s2">&quot;import </span><span class="si">%s</span><span class="s2"> as lextab&quot;</span> <span class="o">%</span> <span class="n">tabfile</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">env</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+                <span class="k">exec</span><span class="p">(</span><span class="s2">&quot;import </span><span class="si">%s</span><span class="s2"> as lextab&quot;</span> <span class="o">%</span> <span class="n">tabfile</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span><span class="n">env</span><span class="p">)</span>
+                <span class="n">lextab</span> <span class="o">=</span> <span class="n">env</span><span class="p">[</span><span class="s1">&#39;lextab&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">lextab</span><span class="p">,</span><span class="s2">&quot;_tabversion&quot;</span><span class="p">,</span><span class="s2">&quot;0.0&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">__version__</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Inconsistent PLY version&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lextokens</span>      <span class="o">=</span> <span class="n">lextab</span><span class="o">.</span><span class="n">_lextokens</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexreflags</span>     <span class="o">=</span> <span class="n">lextab</span><span class="o">.</span><span class="n">_lexreflags</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexliterals</span>    <span class="o">=</span> <span class="n">lextab</span><span class="o">.</span><span class="n">_lexliterals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstateinfo</span>   <span class="o">=</span> <span class="n">lextab</span><span class="o">.</span><span class="n">_lexstateinfo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstateignore</span> <span class="o">=</span> <span class="n">lextab</span><span class="o">.</span><span class="n">_lexstateignore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstatere</span>     <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstateretext</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">lre</span> <span class="ow">in</span> <span class="n">lextab</span><span class="o">.</span><span class="n">_lexstatere</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+             <span class="n">titem</span> <span class="o">=</span> <span class="p">[]</span>
+             <span class="n">txtitem</span> <span class="o">=</span> <span class="p">[]</span>
+             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lre</span><span class="p">)):</span>
+                  <span class="n">titem</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">lre</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">lextab</span><span class="o">.</span><span class="n">_lexreflags</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">),</span><span class="n">_names_to_funcs</span><span class="p">(</span><span class="n">lre</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">fdict</span><span class="p">)))</span>
+                  <span class="n">txtitem</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lre</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">lexstatere</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">titem</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">lexstateretext</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">txtitem</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstateerrorf</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">ef</span> <span class="ow">in</span> <span class="n">lextab</span><span class="o">.</span><span class="n">_lexstateerrorf</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">lexstateerrorf</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">fdict</span><span class="p">[</span><span class="n">ef</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="s1">&#39;INITIAL&#39;</span><span class="p">)</span></div>
+
+    <span class="c1"># ------------------------------------------------------------</span>
+    <span class="c1"># input() - Push a new string into the lexer</span>
+    <span class="c1"># ------------------------------------------------------------</span>
+<div class="viewcode-block" id="Lexer.input"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer.input">[docs]</a>    <span class="k">def</span> <span class="nf">input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">s</span><span class="p">):</span>
+        <span class="c1"># Pull off the first character to see if s looks like a string</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">s</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">StringTypes</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expected a string&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexdata</span> <span class="o">=</span> <span class="n">s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexlen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+
+    <span class="c1"># ------------------------------------------------------------</span>
+    <span class="c1"># begin() - Changes the lexing state</span>
+    <span class="c1"># ------------------------------------------------------------</span>
+<div class="viewcode-block" id="Lexer.begin"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer.begin">[docs]</a>    <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">state</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexstatere</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Undefined state&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexre</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexstatere</span><span class="p">[</span><span class="n">state</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexretext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexstateretext</span><span class="p">[</span><span class="n">state</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexignore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexstateignore</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">state</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexerrorf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexstateerrorf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">state</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstate</span> <span class="o">=</span> <span class="n">state</span></div>
+
+    <span class="c1"># ------------------------------------------------------------</span>
+    <span class="c1"># push_state() - Changes the lexing state and saves old on stack</span>
+    <span class="c1"># ------------------------------------------------------------</span>
+<div class="viewcode-block" id="Lexer.push_state"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer.push_state">[docs]</a>    <span class="k">def</span> <span class="nf">push_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexstatestack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lexstate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
+
+    <span class="c1"># ------------------------------------------------------------</span>
+    <span class="c1"># pop_state() - Restores the previous state</span>
+    <span class="c1"># ------------------------------------------------------------</span>
+<div class="viewcode-block" id="Lexer.pop_state"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer.pop_state">[docs]</a>    <span class="k">def</span> <span class="nf">pop_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lexstatestack</span><span class="o">.</span><span class="n">pop</span><span class="p">())</span></div>
+
+    <span class="c1"># ------------------------------------------------------------</span>
+    <span class="c1"># current_state() - Returns the current lexing state</span>
+    <span class="c1"># ------------------------------------------------------------</span>
+<div class="viewcode-block" id="Lexer.current_state"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer.current_state">[docs]</a>    <span class="k">def</span> <span class="nf">current_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexstate</span></div>
+
+    <span class="c1"># ------------------------------------------------------------</span>
+    <span class="c1"># skip() - Skip ahead n characters</span>
+    <span class="c1"># ------------------------------------------------------------</span>
+<div class="viewcode-block" id="Lexer.skip"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer.skip">[docs]</a>    <span class="k">def</span> <span class="nf">skip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span> <span class="o">+=</span> <span class="n">n</span></div>
+
+    <span class="c1"># ------------------------------------------------------------</span>
+    <span class="c1"># opttoken() - Return the next token from the Lexer</span>
+    <span class="c1">#</span>
+    <span class="c1"># Note: This function has been carefully implemented to be as fast</span>
+    <span class="c1"># as possible.  Don&#39;t make changes unless you really know what</span>
+    <span class="c1"># you are doing</span>
+    <span class="c1"># ------------------------------------------------------------</span>
+<div class="viewcode-block" id="Lexer.token"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer.token">[docs]</a>    <span class="k">def</span> <span class="nf">token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Make local copies of frequently referenced attributes</span>
+        <span class="n">lexpos</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span>
+        <span class="n">lexlen</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexlen</span>
+        <span class="n">lexignore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexignore</span>
+        <span class="n">lexdata</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexdata</span>
+
+        <span class="k">while</span> <span class="n">lexpos</span> <span class="o">&lt;</span> <span class="n">lexlen</span><span class="p">:</span>
+            <span class="c1"># This code provides some short-circuit code for whitespace, tabs, and other ignored characters</span>
+            <span class="k">if</span> <span class="n">lexdata</span><span class="p">[</span><span class="n">lexpos</span><span class="p">]</span> <span class="ow">in</span> <span class="n">lexignore</span><span class="p">:</span>
+                <span class="n">lexpos</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Look for a regular expression match</span>
+            <span class="k">for</span> <span class="n">lexre</span><span class="p">,</span><span class="n">lexindexfunc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexre</span><span class="p">:</span>
+                <span class="n">m</span> <span class="o">=</span> <span class="n">lexre</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">lexdata</span><span class="p">,</span><span class="n">lexpos</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span> <span class="k">continue</span>
+
+                <span class="c1"># Create a token for return</span>
+                <span class="n">tok</span> <span class="o">=</span> <span class="n">LexToken</span><span class="p">()</span>
+                <span class="n">tok</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
+                <span class="n">tok</span><span class="o">.</span><span class="n">lineno</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineno</span>
+                <span class="n">tok</span><span class="o">.</span><span class="n">lexpos</span> <span class="o">=</span> <span class="n">lexpos</span>
+
+                <span class="n">i</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">lastindex</span>
+                <span class="n">func</span><span class="p">,</span><span class="n">tok</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">lexindexfunc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">func</span><span class="p">:</span>
+                   <span class="c1"># If no token type was set, it&#39;s an ignored token</span>
+                   <span class="k">if</span> <span class="n">tok</span><span class="o">.</span><span class="n">type</span><span class="p">:</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
+                      <span class="k">return</span> <span class="n">tok</span>
+                   <span class="k">else</span><span class="p">:</span>
+                      <span class="n">lexpos</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
+                      <span class="k">break</span>
+
+                <span class="n">lexpos</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
+
+                <span class="c1"># If token is processed by a function, call it</span>
+
+                <span class="n">tok</span><span class="o">.</span><span class="n">lexer</span> <span class="o">=</span> <span class="bp">self</span>      <span class="c1"># Set additional attributes useful in token rules</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lexmatch</span> <span class="o">=</span> <span class="n">m</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span> <span class="o">=</span> <span class="n">lexpos</span>
+
+                <span class="n">newtok</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span>
+
+                <span class="c1"># Every function must return a token, if nothing, we just move to next token</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">newtok</span><span class="p">:</span>
+                    <span class="n">lexpos</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span>         <span class="c1"># This is here in case user has updated lexpos.</span>
+                    <span class="n">lexignore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexignore</span>      <span class="c1"># This is here in case there was a state change</span>
+                    <span class="k">break</span>
+
+                <span class="c1"># Verify type of the token.  If not in the token map, raise an error</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexoptimize</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">newtok</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lextokens</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">LexError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">: Rule &#39;</span><span class="si">%s</span><span class="s2">&#39; returned an unknown token type &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">func_code</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">co_filename</span><span class="p">,</span> <span class="n">func_code</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">co_firstlineno</span><span class="p">,</span>
+                            <span class="n">func</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">newtok</span><span class="o">.</span><span class="n">type</span><span class="p">),</span><span class="n">lexdata</span><span class="p">[</span><span class="n">lexpos</span><span class="p">:])</span>
+
+                <span class="k">return</span> <span class="n">newtok</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># No match, see if in literals</span>
+                <span class="k">if</span> <span class="n">lexdata</span><span class="p">[</span><span class="n">lexpos</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexliterals</span><span class="p">:</span>
+                    <span class="n">tok</span> <span class="o">=</span> <span class="n">LexToken</span><span class="p">()</span>
+                    <span class="n">tok</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">lexdata</span><span class="p">[</span><span class="n">lexpos</span><span class="p">]</span>
+                    <span class="n">tok</span><span class="o">.</span><span class="n">lineno</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineno</span>
+                    <span class="n">tok</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">tok</span><span class="o">.</span><span class="n">value</span>
+                    <span class="n">tok</span><span class="o">.</span><span class="n">lexpos</span> <span class="o">=</span> <span class="n">lexpos</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span> <span class="o">=</span> <span class="n">lexpos</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="k">return</span> <span class="n">tok</span>
+
+                <span class="c1"># No match. Call t_error() if defined.</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexerrorf</span><span class="p">:</span>
+                    <span class="n">tok</span> <span class="o">=</span> <span class="n">LexToken</span><span class="p">()</span>
+                    <span class="n">tok</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexdata</span><span class="p">[</span><span class="n">lexpos</span><span class="p">:]</span>
+                    <span class="n">tok</span><span class="o">.</span><span class="n">lineno</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lineno</span>
+                    <span class="n">tok</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;error&quot;</span>
+                    <span class="n">tok</span><span class="o">.</span><span class="n">lexer</span> <span class="o">=</span> <span class="bp">self</span>
+                    <span class="n">tok</span><span class="o">.</span><span class="n">lexpos</span> <span class="o">=</span> <span class="n">lexpos</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span> <span class="o">=</span> <span class="n">lexpos</span>
+                    <span class="n">newtok</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexerrorf</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">lexpos</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span><span class="p">:</span>
+                        <span class="c1"># Error method didn&#39;t change text position at all. This is an error.</span>
+                        <span class="k">raise</span> <span class="n">LexError</span><span class="p">(</span><span class="s2">&quot;Scanning error. Illegal character &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lexdata</span><span class="p">[</span><span class="n">lexpos</span><span class="p">]),</span> <span class="n">lexdata</span><span class="p">[</span><span class="n">lexpos</span><span class="p">:])</span>
+                    <span class="n">lexpos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">newtok</span><span class="p">:</span> <span class="k">continue</span>
+                    <span class="k">return</span> <span class="n">newtok</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span> <span class="o">=</span> <span class="n">lexpos</span>
+                <span class="k">raise</span> <span class="n">LexError</span><span class="p">(</span><span class="s2">&quot;Illegal character &#39;</span><span class="si">%s</span><span class="s2">&#39; at index </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lexdata</span><span class="p">[</span><span class="n">lexpos</span><span class="p">],</span><span class="n">lexpos</span><span class="p">),</span> <span class="n">lexdata</span><span class="p">[</span><span class="n">lexpos</span><span class="p">:])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lexpos</span> <span class="o">=</span> <span class="n">lexpos</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lexdata</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No input string given with input()&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+    <span class="c1"># Iterator interface</span>
+<div class="viewcode-block" id="Lexer.__iter__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer.__iter__">[docs]</a>    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Lexer.next"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.Lexer.next">[docs]</a>    <span class="k">def</span> <span class="nf">next</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">StopIteration</span>
+        <span class="k">return</span> <span class="n">t</span></div>
+
+    <span class="n">__next__</span> <span class="o">=</span> <span class="nb">next</span></div>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1">#                           ==== Lex Builder ===</span>
+<span class="c1">#</span>
+<span class="c1"># The functions and classes below are used to collect lexing information</span>
+<span class="c1"># and build a Lexer object from it.</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># get_caller_module_dict()</span>
+<span class="c1">#</span>
+<span class="c1"># This function returns a dictionary containing all of the symbols defined within</span>
+<span class="c1"># a caller further down the call stack.  This is used to get the environment</span>
+<span class="c1"># associated with the yacc() call if none was provided.</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="get_caller_module_dict"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.get_caller_module_dict">[docs]</a><span class="k">def</span> <span class="nf">get_caller_module_dict</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+        <span class="n">e</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">t</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">tb_frame</span>
+        <span class="k">while</span> <span class="n">levels</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">f_back</span>
+            <span class="n">levels</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="n">ldict</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">f_globals</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">f_globals</span> <span class="o">!=</span> <span class="n">f</span><span class="o">.</span><span class="n">f_locals</span><span class="p">:</span>
+            <span class="n">ldict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">f_locals</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ldict</span></div>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># _funcs_to_names()</span>
+<span class="c1">#</span>
+<span class="c1"># Given a list of regular expression functions, this converts it to a list</span>
+<span class="c1"># suitable for output to a table file</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="_funcs_to_names"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex._funcs_to_names">[docs]</a><span class="k">def</span> <span class="nf">_funcs_to_names</span><span class="p">(</span><span class="n">funclist</span><span class="p">,</span><span class="n">namelist</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">f</span><span class="p">,</span><span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">funclist</span><span class="p">,</span><span class="n">namelist</span><span class="p">):</span>
+         <span class="k">if</span> <span class="n">f</span> <span class="ow">and</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+             <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+         <span class="k">else</span><span class="p">:</span>
+             <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># _names_to_funcs()</span>
+<span class="c1">#</span>
+<span class="c1"># Given a list of regular expression function names, this converts it back to</span>
+<span class="c1"># functions.</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="_names_to_funcs"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex._names_to_funcs">[docs]</a><span class="k">def</span> <span class="nf">_names_to_funcs</span><span class="p">(</span><span class="n">namelist</span><span class="p">,</span><span class="n">fdict</span><span class="p">):</span>
+     <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+     <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">namelist</span><span class="p">:</span>
+          <span class="k">if</span> <span class="n">n</span> <span class="ow">and</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+              <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fdict</span><span class="p">[</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span><span class="n">n</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+          <span class="k">else</span><span class="p">:</span>
+              <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+     <span class="k">return</span> <span class="n">result</span></div>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># _form_master_re()</span>
+<span class="c1">#</span>
+<span class="c1"># This function takes a list of all of the regex components and attempts to</span>
+<span class="c1"># form the master regular expression.  Given limitations in the Python re</span>
+<span class="c1"># module, it may be necessary to break the master regex into separate expressions.</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="_form_master_re"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex._form_master_re">[docs]</a><span class="k">def</span> <span class="nf">_form_master_re</span><span class="p">(</span><span class="n">relist</span><span class="p">,</span><span class="n">reflags</span><span class="p">,</span><span class="n">ldict</span><span class="p">,</span><span class="n">toknames</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">relist</span><span class="p">:</span> <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">regex</span> <span class="o">=</span> <span class="s2">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">relist</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">lexre</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="o">|</span> <span class="n">reflags</span><span class="p">)</span>
+
+        <span class="c1"># Build the index to function map for the matching engine</span>
+        <span class="n">lexindexfunc</span> <span class="o">=</span> <span class="p">[</span> <span class="bp">None</span> <span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">lexre</span><span class="o">.</span><span class="n">groupindex</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">lexindexnames</span> <span class="o">=</span> <span class="n">lexindexfunc</span><span class="p">[:]</span>
+
+        <span class="k">for</span> <span class="n">f</span><span class="p">,</span><span class="n">i</span> <span class="ow">in</span> <span class="n">lexre</span><span class="o">.</span><span class="n">groupindex</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">handle</span> <span class="o">=</span> <span class="n">ldict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">):</span>
+                <span class="n">lexindexfunc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="n">toknames</span><span class="p">[</span><span class="n">f</span><span class="p">])</span>
+                <span class="n">lexindexnames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span>
+            <span class="k">elif</span> <span class="n">handle</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">lexindexnames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span>
+                <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;ignore_&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">lexindexfunc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">lexindexfunc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">toknames</span><span class="p">[</span><span class="n">f</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="p">[(</span><span class="n">lexre</span><span class="p">,</span><span class="n">lexindexfunc</span><span class="p">)],[</span><span class="n">regex</span><span class="p">],[</span><span class="n">lexindexnames</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">relist</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">m</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">llist</span><span class="p">,</span> <span class="n">lre</span><span class="p">,</span> <span class="n">lnames</span> <span class="o">=</span> <span class="n">_form_master_re</span><span class="p">(</span><span class="n">relist</span><span class="p">[:</span><span class="n">m</span><span class="p">],</span><span class="n">reflags</span><span class="p">,</span><span class="n">ldict</span><span class="p">,</span><span class="n">toknames</span><span class="p">)</span>
+        <span class="n">rlist</span><span class="p">,</span> <span class="n">rre</span><span class="p">,</span> <span class="n">rnames</span> <span class="o">=</span> <span class="n">_form_master_re</span><span class="p">(</span><span class="n">relist</span><span class="p">[</span><span class="n">m</span><span class="p">:],</span><span class="n">reflags</span><span class="p">,</span><span class="n">ldict</span><span class="p">,</span><span class="n">toknames</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">llist</span><span class="o">+</span><span class="n">rlist</span><span class="p">,</span> <span class="n">lre</span><span class="o">+</span><span class="n">rre</span><span class="p">,</span> <span class="n">lnames</span><span class="o">+</span><span class="n">rnames</span></div>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># def _statetoken(s,names)</span>
+<span class="c1">#</span>
+<span class="c1"># Given a declaration name s of the form &quot;t_&quot; and a dictionary whose keys are</span>
+<span class="c1"># state names, this function returns a tuple (states,tokenname) where states</span>
+<span class="c1"># is a tuple of state names and tokenname is the name of the token.  For example,</span>
+<span class="c1"># calling this with s = &quot;t_foo_bar_SPAM&quot; might return ((&#39;foo&#39;,&#39;bar&#39;),&#39;SPAM&#39;)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="_statetoken"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex._statetoken">[docs]</a><span class="k">def</span> <span class="nf">_statetoken</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">names</span><span class="p">):</span>
+    <span class="n">nonstate</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)):</span>
+         <span class="k">if</span> <span class="ow">not</span> <span class="n">parts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">in</span> <span class="n">names</span> <span class="ow">and</span> <span class="n">parts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;ANY&#39;</span><span class="p">:</span> <span class="k">break</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+       <span class="n">states</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+       <span class="n">states</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;INITIAL&#39;</span><span class="p">,)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;ANY&#39;</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+       <span class="n">states</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+
+    <span class="n">tokenname</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="n">i</span><span class="p">:])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">states</span><span class="p">,</span><span class="n">tokenname</span><span class="p">)</span></div>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># LexerReflect()</span>
+<span class="c1">#</span>
+<span class="c1"># This class represents information needed to build a lexer as extracted from a</span>
+<span class="c1"># user&#39;s input file.</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="LexerReflect"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexerReflect">[docs]</a><span class="k">class</span> <span class="nc">LexerReflect</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="LexerReflect.__init__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexerReflect.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ldict</span><span class="p">,</span><span class="n">log</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">reflags</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ldict</span>      <span class="o">=</span> <span class="n">ldict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_func</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span>     <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reflags</span>    <span class="o">=</span> <span class="n">reflags</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stateinfo</span>  <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;INITIAL&#39;</span> <span class="p">:</span> <span class="s1">&#39;inclusive&#39;</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">files</span>      <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error</span>      <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">log</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">PlyLogger</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">log</span></div>
+
+    <span class="c1"># Get all of the basic information</span>
+<div class="viewcode-block" id="LexerReflect.get_all"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexerReflect.get_all">[docs]</a>    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_tokens</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_literals</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_states</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_rules</span><span class="p">()</span></div>
+
+    <span class="c1"># Validate all of the information</span>
+<div class="viewcode-block" id="LexerReflect.validate_all"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexerReflect.validate_all">[docs]</a>    <span class="k">def</span> <span class="nf">validate_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_tokens</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_literals</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_rules</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">error</span></div>
+
+    <span class="c1"># Get the tokens map</span>
+<div class="viewcode-block" id="LexerReflect.get_tokens"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexerReflect.get_tokens">[docs]</a>    <span class="k">def</span> <span class="nf">get_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ldict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tokens&quot;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tokens</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No token list is defined&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tokens</span><span class="p">,(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;tokens must be a list or tuple&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tokens</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;tokens is empty&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span> <span class="o">=</span> <span class="n">tokens</span></div>
+
+    <span class="c1"># Validate the tokens</span>
+<div class="viewcode-block" id="LexerReflect.validate_tokens"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexerReflect.validate_tokens">[docs]</a>    <span class="k">def</span> <span class="nf">validate_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">terminals</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_identifier</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Bad token name &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">terminals</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Token &#39;</span><span class="si">%s</span><span class="s2">&#39; multiply defined&quot;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+            <span class="n">terminals</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span></div>
+
+    <span class="c1"># Get the literals specifier</span>
+<div class="viewcode-block" id="LexerReflect.get_literals"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexerReflect.get_literals">[docs]</a>    <span class="k">def</span> <span class="nf">get_literals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">literals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ldict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;literals&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+    <span class="c1"># Validate literals</span>
+<div class="viewcode-block" id="LexerReflect.validate_literals"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexerReflect.validate_literals">[docs]</a>    <span class="k">def</span> <span class="nf">validate_literals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">literals</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">StringTypes</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid literal </span><span class="si">%s</span><span class="s2">. Must be a single character&quot;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">continue</span>
+
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid literals specification. literals must be a sequence of characters&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="LexerReflect.get_states"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexerReflect.get_states">[docs]</a>    <span class="k">def</span> <span class="nf">get_states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ldict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;states&quot;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+        <span class="c1"># Build statemap</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">,(</span><span class="nb">tuple</span><span class="p">,</span><span class="nb">list</span><span class="p">)):</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;states must be defined as a tuple or list&quot;</span><span class="p">)</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+             <span class="k">else</span><span class="p">:</span>
+                  <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid state specifier </span><span class="si">%s</span><span class="s2">. Must be a tuple (statename,&#39;exclusive|inclusive&#39;)&quot;</span><span class="p">,</span><span class="nb">repr</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                               <span class="k">continue</span>
+                        <span class="n">name</span><span class="p">,</span> <span class="n">statetype</span> <span class="o">=</span> <span class="n">s</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">StringTypes</span><span class="p">):</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;State name </span><span class="si">%s</span><span class="s2"> must be a string&quot;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                               <span class="k">continue</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">statetype</span> <span class="o">==</span> <span class="s1">&#39;inclusive&#39;</span> <span class="ow">or</span> <span class="n">statetype</span> <span class="o">==</span> <span class="s1">&#39;exclusive&#39;</span><span class="p">):</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;State type for state </span><span class="si">%s</span><span class="s2"> must be &#39;inclusive&#39; or &#39;exclusive&#39;&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                               <span class="k">continue</span>
+                        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stateinfo</span><span class="p">:</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;State &#39;</span><span class="si">%s</span><span class="s2">&#39; already defined&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                               <span class="k">continue</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">stateinfo</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">statetype</span></div>
+
+    <span class="c1"># Get all of the symbols with a t_ prefix and sort them into various</span>
+    <span class="c1"># categories (functions, strings, error functions, and ignore characters)</span>
+
+<div class="viewcode-block" id="LexerReflect.get_rules"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexerReflect.get_rules">[docs]</a>    <span class="k">def</span> <span class="nf">get_rules</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tsymbols</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ldict</span> <span class="k">if</span> <span class="n">f</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;t_&#39;</span> <span class="p">]</span>
+
+        <span class="c1"># Now build up a list of functions and a list of strings</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">toknames</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>        <span class="c1"># Mapping of symbols to token names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">funcsym</span> <span class="o">=</span>  <span class="p">{</span> <span class="p">}</span>        <span class="c1"># Symbols defined as functions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strsym</span> <span class="o">=</span>   <span class="p">{</span> <span class="p">}</span>        <span class="c1"># Symbols defined as strings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ignore</span>   <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>        <span class="c1"># Ignore strings by state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">errorf</span>   <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>        <span class="c1"># Error functions by state</span>
+
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stateinfo</span><span class="p">:</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">funcsym</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">strsym</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tsymbols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No rules of the form t_rulename are defined&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">tsymbols</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ldict</span><span class="p">[</span><span class="n">f</span><span class="p">]</span>
+            <span class="n">states</span><span class="p">,</span> <span class="n">tokname</span> <span class="o">=</span> <span class="n">_statetoken</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">stateinfo</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toknames</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">tokname</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s2">&quot;__call__&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">tokname</span> <span class="o">==</span> <span class="s1">&#39;error&#39;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">errorf</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span>
+                <span class="k">elif</span> <span class="n">tokname</span> <span class="o">==</span> <span class="s1">&#39;ignore&#39;</span><span class="p">:</span>
+                    <span class="n">line</span> <span class="o">=</span> <span class="n">func_code</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">co_firstlineno</span>
+                    <span class="nb">file</span> <span class="o">=</span> <span class="n">func_code</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">co_filename</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">: Rule &#39;</span><span class="si">%s</span><span class="s2">&#39; must be defined as a string&quot;</span><span class="p">,</span><span class="nb">file</span><span class="p">,</span><span class="n">line</span><span class="p">,</span><span class="n">t</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">funcsym</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">f</span><span class="p">,</span><span class="n">t</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">StringTypes</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">tokname</span> <span class="o">==</span> <span class="s1">&#39;ignore&#39;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ignore</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span>
+                    <span class="k">if</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">t</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> contains a literal backslash &#39;</span><span class="se">\\</span><span class="s2">&#39;&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">tokname</span> <span class="o">==</span> <span class="s1">&#39;error&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Rule &#39;</span><span class="si">%s</span><span class="s2">&#39; must be defined as a function&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">strsym</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">f</span><span class="p">,</span><span class="n">t</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> not defined as a function or string&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># Sort the functions by line number</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">funcsym</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="nb">cmp</span><span class="p">(</span><span class="n">func_code</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">co_firstlineno</span><span class="p">,</span><span class="n">func_code</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">co_firstlineno</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Python 3.0</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">func_code</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">co_firstlineno</span><span class="p">)</span>
+
+        <span class="c1"># Sort the strings by regular expression length</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">strsym</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="o">-</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Python 3.0</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+    <span class="c1"># Validate all of the t_rules collected</span>
+<div class="viewcode-block" id="LexerReflect.validate_rules"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexerReflect.validate_rules">[docs]</a>    <span class="k">def</span> <span class="nf">validate_rules</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stateinfo</span><span class="p">:</span>
+            <span class="c1"># Validate all rules defined by functions</span>
+
+
+
+            <span class="k">for</span> <span class="n">fname</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">funcsym</span><span class="p">[</span><span class="n">state</span><span class="p">]:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">func_code</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">co_firstlineno</span>
+                <span class="nb">file</span> <span class="o">=</span> <span class="n">func_code</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">co_filename</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="nb">file</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+                <span class="n">tokname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">toknames</span><span class="p">[</span><span class="n">fname</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">):</span>
+                    <span class="n">reqargs</span> <span class="o">=</span> <span class="mi">2</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">reqargs</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">nargs</span> <span class="o">=</span> <span class="n">func_code</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">co_argcount</span>
+                <span class="k">if</span> <span class="n">nargs</span> <span class="o">&gt;</span> <span class="n">reqargs</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">: Rule &#39;</span><span class="si">%s</span><span class="s2">&#39; has too many arguments&quot;</span><span class="p">,</span><span class="nb">file</span><span class="p">,</span><span class="n">line</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="n">nargs</span> <span class="o">&lt;</span> <span class="n">reqargs</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">: Rule &#39;</span><span class="si">%s</span><span class="s2">&#39; requires an argument&quot;</span><span class="p">,</span> <span class="nb">file</span><span class="p">,</span><span class="n">line</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">__doc__</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">: No regular expression defined for rule &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span><span class="p">,</span><span class="nb">file</span><span class="p">,</span><span class="n">line</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">continue</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;(?P&lt;</span><span class="si">%s</span><span class="s2">&gt;</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">__doc__</span><span class="p">),</span> <span class="n">re</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">reflags</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">: Regular expression for rule &#39;</span><span class="si">%s</span><span class="s2">&#39; matches empty string&quot;</span><span class="p">,</span> <span class="nb">file</span><span class="p">,</span><span class="n">line</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">except</span> <span class="n">re</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+                    <span class="n">_etype</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">_etrace</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">: Invalid regular expression for rule &#39;</span><span class="si">%s</span><span class="s2">&#39;. </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">file</span><span class="p">,</span><span class="n">line</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="s1">&#39;#&#39;</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">__doc__</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">. Make sure &#39;#&#39; in rule &#39;</span><span class="si">%s</span><span class="s2">&#39; is escaped with &#39;</span><span class="se">\\</span><span class="s2">#&#39;&quot;</span><span class="p">,</span><span class="nb">file</span><span class="p">,</span><span class="n">line</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="c1"># Validate all rules defined by strings</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span><span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">strsym</span><span class="p">[</span><span class="n">state</span><span class="p">]:</span>
+                <span class="n">tokname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">toknames</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">tokname</span> <span class="o">==</span> <span class="s1">&#39;error&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Rule &#39;</span><span class="si">%s</span><span class="s2">&#39; must be defined as a function&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">tokname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span> <span class="ow">and</span> <span class="n">tokname</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;ignore_&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Rule &#39;</span><span class="si">%s</span><span class="s2">&#39; defined for an unspecified token </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">tokname</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">continue</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;(?P&lt;</span><span class="si">%s</span><span class="s2">&gt;</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">r</span><span class="p">),</span><span class="n">re</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">reflags</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)):</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Regular expression for rule &#39;</span><span class="si">%s</span><span class="s2">&#39; matches empty string&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">except</span> <span class="n">re</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+                    <span class="n">_etype</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">_etrace</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid regular expression for rule &#39;</span><span class="si">%s</span><span class="s2">&#39;. </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="s1">&#39;#&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Make sure &#39;#&#39; in rule &#39;</span><span class="si">%s</span><span class="s2">&#39; is escaped with &#39;</span><span class="se">\\</span><span class="s2">#&#39;&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">funcsym</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">strsym</span><span class="p">[</span><span class="n">state</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No rules defined for state &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span><span class="p">,</span><span class="n">state</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="c1"># Validate the error function</span>
+            <span class="n">efunc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">errorf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">state</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">efunc</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">efunc</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">func_code</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">co_firstlineno</span>
+                <span class="nb">file</span> <span class="o">=</span> <span class="n">func_code</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">co_filename</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="nb">file</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">):</span>
+                    <span class="n">reqargs</span> <span class="o">=</span> <span class="mi">2</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">reqargs</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">nargs</span> <span class="o">=</span> <span class="n">func_code</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">co_argcount</span>
+                <span class="k">if</span> <span class="n">nargs</span> <span class="o">&gt;</span> <span class="n">reqargs</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">: Rule &#39;</span><span class="si">%s</span><span class="s2">&#39; has too many arguments&quot;</span><span class="p">,</span><span class="nb">file</span><span class="p">,</span><span class="n">line</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+
+                <span class="k">if</span> <span class="n">nargs</span> <span class="o">&lt;</span> <span class="n">reqargs</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">: Rule &#39;</span><span class="si">%s</span><span class="s2">&#39; requires an argument&quot;</span><span class="p">,</span> <span class="nb">file</span><span class="p">,</span><span class="n">line</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validate_file</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+
+    <span class="c1"># -----------------------------------------------------------------------------</span>
+    <span class="c1"># validate_file()</span>
+    <span class="c1">#</span>
+    <span class="c1"># This checks to see if there are duplicated t_rulename() functions or strings</span>
+    <span class="c1"># in the parser input file.  This is done using a simple regular expression</span>
+    <span class="c1"># match on each line in the given file.</span>
+    <span class="c1"># -----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="LexerReflect.validate_file"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.LexerReflect.validate_file">[docs]</a>    <span class="k">def</span> <span class="nf">validate_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">filename</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">os.path</span>
+        <span class="n">base</span><span class="p">,</span><span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="o">!=</span> <span class="s1">&#39;.py&#39;</span><span class="p">:</span> <span class="k">return</span>         <span class="c1"># No idea what the file is. Return OK</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">return</span>                      <span class="c1"># Couldn&#39;t find the file.  Don&#39;t worry about it</span>
+
+        <span class="n">fre</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">r&#39;\s*def\s+(t_[a-zA-Z_0-9]*)\(&#39;</span><span class="p">)</span>
+        <span class="n">sre</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">r&#39;\s*(t_[a-zA-Z_0-9]*)\s*=&#39;</span><span class="p">)</span>
+
+        <span class="n">counthash</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+        <span class="n">linen</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">fre</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span>
+                <span class="n">m</span> <span class="o">=</span> <span class="n">sre</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">prev</span> <span class="o">=</span> <span class="n">counthash</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">prev</span><span class="p">:</span>
+                    <span class="n">counthash</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">linen</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">: Rule </span><span class="si">%s</span><span class="s2"> redefined. Previously defined on line </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span><span class="n">linen</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">prev</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">linen</span> <span class="o">+=</span> <span class="mi">1</span></div></div>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># lex(module)</span>
+<span class="c1">#</span>
+<span class="c1"># Build all of the regular expression rules from definitions in the supplied module</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<div class="viewcode-block" id="lex"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.lex">[docs]</a><span class="k">def</span> <span class="nf">lex</span><span class="p">(</span><span class="n">module</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="nb">object</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">debug</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">optimize</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">lextab</span><span class="o">=</span><span class="s2">&quot;lextab&quot;</span><span class="p">,</span><span class="n">reflags</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">nowarn</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">outputdir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">debuglog</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">errorlog</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">lexer</span>
+    <span class="n">ldict</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">stateinfo</span>  <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;INITIAL&#39;</span> <span class="p">:</span> <span class="s1">&#39;inclusive&#39;</span><span class="p">}</span>
+    <span class="n">lexobj</span> <span class="o">=</span> <span class="n">Lexer</span><span class="p">()</span>
+    <span class="n">lexobj</span><span class="o">.</span><span class="n">lexoptimize</span> <span class="o">=</span> <span class="n">optimize</span>
+    <span class="k">global</span> <span class="n">token</span><span class="p">,</span><span class="nb">input</span>
+
+    <span class="k">if</span> <span class="n">errorlog</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">errorlog</span> <span class="o">=</span> <span class="n">PlyLogger</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">debuglog</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">debuglog</span> <span class="o">=</span> <span class="n">PlyLogger</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+
+    <span class="c1"># Get the module dictionary used for the lexer</span>
+    <span class="k">if</span> <span class="nb">object</span><span class="p">:</span> <span class="n">module</span> <span class="o">=</span> <span class="nb">object</span>
+
+    <span class="k">if</span> <span class="n">module</span><span class="p">:</span>
+        <span class="n">_items</span> <span class="o">=</span> <span class="p">[(</span><span class="n">k</span><span class="p">,</span><span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span><span class="n">k</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">)]</span>
+        <span class="n">ldict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_items</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ldict</span> <span class="o">=</span> <span class="n">get_caller_module_dict</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Collect parser information from the dictionary</span>
+    <span class="n">linfo</span> <span class="o">=</span> <span class="n">LexerReflect</span><span class="p">(</span><span class="n">ldict</span><span class="p">,</span><span class="n">log</span><span class="o">=</span><span class="n">errorlog</span><span class="p">,</span><span class="n">reflags</span><span class="o">=</span><span class="n">reflags</span><span class="p">)</span>
+    <span class="n">linfo</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">optimize</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">linfo</span><span class="o">.</span><span class="n">validate_all</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">SyntaxError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t build lexer&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">optimize</span> <span class="ow">and</span> <span class="n">lextab</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">lexobj</span><span class="o">.</span><span class="n">readtab</span><span class="p">(</span><span class="n">lextab</span><span class="p">,</span><span class="n">ldict</span><span class="p">)</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="n">lexobj</span><span class="o">.</span><span class="n">token</span>
+            <span class="nb">input</span> <span class="o">=</span> <span class="n">lexobj</span><span class="o">.</span><span class="n">input</span>
+            <span class="n">lexer</span> <span class="o">=</span> <span class="n">lexobj</span>
+            <span class="k">return</span> <span class="n">lexobj</span>
+
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="c1"># Dump some basic debugging information</span>
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+        <span class="n">debuglog</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;lex: tokens   = </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">linfo</span><span class="o">.</span><span class="n">tokens</span><span class="p">)</span>
+        <span class="n">debuglog</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;lex: literals = </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">linfo</span><span class="o">.</span><span class="n">literals</span><span class="p">)</span>
+        <span class="n">debuglog</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;lex: states   = </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">linfo</span><span class="o">.</span><span class="n">stateinfo</span><span class="p">)</span>
+
+    <span class="c1"># Build a dictionary of valid token names</span>
+    <span class="n">lexobj</span><span class="o">.</span><span class="n">lextokens</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">linfo</span><span class="o">.</span><span class="n">tokens</span><span class="p">:</span>
+        <span class="n">lexobj</span><span class="o">.</span><span class="n">lextokens</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># Get literals specification</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">linfo</span><span class="o">.</span><span class="n">literals</span><span class="p">,(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">)):</span>
+        <span class="n">lexobj</span><span class="o">.</span><span class="n">lexliterals</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">linfo</span><span class="o">.</span><span class="n">literals</span><span class="p">[</span><span class="mi">0</span><span class="p">])()</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">linfo</span><span class="o">.</span><span class="n">literals</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lexobj</span><span class="o">.</span><span class="n">lexliterals</span> <span class="o">=</span> <span class="n">linfo</span><span class="o">.</span><span class="n">literals</span>
+
+    <span class="c1"># Get the stateinfo dictionary</span>
+    <span class="n">stateinfo</span> <span class="o">=</span> <span class="n">linfo</span><span class="o">.</span><span class="n">stateinfo</span>
+
+    <span class="n">regexs</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+    <span class="c1"># Build the master regular expressions</span>
+    <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">stateinfo</span><span class="p">:</span>
+        <span class="n">regex_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Add rules defined by functions first</span>
+        <span class="k">for</span> <span class="n">fname</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">linfo</span><span class="o">.</span><span class="n">funcsym</span><span class="p">[</span><span class="n">state</span><span class="p">]:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">func_code</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">co_firstlineno</span>
+            <span class="nb">file</span> <span class="o">=</span> <span class="n">func_code</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">co_filename</span>
+            <span class="n">regex_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;(?P&lt;</span><span class="si">%s</span><span class="s2">&gt;</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">__doc__</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                <span class="n">debuglog</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;lex: Adding rule </span><span class="si">%s</span><span class="s2"> -&gt; &#39;</span><span class="si">%s</span><span class="s2">&#39; (state &#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span><span class="p">,</span><span class="n">fname</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">__doc__</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+
+        <span class="c1"># Now add all of the simple rules</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span><span class="n">r</span> <span class="ow">in</span> <span class="n">linfo</span><span class="o">.</span><span class="n">strsym</span><span class="p">[</span><span class="n">state</span><span class="p">]:</span>
+            <span class="n">regex_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;(?P&lt;</span><span class="si">%s</span><span class="s2">&gt;</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">r</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+                <span class="n">debuglog</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;lex: Adding rule </span><span class="si">%s</span><span class="s2"> -&gt; &#39;</span><span class="si">%s</span><span class="s2">&#39; (state &#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">r</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+
+        <span class="n">regexs</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">=</span> <span class="n">regex_list</span>
+
+    <span class="c1"># Build the master regular expressions</span>
+
+    <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+        <span class="n">debuglog</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;lex: ==== MASTER REGEXS FOLLOW ====&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">regexs</span><span class="p">:</span>
+        <span class="n">lexre</span><span class="p">,</span> <span class="n">re_text</span><span class="p">,</span> <span class="n">re_names</span> <span class="o">=</span> <span class="n">_form_master_re</span><span class="p">(</span><span class="n">regexs</span><span class="p">[</span><span class="n">state</span><span class="p">],</span><span class="n">reflags</span><span class="p">,</span><span class="n">ldict</span><span class="p">,</span><span class="n">linfo</span><span class="o">.</span><span class="n">toknames</span><span class="p">)</span>
+        <span class="n">lexobj</span><span class="o">.</span><span class="n">lexstatere</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">=</span> <span class="n">lexre</span>
+        <span class="n">lexobj</span><span class="o">.</span><span class="n">lexstateretext</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">=</span> <span class="n">re_text</span>
+        <span class="n">lexobj</span><span class="o">.</span><span class="n">lexstaterenames</span><span class="p">[</span><span class="n">state</span><span class="p">]</span> <span class="o">=</span> <span class="n">re_names</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">re_text</span><span class="p">)):</span>
+                <span class="n">debuglog</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;lex: state &#39;</span><span class="si">%s</span><span class="s2">&#39; : regex[</span><span class="si">%d</span><span class="s2">] = &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span><span class="p">,</span><span class="n">state</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">re_text</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+    <span class="c1"># For inclusive states, we need to add the regular expressions from the INITIAL state</span>
+    <span class="k">for</span> <span class="n">state</span><span class="p">,</span><span class="n">stype</span> <span class="ow">in</span> <span class="n">stateinfo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="o">!=</span> <span class="s2">&quot;INITIAL&quot;</span> <span class="ow">and</span> <span class="n">stype</span> <span class="o">==</span> <span class="s1">&#39;inclusive&#39;</span><span class="p">:</span>
+             <span class="n">lexobj</span><span class="o">.</span><span class="n">lexstatere</span><span class="p">[</span><span class="n">state</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">lexobj</span><span class="o">.</span><span class="n">lexstatere</span><span class="p">[</span><span class="s1">&#39;INITIAL&#39;</span><span class="p">])</span>
+             <span class="n">lexobj</span><span class="o">.</span><span class="n">lexstateretext</span><span class="p">[</span><span class="n">state</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">lexobj</span><span class="o">.</span><span class="n">lexstateretext</span><span class="p">[</span><span class="s1">&#39;INITIAL&#39;</span><span class="p">])</span>
+             <span class="n">lexobj</span><span class="o">.</span><span class="n">lexstaterenames</span><span class="p">[</span><span class="n">state</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">lexobj</span><span class="o">.</span><span class="n">lexstaterenames</span><span class="p">[</span><span class="s1">&#39;INITIAL&#39;</span><span class="p">])</span>
+
+    <span class="n">lexobj</span><span class="o">.</span><span class="n">lexstateinfo</span> <span class="o">=</span> <span class="n">stateinfo</span>
+    <span class="n">lexobj</span><span class="o">.</span><span class="n">lexre</span> <span class="o">=</span> <span class="n">lexobj</span><span class="o">.</span><span class="n">lexstatere</span><span class="p">[</span><span class="s2">&quot;INITIAL&quot;</span><span class="p">]</span>
+    <span class="n">lexobj</span><span class="o">.</span><span class="n">lexretext</span> <span class="o">=</span> <span class="n">lexobj</span><span class="o">.</span><span class="n">lexstateretext</span><span class="p">[</span><span class="s2">&quot;INITIAL&quot;</span><span class="p">]</span>
+    <span class="n">lexobj</span><span class="o">.</span><span class="n">lexreflags</span> <span class="o">=</span> <span class="n">reflags</span>
+
+    <span class="c1"># Set up ignore variables</span>
+    <span class="n">lexobj</span><span class="o">.</span><span class="n">lexstateignore</span> <span class="o">=</span> <span class="n">linfo</span><span class="o">.</span><span class="n">ignore</span>
+    <span class="n">lexobj</span><span class="o">.</span><span class="n">lexignore</span> <span class="o">=</span> <span class="n">lexobj</span><span class="o">.</span><span class="n">lexstateignore</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;INITIAL&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Set up error functions</span>
+    <span class="n">lexobj</span><span class="o">.</span><span class="n">lexstateerrorf</span> <span class="o">=</span> <span class="n">linfo</span><span class="o">.</span><span class="n">errorf</span>
+    <span class="n">lexobj</span><span class="o">.</span><span class="n">lexerrorf</span> <span class="o">=</span> <span class="n">linfo</span><span class="o">.</span><span class="n">errorf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;INITIAL&quot;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lexobj</span><span class="o">.</span><span class="n">lexerrorf</span><span class="p">:</span>
+        <span class="n">errorlog</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No t_error rule is defined&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check state information for ignore and error rules</span>
+    <span class="k">for</span> <span class="n">s</span><span class="p">,</span><span class="n">stype</span> <span class="ow">in</span> <span class="n">stateinfo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">stype</span> <span class="o">==</span> <span class="s1">&#39;exclusive&#39;</span><span class="p">:</span>
+              <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">linfo</span><span class="o">.</span><span class="n">errorf</span><span class="p">:</span>
+                   <span class="n">errorlog</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No error rule is defined for exclusive state &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+              <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">linfo</span><span class="o">.</span><span class="n">ignore</span> <span class="ow">and</span> <span class="n">lexobj</span><span class="o">.</span><span class="n">lexignore</span><span class="p">:</span>
+                   <span class="n">errorlog</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No ignore rule is defined for exclusive state &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">stype</span> <span class="o">==</span> <span class="s1">&#39;inclusive&#39;</span><span class="p">:</span>
+              <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">linfo</span><span class="o">.</span><span class="n">errorf</span><span class="p">:</span>
+                   <span class="n">linfo</span><span class="o">.</span><span class="n">errorf</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">linfo</span><span class="o">.</span><span class="n">errorf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;INITIAL&quot;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+              <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">linfo</span><span class="o">.</span><span class="n">ignore</span><span class="p">:</span>
+                   <span class="n">linfo</span><span class="o">.</span><span class="n">ignore</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">linfo</span><span class="o">.</span><span class="n">ignore</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;INITIAL&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create global versions of the token() and input() functions</span>
+    <span class="n">token</span> <span class="o">=</span> <span class="n">lexobj</span><span class="o">.</span><span class="n">token</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">lexobj</span><span class="o">.</span><span class="n">input</span>
+    <span class="n">lexer</span> <span class="o">=</span> <span class="n">lexobj</span>
+
+    <span class="c1"># If in optimize mode, we write the lextab</span>
+    <span class="k">if</span> <span class="n">lextab</span> <span class="ow">and</span> <span class="n">optimize</span><span class="p">:</span>
+        <span class="n">lexobj</span><span class="o">.</span><span class="n">writetab</span><span class="p">(</span><span class="n">lextab</span><span class="p">,</span><span class="n">outputdir</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">lexobj</span></div>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># runmain()</span>
+<span class="c1">#</span>
+<span class="c1"># This runs the lexer as a main program</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="runmain"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.runmain">[docs]</a><span class="k">def</span> <span class="nf">runmain</span><span class="p">(</span><span class="n">lexer</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">data</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Reading from standard input (type EOF to end):</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">lexer</span><span class="p">:</span>
+        <span class="n">_input</span> <span class="o">=</span> <span class="n">lexer</span><span class="o">.</span><span class="n">input</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_input</span> <span class="o">=</span> <span class="nb">input</span>
+    <span class="n">_input</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">lexer</span><span class="p">:</span>
+        <span class="n">_token</span> <span class="o">=</span> <span class="n">lexer</span><span class="o">.</span><span class="n">token</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_token</span> <span class="o">=</span> <span class="n">token</span>
+
+    <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">tok</span> <span class="o">=</span> <span class="n">_token</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tok</span><span class="p">:</span> <span class="k">break</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;(</span><span class="si">%s</span><span class="s2">,</span><span class="si">%r</span><span class="s2">,</span><span class="si">%d</span><span class="s2">,</span><span class="si">%d</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">tok</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">tok</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span><span class="n">tok</span><span class="o">.</span><span class="n">lexpos</span><span class="p">))</span></div>
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># @TOKEN(regex)</span>
+<span class="c1">#</span>
+<span class="c1"># This decorator function can be used to set the regex expression on a function</span>
+<span class="c1"># when its docstring might need to be set in an alternative way</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="TOKEN"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.ply.lex.html#PyFoam.ThirdParty.ply.lex.TOKEN">[docs]</a><span class="k">def</span> <span class="nf">TOKEN</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_doc</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="s2">&quot;__call__&quot;</span><span class="p">):</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">__doc__</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">__doc__</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">__doc__</span> <span class="o">=</span> <span class="n">r</span>
+        <span class="k">return</span> <span class="n">f</span>
+    <span class="k">return</span> <span class="n">set_doc</span></div>
+
+<span class="c1"># Alternative spelling of the TOKEN decorator</span>
+<span class="n">Token</span> <span class="o">=</span> <span class="n">TOKEN</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

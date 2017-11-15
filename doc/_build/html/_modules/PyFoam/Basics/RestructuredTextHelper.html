@@ -1,0 +1,447 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.RestructuredTextHelper &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.RestructuredTextHelper</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.RestructuredTextHelper</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Helps formatting output for restructured text&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">iteritems</span>
+
+<div class="viewcode-block" id="RestructuredTextHelper"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.RestructuredTextHelper">[docs]</a><span class="k">class</span> <span class="nc">RestructuredTextHelper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper class that formats stuff for restructured text&quot;&quot;&quot;</span>
+
+    <span class="n">LevelPart</span>           <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">LevelChapter</span>        <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">LevelSection</span>        <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">LevelSubSection</span>     <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">LevelSubSubSection</span>  <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">LevelParagraph</span>      <span class="o">=</span> <span class="mi">5</span>
+
+<div class="viewcode-block" id="RestructuredTextHelper.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.RestructuredTextHelper.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">defaultHeading</span><span class="o">=</span><span class="n">LevelSection</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaultHeading</span><span class="o">=</span><span class="n">defaultHeading</span></div>
+
+<div class="viewcode-block" id="RestructuredTextHelper.buildHeading"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.RestructuredTextHelper.buildHeading">[docs]</a>    <span class="k">def</span> <span class="nf">buildHeading</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">text</span><span class="p">,</span><span class="o">**</span><span class="n">keywords</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;General method to build a heading</span>
+<span class="sd">        :param text: list of items that build the heading text</span>
+<span class="sd">        :param level: The level of the heading&quot;&quot;&quot;</span>
+
+        <span class="n">level</span><span class="o">=</span><span class="n">RestructuredTextHelper</span><span class="o">.</span><span class="n">LevelSection</span>
+        <span class="k">if</span> <span class="s2">&quot;level&quot;</span> <span class="ow">in</span> <span class="n">keywords</span><span class="p">:</span>
+            <span class="n">level</span><span class="o">=</span><span class="n">keywords</span><span class="p">[</span><span class="s2">&quot;level&quot;</span><span class="p">]</span>
+
+        <span class="n">header</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">header</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">header</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">header</span><span class="o">+=</span><span class="s2">&quot; &quot;</span>
+            <span class="n">header</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">overline</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">if</span> <span class="n">level</span><span class="o">==</span><span class="n">RestructuredTextHelper</span><span class="o">.</span><span class="n">LevelPart</span><span class="p">:</span>
+            <span class="n">c</span><span class="o">=</span><span class="s2">&quot;#&quot;</span>
+            <span class="n">overline</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">level</span><span class="o">==</span><span class="n">RestructuredTextHelper</span><span class="o">.</span><span class="n">LevelChapter</span><span class="p">:</span>
+            <span class="n">c</span><span class="o">=</span><span class="s2">&quot;*&quot;</span>
+            <span class="n">overline</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">level</span><span class="o">==</span><span class="n">RestructuredTextHelper</span><span class="o">.</span><span class="n">LevelSection</span><span class="p">:</span>
+            <span class="n">c</span><span class="o">=</span><span class="s2">&quot;=&quot;</span>
+        <span class="k">elif</span> <span class="n">level</span><span class="o">==</span><span class="n">RestructuredTextHelper</span><span class="o">.</span><span class="n">LevelSubSection</span><span class="p">:</span>
+            <span class="n">c</span><span class="o">=</span><span class="s2">&quot;-&quot;</span>
+        <span class="k">elif</span> <span class="n">level</span><span class="o">==</span><span class="n">RestructuredTextHelper</span><span class="o">.</span><span class="n">LevelSubSubSection</span><span class="p">:</span>
+            <span class="n">c</span><span class="o">=</span><span class="s2">&quot;^&quot;</span>
+        <span class="k">elif</span> <span class="n">level</span><span class="o">==</span><span class="n">RestructuredTextHelper</span><span class="o">.</span><span class="n">LevelParagraph</span><span class="p">:</span>
+            <span class="n">c</span><span class="o">=</span><span class="s1">&#39;&quot;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown level&quot;</span><span class="p">,</span><span class="n">level</span><span class="p">,</span><span class="s2">&quot;for headers&quot;</span><span class="p">)</span>
+
+        <span class="n">underline</span><span class="o">=</span><span class="n">c</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+
+        <span class="n">result</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="k">if</span> <span class="n">overline</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="n">underline</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="n">result</span><span class="o">+=</span><span class="n">header</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">result</span><span class="o">+=</span><span class="n">underline</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="RestructuredTextHelper.heading"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.RestructuredTextHelper.heading">[docs]</a>    <span class="k">def</span> <span class="nf">heading</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">text</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build a heading on the default level&quot;&quot;&quot;</span>
+
+        <span class="n">keys</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;level&quot;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultHeading</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">buildHeading</span><span class="p">(</span><span class="o">*</span><span class="n">text</span><span class="p">,</span><span class="o">**</span><span class="n">keys</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RestructuredTextHelper.table"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.RestructuredTextHelper.table">[docs]</a>    <span class="k">def</span> <span class="nf">table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">labeled</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates a new ReSTTable-object&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">labeled</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LabledReSTTable</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ReSTTable</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">__markup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">limiter</span><span class="p">,</span><span class="o">*</span><span class="n">txt</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">limiter</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">txt</span><span class="p">)</span><span class="o">+</span><span class="n">limiter</span>
+
+<div class="viewcode-block" id="RestructuredTextHelper.emphasis"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.RestructuredTextHelper.emphasis">[docs]</a>    <span class="k">def</span> <span class="nf">emphasis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">txt</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__markup</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span><span class="o">*</span><span class="n">txt</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RestructuredTextHelper.strong"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.RestructuredTextHelper.strong">[docs]</a>    <span class="k">def</span> <span class="nf">strong</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">txt</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__markup</span><span class="p">(</span><span class="s2">&quot;**&quot;</span><span class="p">,</span><span class="o">*</span><span class="n">txt</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RestructuredTextHelper.literal"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.RestructuredTextHelper.literal">[docs]</a>    <span class="k">def</span> <span class="nf">literal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">txt</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__markup</span><span class="p">(</span><span class="s2">&quot;``&quot;</span><span class="p">,</span><span class="o">*</span><span class="n">txt</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RestructuredTextHelper.bulletList"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.RestructuredTextHelper.bulletList">[docs]</a>    <span class="k">def</span> <span class="nf">bulletList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">bullet</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate a bullet list from the data&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bullet</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span></div>
+
+<div class="viewcode-block" id="RestructuredTextHelper.enumerateList"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.RestructuredTextHelper.enumerateList">[docs]</a>    <span class="k">def</span> <span class="nf">enumerateList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">first</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate an enumerated list from the data. First number can be chosen</span>
+<span class="sd">        and determines the format&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">first</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;. &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;#. &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span></div>
+
+<div class="viewcode-block" id="RestructuredTextHelper.definitionList"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.RestructuredTextHelper.definitionList">[docs]</a>    <span class="k">def</span> <span class="nf">definitionList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate a definiton list from the data.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">data</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span></div>
+
+<div class="viewcode-block" id="RestructuredTextHelper.code"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.RestructuredTextHelper.code">[docs]</a>    <span class="k">def</span> <span class="nf">code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">code</span><span class="p">,</span><span class="n">language</span><span class="o">=</span><span class="s2">&quot;python&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;@param code: string to be typeset as a program code</span>
+<span class="sd">        @param language: programming language to be used&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">.. code:: &quot;</span><span class="o">+</span><span class="n">language</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> \
+               <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;  &quot;</span><span class="o">+</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">code</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span></div></div>
+
+<div class="viewcode-block" id="ReSTTable"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.ReSTTable">[docs]</a><span class="k">class</span> <span class="nc">ReSTTable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class that administrates a two-dimensional table and prints it as</span>
+<span class="sd">    a restructured text-table when asked&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ReSTTable.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.ReSTTable.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="p">[[]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">=</span><span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="o">=-</span><span class="mi">1</span><span class="p">;</span></div>
+
+<div class="viewcode-block" id="ReSTTable.addLine"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.ReSTTable.addLine">[docs]</a>    <span class="k">def</span> <span class="nf">addLine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">val</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">head</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a line after that row</span>
+<span class="sd">        :param val: the row after which to add. If None a line will be added after the</span>
+<span class="sd">        current last row&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">val</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">now</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">now</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">now</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">head</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="o">=</span><span class="n">now</span></div>
+
+<div class="viewcode-block" id="ReSTTable.__str__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.ReSTTable.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Output the actual table&quot;&quot;&quot;</span>
+        <span class="n">widths</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">widths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">widths</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                        <span class="n">widths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">widths</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">widths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">widths</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">head</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">widths</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">head</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">head</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">head</span><span class="o">+=</span><span class="s2">&quot; &quot;</span>
+            <span class="n">head</span><span class="o">+=</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="n">w</span>
+
+        <span class="n">inter</span><span class="o">=</span><span class="n">head</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">,</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+
+        <span class="n">txt</span><span class="o">=</span><span class="n">head</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
+            <span class="n">line</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">v</span><span class="o">==</span><span class="bp">None</span> <span class="ow">or</span> <span class="n">v</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">j</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                        <span class="n">t</span><span class="o">=</span><span class="s2">&quot;..&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">t</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">t</span><span class="o">=</span><span class="n">v</span>
+                <span class="k">if</span> <span class="n">j</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">line</span><span class="o">+=</span><span class="s2">&quot; &quot;</span>
+                <span class="n">line</span><span class="o">+=</span><span class="n">t</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">widths</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+            <span class="n">txt</span><span class="o">+=</span><span class="n">line</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">txt</span><span class="o">+=</span><span class="n">head</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">:</span>
+                    <span class="n">txt</span><span class="o">+=</span><span class="n">head</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">txt</span><span class="o">+=</span><span class="n">inter</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="n">txt</span></div>
+
+<div class="viewcode-block" id="ReSTTable.__setitem__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.ReSTTable.__setitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets an item of the table</span>
+<span class="sd">        :param index: a tuple with a row and a column. If it is a single integer then the</span>
+<span class="sd">        row is assumed</span>
+<span class="sd">        :param value: the value to set. If only the row was specified it is a list with the column</span>
+<span class="sd">        values&quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">row</span><span class="p">,</span><span class="n">col</span><span class="o">=</span><span class="n">index</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setElement</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="n">col</span><span class="p">,</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">row</span><span class="o">=</span><span class="n">index</span>
+            <span class="k">for</span> <span class="n">col</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setElement</span><span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="n">col</span><span class="p">,</span><span class="n">v</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReSTTable.setElement"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.ReSTTable.setElement">[docs]</a>    <span class="k">def</span> <span class="nf">setElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">row</span><span class="p">,</span><span class="n">col</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets a specific element</span>
+<span class="sd">        :param row: the row</span>
+<span class="sd">        :param col: column</span>
+<span class="sd">        :param value: the used value&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">&lt;=</span><span class="n">row</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">+=</span><span class="p">[[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span><span class="o">*</span><span class="p">(</span><span class="n">row</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">row</span><span class="p">])</span><span class="o">&lt;=</span><span class="n">col</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                <span class="n">r</span><span class="o">+=</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">col</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="LabledReSTTable"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.LabledReSTTable">[docs]</a><span class="k">class</span> <span class="nc">LabledReSTTable</span><span class="p">(</span><span class="n">ReSTTable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A ReSTTable that has rownames in the first column and column-names in the first row&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="LabledReSTTable.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.LabledReSTTable.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ReSTTable</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LabledReSTTable.addRow"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.LabledReSTTable.addRow">[docs]</a>    <span class="k">def</span> <span class="nf">addRow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">rowName</span><span class="p">):</span>
+        <span class="n">newRow</span><span class="o">=</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">newRow</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">rowName</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newRow</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LabledReSTTable.addItem"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RestructuredTextHelper.html#PyFoam.Basics.RestructuredTextHelper.LabledReSTTable.addItem">[docs]</a>    <span class="k">def</span> <span class="nf">addItem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">column</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="n">row</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">row</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">rowIndex</span><span class="o">=-</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rowIndex</span><span class="o">=-</span><span class="mi">1</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">&gt;=</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">row</span><span class="p">:</span>
+                        <span class="n">rowIndex</span><span class="o">=</span><span class="n">i</span>
+                        <span class="k">break</span>
+            <span class="k">if</span> <span class="n">rowIndex</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">rowIndex</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">newRow</span><span class="o">=</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">newRow</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">row</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newRow</span><span class="p">)</span>
+
+        <span class="n">colIndex</span><span class="o">=-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="k">if</span> <span class="n">column</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                <span class="n">colIndex</span><span class="o">=</span><span class="n">i</span>
+        <span class="k">if</span> <span class="n">colIndex</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">colIndex</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+=</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">rowIndex</span><span class="p">][</span><span class="n">colIndex</span><span class="p">]</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

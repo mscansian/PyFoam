@@ -1,0 +1,744 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Execution.BasicRunner &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Execution.BasicRunner</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Execution.BasicRunner</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Run a OpenFOAM command&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">from</span> <span class="nn">platform</span> <span class="kn">import</span> <span class="n">uname</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Timer</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span><span class="p">,</span><span class="n">asctime</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">oldAppConvention</span> <span class="k">as</span> <span class="n">oldApp</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+<span class="kn">import</span> <span class="nn">PyFoam.Basics.FoamFileGenerator</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.DataStructures</span> <span class="kn">import</span> <span class="n">makePrimitiveString</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;curdir&#39;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="s1">&#39;sep&#39;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Warning: Inserting symbols into os.path (Python-Version&lt;2.3)&quot;</span><span class="p">)</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">curdir</span><span class="o">=</span><span class="s1">&#39;.&#39;</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">sep</span>   <span class="o">=</span><span class="s1">&#39;/&#39;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Execution.FoamThread</span> <span class="kn">import</span> <span class="n">FoamThread</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Infrastructure.FoamServer</span> <span class="kn">import</span> <span class="n">FoamServer</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Infrastructure.Logging</span> <span class="kn">import</span> <span class="n">foamLogger</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParameterFile</span> <span class="kn">import</span> <span class="n">ParameterFile</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">warning</span><span class="p">,</span><span class="n">error</span><span class="p">,</span><span class="n">debug</span>
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">config</span>
+
+<div class="viewcode-block" id="restoreControlDict"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.restoreControlDict">[docs]</a><span class="k">def</span> <span class="nf">restoreControlDict</span><span class="p">(</span><span class="n">ctrl</span><span class="p">,</span><span class="n">runner</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Timed function to avoid time-stamp-problems&quot;&quot;&quot;</span>
+    <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Restoring the controlDict&quot;</span><span class="p">)</span>
+    <span class="n">ctrl</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span>
+    <span class="n">runner</span><span class="o">.</span><span class="n">controlDict</span><span class="o">=</span><span class="bp">None</span></div>
+
+<div class="viewcode-block" id="BasicRunner"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner">[docs]</a><span class="k">class</span> <span class="nc">BasicRunner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for the running of commands</span>
+
+<span class="sd">    When the command is run the output is copied to a LogFile and</span>
+<span class="sd">    (optionally) standard-out</span>
+
+<span class="sd">    The argument list assumes for the first three elements the</span>
+<span class="sd">    OpenFOAM-convention:</span>
+
+<span class="sd">    &lt;cmd&gt; &lt;dir&gt; &lt;case&gt;</span>
+
+<span class="sd">    The directory name for outputs is therefor created from &lt;dir&gt; and</span>
+<span class="sd">    &lt;case&gt;</span>
+
+<span class="sd">    Provides some handle-methods that are to be overloaded for</span>
+<span class="sd">    additional functionality&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BasicRunner.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">argv</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">silent</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">logname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">compressLog</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">lam</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">server</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">restart</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">noLog</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">logTail</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">remark</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">jobId</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">parameters</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">writeState</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">echoCommandLine</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param argv: list with the tokens that are the command line</span>
+<span class="sd">        if not set the standard command line is used</span>
+<span class="sd">        :param silent: if True no output is sent to stdout</span>
+<span class="sd">        :param logname: name of the logfile</span>
+<span class="sd">        :param compressLog: Compress the logfile into a gzip</span>
+<span class="sd">        :param lam: Information about a parallel run</span>
+<span class="sd">        :param server: Whether or not to start the network-server</span>
+<span class="sd">        :type lam: PyFoam.Execution.ParallelExecution.LAMMachine</span>
+<span class="sd">        :param noLog: Don&#39;t output a log file</span>
+<span class="sd">        :param logTail: only the last lines of the log should be written</span>
+<span class="sd">        :param remark: User defined remark about the job</span>
+<span class="sd">        :param parameters: User defined dictionary with parameters for</span>
+<span class="sd">                 documentation purposes</span>
+<span class="sd">        :param jobId: Job ID of the controlling system (Queueing system)</span>
+<span class="sd">        :param writeState: Write the state to some files in the case</span>
+<span class="sd">        :param echoCommandLine: Prefix that is printed with the command line. If unset nothing is printed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">):</span>
+            <span class="c1"># Python 2.2 does not have the capabilities for the Server-Thread</span>
+            <span class="k">if</span> <span class="n">server</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Can not start server-process because Python-Version is too old&quot;</span><span class="p">)</span>
+            <span class="n">server</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">if</span> <span class="n">argv</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="o">=</span><span class="n">argv</span>
+
+        <span class="k">if</span> <span class="n">oldApp</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">curdir</span>
+            <span class="k">if</span> <span class="s2">&quot;-case&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-case&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">logname</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">logname</span><span class="o">=</span><span class="s2">&quot;PyFoam.&quot;</span><span class="o">+</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getSolutionDirectory</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># compatible with 2.x and 3.x</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Solution directory&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="s2">&quot;does not exist. No use running. Problem:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">echoCommandLine</span><span class="o">=</span><span class="n">echoCommandLine</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">silent</span><span class="o">=</span><span class="n">silent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lam</span><span class="o">=</span><span class="n">lam</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">origArgv</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">argv</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeState</span><span class="o">=</span><span class="n">writeState</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__lastLastSeenWrite</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__lastNowTimeWrite</span><span class="o">=</span><span class="mi">0</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lam</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="o">=</span><span class="n">lam</span><span class="o">.</span><span class="n">buildMPIrun</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getdebug</span><span class="p">(</span><span class="s2">&quot;ParallelExecution&quot;</span><span class="p">):</span>
+                <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Command line:&quot;</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+        <span class="n">foamLogger</span><span class="p">()</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting: &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="o">+</span><span class="s2">&quot; in &quot;</span><span class="o">+</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">curdir</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logFile</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">logname</span><span class="o">+</span><span class="s2">&quot;.logfile&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">noLog</span><span class="o">=</span><span class="n">noLog</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logTail</span><span class="o">=</span><span class="n">logTail</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logTail</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">noLog</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Log tail&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">logTail</span><span class="p">,</span><span class="s2">&quot;and no-log specified. Using logTail&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">noLog</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lastLines</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">compressLog</span><span class="o">=</span><span class="n">compressLog</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressLog</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logFile</span><span class="o">+=</span><span class="s2">&quot;.gz&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fatalError</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fatalFPE</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fatalStackdump</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">warnings</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">started</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">isRestarted</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">if</span> <span class="n">restart</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">controlDict</span><span class="o">=</span><span class="n">ParameterFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="s2">&quot;controlDict&quot;</span><span class="p">),</span><span class="n">backup</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">controlDict</span><span class="o">.</span><span class="n">replaceParameter</span><span class="p">(</span><span class="s2">&quot;startFrom&quot;</span><span class="p">,</span><span class="s2">&quot;latestTime&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">isRestarted</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">controlDict</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">=</span><span class="n">FoamThread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="n">server</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">=</span><span class="n">FoamServer</span><span class="p">(</span><span class="n">run</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">,</span><span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">setDaemon</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">IP</span><span class="p">,</span><span class="n">PID</span><span class="p">,</span><span class="n">Port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
+                <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="s2">&quot;PyFoamServer.info&quot;</span><span class="p">),</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">IP</span><span class="p">,</span><span class="n">PID</span><span class="p">,</span><span class="n">Port</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;There seems to be a problem with starting the server:&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="p">,</span><span class="s2">&quot;with attributes&quot;</span><span class="p">,</span><span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">createTime</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nowTime</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">startTimestamp</span><span class="o">=</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stopMe</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeRequested</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">endTriggers</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastLogLineSeen</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastTimeStepSeen</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">remark</span><span class="o">=</span><span class="n">remark</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jobId</span><span class="o">=</span><span class="n">jobId</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;lines&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span> <span class="c1">#        self.data={&quot;lines&quot;:0L}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;logfile&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logFile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;casefullname&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;casename&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solver&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solverFull&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;commandLine&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cmd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;hostname&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">uname</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">remark</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;remark&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">remark</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;remark&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;No remark given&quot;</span>
+        <span class="k">if</span> <span class="n">jobId</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;jobId&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">jobId</span>
+        <span class="n">parameterFile</span><span class="o">=</span><span class="n">sol</span><span class="o">.</span><span class="n">getParametersFromFile</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameterFile</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;parameters&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">parameterFile</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;parameters&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">makePrimitiveString</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parameters</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;parameters&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;parameters&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;parameters&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;starttime&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">asctime</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BasicRunner.appendTailLine"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.appendTailLine">[docs]</a>    <span class="k">def</span> <span class="nf">appendTailLine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">line</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Append lines to the tail of the log&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lastLines</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">10</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">logTail</span><span class="p">:</span>
+            <span class="c1"># truncate the lines, but not too often</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lastLines</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lastLines</span><span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">logTail</span><span class="p">:]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeTailLog</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastLines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicRunner.writeTailLog"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.writeTailLog">[docs]</a>    <span class="k">def</span> <span class="nf">writeTailLog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the last lines to the log&quot;&quot;&quot;</span>
+        <span class="n">fh</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logFile</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lastLines</span><span class="p">)</span><span class="o">&lt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">logTail</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lastLines</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lastLines</span><span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">logTail</span><span class="p">:])</span>
+        <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BasicRunner.start"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;starts the command and stays with it till the end&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">started</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">noLog</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressLog</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">=</span><span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logFile</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logFile</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">startHandle</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeStartTime</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeTheState</span><span class="p">(</span><span class="s2">&quot;Running&quot;</span><span class="p">)</span>
+
+        <span class="n">check</span><span class="o">=</span><span class="n">BasicRunnerCheck</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">echoCommandLine</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">echoCommandLine</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">argv</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="n">interrupted</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="n">totalWarningLines</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">addLinesToWarning</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">collectWarnings</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">check</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">check</span><span class="p">():</span>
+                    <span class="k">break</span>
+
+                <span class="n">line</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">getLine</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="s2">&quot;errorText&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;errorText&quot;</span><span class="p">]</span><span class="o">+=</span><span class="n">line</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+                <span class="k">if</span> <span class="n">addLinesToWarning</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;warningText&quot;</span><span class="p">]</span><span class="o">+=</span><span class="n">line</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="n">addLinesToWarning</span><span class="o">-=</span><span class="mi">1</span>
+                    <span class="n">totalWarningLines</span><span class="o">+=</span><span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">totalWarningLines</span><span class="o">&gt;</span><span class="mi">500</span><span class="p">:</span>
+                        <span class="n">collectWarnings</span><span class="o">=</span><span class="bp">False</span>
+                        <span class="n">addLinesToWarning</span><span class="o">=</span><span class="mi">0</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;warningText&quot;</span><span class="p">]</span><span class="o">+=</span><span class="s2">&quot;No more warnings added because limit of 500 lines exceeded&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;lines&quot;</span><span class="p">]</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lastLogLineSeen</span><span class="o">=</span><span class="n">time</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">writeLastSeen</span><span class="p">()</span>
+
+                <span class="n">tmp</span><span class="o">=</span><span class="n">check</span><span class="o">.</span><span class="n">getTime</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">check</span><span class="o">.</span><span class="n">controlDictRead</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">writeRequested</span><span class="p">:</span>
+                        <span class="n">duration</span><span class="o">=</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s2">&quot;Execution&quot;</span><span class="p">,</span><span class="s2">&quot;controlDictRestoreWait&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="mf">30.</span><span class="p">)</span>
+                        <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Preparing to reset controlDict to old glory in&quot;</span><span class="p">,</span><span class="n">duration</span><span class="p">,</span><span class="s2">&quot;seconds&quot;</span><span class="p">)</span>
+                        <span class="n">Timer</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span>
+                              <span class="n">restoreControlDict</span><span class="p">,</span>
+                              <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">controlDict</span><span class="p">,</span><span class="bp">self</span><span class="p">])</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">writeRequested</span><span class="o">=</span><span class="bp">False</span>
+
+                <span class="k">if</span> <span class="n">tmp</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">tmp</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">nowTime</span><span class="o">=</span><span class="n">tmp</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">writeTheState</span><span class="p">(</span><span class="s2">&quot;Running&quot;</span><span class="p">,</span><span class="n">always</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">writeNowTime</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">lastTimeStepSeen</span><span class="o">=</span><span class="n">time</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">createTime</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                        <span class="c1"># necessary because interFoam reports no creation time</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">createTime</span><span class="o">=</span><span class="n">tmp</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;stepNr&quot;</span><span class="p">]</span><span class="o">+=</span><span class="mi">1</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;stepNr&quot;</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>  <span class="c1"># =1L</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;lasttimesteptime&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">asctime</span><span class="p">()</span>
+
+                <span class="n">tmp</span><span class="o">=</span><span class="n">check</span><span class="o">.</span><span class="n">getCreateTime</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">tmp</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">createTime</span><span class="o">=</span><span class="n">tmp</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">print_</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                        <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># compatible with 2.x and 3.x</span>
+                        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">errno</span><span class="o">!=</span><span class="mi">32</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="n">e</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="c1"># Pipe was broken</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">interrupt</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;FOAM FATAL ERROR&quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;FOAM FATAL IO ERROR&quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fatalError</span><span class="o">=</span><span class="bp">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;errorText&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;PyFoam found a Fatal Error &quot;</span>
+                    <span class="k">if</span> <span class="s2">&quot;time&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;errorText&quot;</span><span class="p">]</span><span class="o">+=</span><span class="s2">&quot;at time &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;errorText&quot;</span><span class="p">]</span><span class="o">+=</span><span class="s2">&quot;before time started</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;errorText&quot;</span><span class="p">]</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="n">line</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;Foam::sigFpe::sigFpeHandler&quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fatalFPE</span><span class="o">=</span><span class="bp">True</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;Foam::error::printStack&quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fatalStackdump</span><span class="o">=</span><span class="bp">True</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fatalError</span> <span class="ow">and</span> <span class="n">line</span><span class="o">!=</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                    <span class="n">foamLogger</span><span class="p">()</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;FOAM Warning&quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">warnings</span><span class="o">+=</span><span class="mi">1</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;warnings&quot;</span><span class="p">]</span><span class="o">+=</span><span class="mi">1</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;warnings&quot;</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">collectWarnings</span><span class="p">:</span>
+                        <span class="n">addLinesToWarning</span><span class="o">=</span><span class="mi">20</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;warningText&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;warningText&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;warningText&quot;</span><span class="p">]</span><span class="o">+=</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;warningText&quot;</span><span class="p">]</span><span class="o">+=</span><span class="s2">&quot;Warning found by PyFoam on line &quot;</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;warningText&quot;</span><span class="p">]</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;lines&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot; &quot;</span>
+                        <span class="k">if</span> <span class="s2">&quot;time&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;warningText&quot;</span><span class="p">]</span><span class="o">+=</span><span class="s2">&quot;at time &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;warningText&quot;</span><span class="p">]</span><span class="o">+=</span><span class="s2">&quot;before time started</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;warningText&quot;</span><span class="p">]</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="n">line</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">_insertLine</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">lineHandle</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">noLog</span><span class="p">:</span>
+                    <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">fh</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">logTail</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">appendTailLine</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># compatible with 2.x and 3.x</span>
+                <span class="n">foamLogger</span><span class="p">()</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Keyboard Interrupt&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">interrupt</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">writeTheState</span><span class="p">(</span><span class="s2">&quot;Interrupted&quot;</span><span class="p">)</span>
+                <span class="n">interrupted</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;interrupted&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">interrupted</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;OK&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">runOK</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;cpuTime&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">cpuTime</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;cpuUserTime&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">cpuUserTime</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;cpuSystemTime&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">cpuSystemTime</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;wallTime&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">wallTime</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;usedMemory&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">usedMemory</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;endtime&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">asctime</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;fatalError&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fatalError</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;fatalFPE&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fatalFPE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;fatalStackdump&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fatalStackdump</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeNowTime</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stopHandle</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">interrupted</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeTheState</span><span class="p">(</span><span class="s2">&quot;Finished&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">endTriggers</span><span class="p">:</span>
+            <span class="n">t</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">noLog</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">logTail</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeTailLog</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">deregister</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
+
+        <span class="n">foamLogger</span><span class="p">()</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Finished&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span></div>
+
+<div class="viewcode-block" id="BasicRunner.writeToStateFile"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.writeToStateFile">[docs]</a>    <span class="k">def</span> <span class="nf">writeToStateFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="p">,</span><span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write a message to a state file&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">writeState</span><span class="p">:</span>
+            <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="s2">&quot;PyFoamState.&quot;</span><span class="o">+</span><span class="n">fName</span><span class="p">),</span><span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicRunner.writeStartTime"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.writeStartTime">[docs]</a>    <span class="k">def</span> <span class="nf">writeStartTime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the real time the run was started at&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeToStateFile</span><span class="p">(</span><span class="s2">&quot;StartedAt&quot;</span><span class="p">,</span><span class="n">asctime</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="BasicRunner.writeTheState"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.writeTheState">[docs]</a>    <span class="k">def</span> <span class="nf">writeTheState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">state</span><span class="p">,</span><span class="n">always</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the current state the run is in&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">always</span> <span class="ow">or</span> <span class="p">(</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">__lastLastSeenWrite</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">9</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeToStateFile</span><span class="p">(</span><span class="s2">&quot;TheState&quot;</span><span class="p">,</span><span class="n">state</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicRunner.writeLastSeen"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.writeLastSeen">[docs]</a>    <span class="k">def</span> <span class="nf">writeLastSeen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">__lastLastSeenWrite</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">10</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeToStateFile</span><span class="p">(</span><span class="s2">&quot;LastOutputSeen&quot;</span><span class="p">,</span><span class="n">asctime</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__lastLastSeenWrite</span><span class="o">=</span><span class="n">time</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BasicRunner.writeNowTime"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.writeNowTime">[docs]</a>    <span class="k">def</span> <span class="nf">writeNowTime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">__lastNowTimeWrite</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">10</span> <span class="ow">or</span> <span class="n">force</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeToStateFile</span><span class="p">(</span><span class="s2">&quot;CurrentTime&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nowTime</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__lastNowTimeWrite</span><span class="o">=</span><span class="n">time</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BasicRunner.runOK"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.runOK">[docs]</a>    <span class="k">def</span> <span class="nf">runOK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;checks whether the run was successful&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">started</span><span class="p">:</span>
+            <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fatalError</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fatalFPE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fatalStackdump</span> <span class="c1"># and self.run.getReturnCode()==0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="BasicRunner.startHandle"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.startHandle">[docs]</a>    <span class="k">def</span> <span class="nf">startHandle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;to be called before the program is started&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BasicRunner._writeStopAt"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner._writeStopAt">[docs]</a>    <span class="k">def</span> <span class="nf">_writeStopAt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write stopAt to stop the run gracefully&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopMe</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stopMe</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isRestarted</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">controlDict</span><span class="p">:</span>
+                    <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The controlDict has already been modified. Restoring will be problementic&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">controlDict</span><span class="o">=</span><span class="n">ParameterFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="s2">&quot;controlDict&quot;</span><span class="p">),</span><span class="n">backup</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">controlDict</span><span class="o">.</span><span class="n">replaceParameter</span><span class="p">(</span><span class="s2">&quot;stopAt&quot;</span><span class="p">,</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">warning</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicRunner.stopGracefully"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.stopGracefully">[docs]</a>    <span class="k">def</span> <span class="nf">stopGracefully</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Tells the runner to stop at the next convenient time&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_writeStopAt</span><span class="p">(</span><span class="s2">&quot;writeNow&quot;</span><span class="p">,</span><span class="s2">&quot;Stopping run and writting&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicRunner.stopAtNextWrite"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.stopAtNextWrite">[docs]</a>    <span class="k">def</span> <span class="nf">stopAtNextWrite</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Tells the runner to stop at the next write&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_writeStopAt</span><span class="p">(</span><span class="s2">&quot;nextWrite&quot;</span><span class="p">,</span><span class="s2">&quot;Stopping run at next write&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicRunner.stopWithoutWrite"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.stopWithoutWrite">[docs]</a>    <span class="k">def</span> <span class="nf">stopWithoutWrite</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Tells the runner to stop without writing&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_writeStopAt</span><span class="p">(</span><span class="s2">&quot;noWriteNow&quot;</span><span class="p">,</span><span class="s2">&quot;Stopping run without writing&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicRunner.writeResults"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.writeResults">[docs]</a>    <span class="k">def</span> <span class="nf">writeResults</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Writes the next possible time-step&quot;&quot;&quot;</span>
+        <span class="c1">#        warning(&quot;writeResult is not yet implemented&quot;)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">writeRequested</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isRestarted</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">controlDict</span><span class="p">:</span>
+                    <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The controlDict has already been modified. Restoring will be problementic&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">controlDict</span><span class="o">=</span><span class="n">ParameterFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="s2">&quot;controlDict&quot;</span><span class="p">),</span><span class="n">backup</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">controlDict</span><span class="o">.</span><span class="n">replaceParameter</span><span class="p">(</span><span class="s2">&quot;writeControl&quot;</span><span class="p">,</span><span class="s2">&quot;timeStep&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">controlDict</span><span class="o">.</span><span class="n">replaceParameter</span><span class="p">(</span><span class="s2">&quot;writeInterval&quot;</span><span class="p">,</span><span class="s2">&quot;1&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeRequested</span><span class="o">=</span><span class="bp">True</span></div>
+
+<div class="viewcode-block" id="BasicRunner.stopHandle"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.stopHandle">[docs]</a>    <span class="k">def</span> <span class="nf">stopHandle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;called after the program has stopped&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopMe</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">isRestarted</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">controlDict</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BasicRunner.lineHandle"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.lineHandle">[docs]</a>    <span class="k">def</span> <span class="nf">lineHandle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">line</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;called every time a new line is read&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BasicRunner.logName"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.logName">[docs]</a>    <span class="k">def</span> <span class="nf">logName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the name of the logfiles&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">logFile</span></div>
+
+<div class="viewcode-block" id="BasicRunner.getSolutionDirectory"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.getSolutionDirectory">[docs]</a>    <span class="k">def</span> <span class="nf">getSolutionDirectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:return: The directory of the case</span>
+<span class="sd">        :rtype: PyFoam.RunDictionary.SolutionDirectory</span>
+<span class="sd">        :param archive: Name of the directory for archiving results&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">SolutionDirectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">archive</span><span class="o">=</span><span class="n">archive</span><span class="p">,</span><span class="n">parallel</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicRunner.addEndTrigger"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunner.addEndTrigger">[docs]</a>    <span class="k">def</span> <span class="nf">addEndTrigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">f</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param f: A function that is to be executed at the end of the simulation&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">endTriggers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div></div>
+
+<span class="kn">import</span> <span class="nn">re</span>
+
+<div class="viewcode-block" id="BasicRunnerCheck"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunnerCheck">[docs]</a><span class="k">class</span> <span class="nc">BasicRunnerCheck</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A small class that does primitve checking for BasicRunner</span>
+<span class="sd">    Duplicates other efforts, but ....&quot;&quot;&quot;</span>
+
+    <span class="n">floatRegExp</span><span class="o">=</span><span class="s2">&quot;[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?&quot;</span>
+
+<div class="viewcode-block" id="BasicRunnerCheck.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunnerCheck.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1">#        self.timeExpr=re.compile(&quot;^Time = (%f%)$&quot;.replace(&quot;%f%&quot;,self.floatRegExp))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeExpr</span><span class="o">=</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getRegexp</span><span class="p">(</span><span class="s2">&quot;SolverOutput&quot;</span><span class="p">,</span><span class="s2">&quot;timeregexp&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createExpr</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;^Create mesh for time = (</span><span class="si">%f</span><span class="s2">%)$&quot;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%f</span><span class="s2">%&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">floatRegExp</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="BasicRunnerCheck.getTime"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunnerCheck.getTime">[docs]</a>    <span class="k">def</span> <span class="nf">getTime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">line</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Does this line contain time information?&quot;&quot;&quot;</span>
+        <span class="n">m</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeExpr</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem while converting&quot;</span><span class="p">,</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="s2">&quot;to float&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="BasicRunnerCheck.getCreateTime"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunnerCheck.getCreateTime">[docs]</a>    <span class="k">def</span> <span class="nf">getCreateTime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">line</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Does this line contain mesh time information?&quot;&quot;&quot;</span>
+        <span class="n">m</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">createExpr</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="BasicRunnerCheck.controlDictRead"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicRunner.html#PyFoam.Execution.BasicRunner.BasicRunnerCheck.controlDictRead">[docs]</a>    <span class="k">def</span> <span class="nf">controlDictRead</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">line</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Was the controlDict reread?&quot;&quot;&quot;</span>
+        <span class="n">phrases</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Reading object controlDict from file&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;Re-reading object controlDict from file&quot;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">phrases</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="k">return</span> <span class="bp">False</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

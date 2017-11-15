@@ -1,0 +1,421 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Infrastructure.Configuration module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.Infrastructure package" href="PyFoam.Infrastructure.html"/>
+        <link rel="next" title="PyFoam.Infrastructure.FoamMetaServer module" href="PyFoam.Infrastructure.FoamMetaServer.html"/>
+        <link rel="prev" title="PyFoam.Infrastructure.ClusterJob module" href="PyFoam.Infrastructure.ClusterJob.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a> &raquo;</li>
+      
+    <li>PyFoam.Infrastructure.Configuration module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.Infrastructure.Configuration.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.Infrastructure.Configuration">
+<span id="pyfoam-infrastructure-configuration-module"></span><h1>PyFoam.Infrastructure.Configuration module<a class="headerlink" href="#module-PyFoam.Infrastructure.Configuration" title="Permalink to this headline">¶</a></h1>
+<p>Reads configuration-files that define defaults for various PyFoam-Settings</p>
+<p>Also hardcodes defaults for the settings</p>
+<dl class="class">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration">
+<em class="property">class </em><code class="descclassname">PyFoam.Infrastructure.Configuration.</code><code class="descname">Configuration</code><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">configparser.ConfigParser</span></code></p>
+<p>Reads the settings from files (if existing). Otherwise uses hardcoded
+defaults</p>
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.__abstractmethods__">
+<code class="descname">__abstractmethods__</code><em class="property"> = frozenset()</em><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.__abstractmethods__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs the ConfigParser and fills it with the hardcoded defaults</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Infrastructure.Configuration'</em><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration._abc_cache">
+<code class="descname">_abc_cache</code><em class="property"> = &lt;_weakrefset.WeakSet object&gt;</em><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration._abc_cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration._abc_negative_cache">
+<code class="descname">_abc_negative_cache</code><em class="property"> = &lt;_weakrefset.WeakSet object&gt;</em><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration._abc_negative_cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration._abc_negative_cache_version">
+<code class="descname">_abc_negative_cache_version</code><em class="property"> = 41</em><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration._abc_negative_cache_version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration._abc_registry">
+<code class="descname">_abc_registry</code><em class="property"> = &lt;_weakrefset.WeakSet object&gt;</em><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration._abc_registry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.addFile">
+<code class="descname">addFile</code><span class="sig-paren">(</span><em>filename</em>, <em>silent=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.addFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.addFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add another file to the configuration (if it exists)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.bestSection">
+<code class="descname">bestSection</code><span class="sig-paren">(</span><em>section</em>, <em>option</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.bestSection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.bestSection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the best-fitting section that has that option</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.configFiles">
+<code class="descname">configFiles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.configFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.configFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list with the configurationfiles that are going to be used</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.configSearchPath">
+<code class="descname">configSearchPath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.configSearchPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.configSearchPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines a search path for the configuration files as a pare of type/name
+pairs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.dump">
+<code class="descname">dump</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps the contents in INI-Form
+:return: a string with the contents</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>section</em>, <em>option</em>, <em>default=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overrides the original implementation from ConfigParser
+:param section: the section
+:param option: the option
+:param default: if set and the option is not found, then this value is used</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.getArch">
+<code class="descname">getArch</code><span class="sig-paren">(</span><em>section</em>, <em>option</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.getArch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.getArch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an entry. If an entry with &lt;option&gt;_&lt;archname&gt; exists then this is
+used instead of the plain &lt;option&gt;-entry
+:param section: the section
+:param option: the option</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.getList">
+<code class="descname">getList</code><span class="sig-paren">(</span><em>section</em>, <em>option</em>, <em>default=''</em>, <em>splitchar='</em>, <em>'</em>, <em>stripQuotes=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.getList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.getList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of strings (in the original they are separated by commas)
+:param section: the section
+:param option: the option
+:param default: if set and the option is not found, then this value is used
+:param splitchar: the character by which the values are separated
+:param stripQuotes: remove quotes if present</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.getRegexp">
+<code class="descname">getRegexp</code><span class="sig-paren">(</span><em>section</em>, <em>option</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.getRegexp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.getRegexp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an entry and interpret it as a regular expression. Subsitute
+the usual regular expression value for floating point numbers
+:param section: the section
+:param option: the option
+:param default: if set and the option is not found, then this value is used</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.getboolean">
+<code class="descname">getboolean</code><span class="sig-paren">(</span><em>section</em>, <em>option</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.getboolean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.getboolean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overrides the original implementation from ConfigParser
+:param section: the section
+:param option: the option
+:param default: if set and the option is not found, then this value is used</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.getdebug">
+<code class="descname">getdebug</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.getdebug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.getdebug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a debug switch</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.getfloat">
+<code class="descname">getfloat</code><span class="sig-paren">(</span><em>section</em>, <em>option</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.getfloat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.getfloat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overrides the original implementation from ConfigParser
+:param section: the section
+:param option: the option
+:param default: if set and the option is not found, then this value is used</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.getint">
+<code class="descname">getint</code><span class="sig-paren">(</span><em>section</em>, <em>option</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.getint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.getint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overrides the original implementation from ConfigParser
+:param section: the section
+:param option: the option
+:param default: if set and the option is not found, then this value is used</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.Configuration.sectionProxy">
+<code class="descname">sectionProxy</code><span class="sig-paren">(</span><em>section</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#Configuration.sectionProxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.Configuration.sectionProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a proxy object that makes it possible to avoid the section
+specification</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy">
+<em class="property">class </em><code class="descclassname">PyFoam.Infrastructure.Configuration.</code><code class="descname">ConfigurationSectionProxy</code><span class="sig-paren">(</span><em>conf</em>, <em>section</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#ConfigurationSectionProxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Wraps a Confguration so that the section automatically becomes the
+first argument</p>
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__init__': &lt;function ConfigurationSectionProxy.__init__&gt;, '__weakref__': &lt;attribute '__weakref__' of 'ConfigurationSectionProxy' objects&gt;, '__getattr__': &lt;function ConfigurationSectionProxy.__getattr__&gt;, '__module__': 'PyFoam.Infrastructure.Configuration', '__dict__': &lt;attribute '__dict__' of 'ConfigurationSectionProxy' objects&gt;, '__doc__': 'Wraps a Confguration so that the section automatically becomes the\n    first argument'})</em><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy.__getattr__">
+<code class="descname">__getattr__</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#ConfigurationSectionProxy.__getattr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy.__getattr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>conf</em>, <em>section</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/Configuration.html#ConfigurationSectionProxy.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Infrastructure.Configuration'</em><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Infrastructure.Configuration.ConfigurationSectionProxy.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.Infrastructure.FoamMetaServer.html" class="btn btn-neutral float-right" title="PyFoam.Infrastructure.FoamMetaServer module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.Infrastructure.ClusterJob.html" class="btn btn-neutral" title="PyFoam.Infrastructure.ClusterJob module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

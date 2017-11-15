@@ -1,0 +1,1307 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Infrastructure.CTestRun &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Infrastructure.CTestRun</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Infrastructure.CTestRun</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;A wrapper to run a solver as a CTest&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span> <span class="k">as</span> <span class="n">pickle</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.CloneCase</span> <span class="kn">import</span> <span class="n">CloneCase</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.Runner</span> <span class="kn">import</span> <span class="n">Runner</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.SamplePlot</span> <span class="kn">import</span> <span class="n">SamplePlot</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.TimelinePlot</span> <span class="kn">import</span> <span class="n">TimelinePlot</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.Decomposer</span> <span class="kn">import</span> <span class="n">Decomposer</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.Data2DStatistics</span> <span class="kn">import</span> <span class="n">Data2DStatistics</span>
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">shellExecutionPrefix</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">PY3</span><span class="p">,</span><span class="n">iteritems</span>
+
+<span class="n">callbackMethods</span><span class="o">=</span><span class="p">[]</span>
+
+<div class="viewcode-block" id="isCallback"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.isCallback">[docs]</a><span class="k">def</span> <span class="nf">isCallback</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="n">callbackMethods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">f</span></div>
+
+<div class="viewcode-block" id="CTestRun"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun">[docs]</a><span class="k">class</span> <span class="nc">CTestRun</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class runs a solver on a test case, examines the results</span>
+<span class="sd">    and fails if they don&#39;t live up the expectations&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CTestRun.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="CTestRun.__new__"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.__new__">[docs]</a>    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">obj</span><span class="o">=</span><span class="nb">super</span><span class="p">(</span><span class="n">CTestRun</span><span class="p">,</span><span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">obj</span><span class="o">.</span><span class="n">__parameters</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">__parametersClosedForWriting</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="n">obj</span><span class="o">.</span><span class="n">setParameters</span><span class="p">(</span><span class="n">sizeClass</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span>
+                          <span class="n">parallel</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">autoDecompose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">doReconstruct</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">nrCpus</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">originalCaseBasis</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+        <span class="n">obj</span><span class="o">.</span><span class="n">__addToClone</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="n">called</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">__recursiveInit</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span><span class="n">called</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">__setParameterAsUsed</span><span class="p">([</span><span class="s2">&quot;nrCpus&quot;</span><span class="p">,</span><span class="s2">&quot;autoDecompose&quot;</span><span class="p">,</span><span class="s2">&quot;doReconstruct&quot;</span><span class="p">])</span>
+
+        <span class="n">obj</span><span class="o">.</span><span class="n">__parametersClosedForWriting</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="k">return</span> <span class="n">obj</span></div>
+
+    <span class="k">def</span> <span class="nf">__recursiveInit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">theClass</span><span class="p">,</span><span class="n">called</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Automatically call the &#39;init&#39;-method of the whole tree&quot;&quot;&quot;</span>
+        <span class="c1">#        print_(theClass)</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">theClass</span><span class="o">.</span><span class="n">__bases__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">b</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">object</span><span class="p">,</span><span class="n">CTestRun</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__recursiveInit</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">called</span><span class="p">)</span>
+
+        <span class="c1"># subclass overwrites superclasses</span>
+        <span class="k">if</span> <span class="s2">&quot;init&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">theClass</span><span class="p">):</span>
+            <span class="c1"># make sure this is only called once</span>
+            <span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+                <span class="n">toCall</span><span class="o">=</span><span class="n">theClass</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">__call__</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">toCall</span><span class="o">=</span><span class="n">theClass</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">im_func</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">toCall</span> <span class="ow">in</span> <span class="n">called</span><span class="p">:</span>
+                <span class="n">theClass</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                <span class="n">called</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">toCall</span><span class="p">)</span>
+                <span class="c1">#                print_(&quot;Calling init for&quot;,theClass)</span>
+
+<div class="viewcode-block" id="CTestRun.addToClone"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.addToClone">[docs]</a>    <span class="k">def</span> <span class="nf">addToClone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__addToClone</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.setParameters"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.setParameters">[docs]</a>    <span class="k">def</span> <span class="nf">setParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the parameters with a set of keyword-arguments&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parametersClosedForWriting</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Tried to modify parameters after the initialization phase&quot;</span><span class="p">,</span>
+                      <span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">caller</span><span class="o">=</span><span class="n">inspect</span><span class="o">.</span><span class="n">stack</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">setter</span><span class="o">=</span><span class="s2">&quot;Set by </span><span class="si">%s</span><span class="s2"> in </span><span class="si">%s</span><span class="s2"> line </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">caller</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="n">caller</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">caller</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__parameters</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span><span class="n">v</span><span class="p">,</span>
+                                  <span class="s2">&quot;setter&quot;</span><span class="p">:</span><span class="n">setter</span><span class="p">,</span>
+                                  <span class="s2">&quot;used&quot;</span><span class="p">:</span><span class="bp">False</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="CTestRun.parameterValues"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.parameterValues">[docs]</a>    <span class="k">def</span> <span class="nf">parameterValues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">vals</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__parameters</span><span class="p">):</span>
+            <span class="n">vals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">vals</span></div>
+
+    <span class="k">def</span> <span class="nf">__setParameterAsUsed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parameters</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__parameters</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;used&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">True</span>
+
+<div class="viewcode-block" id="CTestRun.__getitem__"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get a parameter&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Unknown parameter&quot;</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="s2">&quot;(Parameters:&quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="n">parameter</span><span class="p">[</span><span class="s2">&quot;used&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="k">return</span> <span class="n">parameter</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="CTestRun.shortTestName"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.shortTestName">[docs]</a>    <span class="k">def</span> <span class="nf">shortTestName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span></div>
+
+<div class="viewcode-block" id="CTestRun.testName"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.testName">[docs]</a>    <span class="k">def</span> <span class="nf">testName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the full test name with which this test is identified&quot;&quot;&quot;</span>
+        <span class="n">result</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">shortTestName</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;solver&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;parallel&quot;</span><span class="p">]:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;_parallel_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;nrCpus&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;Cpus&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;_serial&quot;</span>
+        <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;sizeClass&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+    <span class="n">timeoutDefinitions</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span><span class="mi">60</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;tiny&quot;</span><span class="p">,</span><span class="mi">60</span><span class="p">),</span>          <span class="c1"># a minute</span>
+        <span class="p">(</span><span class="s2">&quot;small&quot;</span><span class="p">,</span><span class="mi">300</span><span class="p">),</span>        <span class="c1"># 5 minutes</span>
+        <span class="p">(</span><span class="s2">&quot;medium&quot;</span><span class="p">,</span><span class="mi">1800</span><span class="p">),</span>      <span class="c1"># half an hour</span>
+        <span class="p">(</span><span class="s2">&quot;big&quot;</span><span class="p">,</span><span class="mi">7200</span><span class="p">),</span>         <span class="c1"># 2 hours</span>
+        <span class="p">(</span><span class="s2">&quot;huge&quot;</span><span class="p">,</span><span class="mi">43200</span><span class="p">),</span>       <span class="c1"># 12 hours</span>
+        <span class="p">(</span><span class="s2">&quot;monster&quot;</span><span class="p">,</span><span class="mi">172800</span><span class="p">),</span>   <span class="c1"># 2 days</span>
+        <span class="p">(</span><span class="s2">&quot;unlimited&quot;</span><span class="p">,</span><span class="mi">2592000</span><span class="p">)</span>  <span class="c1"># 30 days</span>
+        <span class="p">]</span>
+
+<div class="viewcode-block" id="CTestRun.sizeClassString"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.sizeClassString">[docs]</a>    <span class="k">def</span> <span class="nf">sizeClassString</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> = </span><span class="si">%d</span><span class="s2">s&quot;</span><span class="o">%</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">CTestRun</span><span class="o">.</span><span class="n">timeoutDefinitions</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="CTestRun.setTimeout"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.setTimeout">[docs]</a>    <span class="k">def</span> <span class="nf">setTimeout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">quiet</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;sizeClass&quot;</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;unknown&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">quiet</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The parameter &#39;sizeClass&#39; has not been set yet. Assuming &#39;tiny&#39;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">toSmallTimeout</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proposedSizeClass</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">CTestRun</span><span class="o">.</span><span class="n">timeoutDefinitions</span><span class="p">)[</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;sizeClass&quot;</span><span class="p">]]</span>
+            <span class="n">index</span><span class="o">=-</span><span class="mi">1</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">CTestRun</span><span class="o">.</span><span class="n">timeoutDefinitions</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;sizeClass&quot;</span><span class="p">]:</span>
+                    <span class="n">index</span><span class="o">=</span><span class="n">i</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">index</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">proposedSizeClass</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">toSmallTimeout</span><span class="o">=</span><span class="n">CTestRun</span><span class="o">.</span><span class="n">timeoutDefinitions</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fatalFail</span><span class="p">(</span><span class="s2">&quot;sizeClass is specified as&quot;</span><span class="p">,</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;sizeClass&quot;</span><span class="p">],</span>
+                           <span class="s2">&quot;. Valid values are with their timeout values&quot;</span><span class="p">,</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">sizeClassString</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">CTestRun</span><span class="o">.</span><span class="n">timeoutDefinitions</span><span class="p">[</span><span class="s2">&quot;unknown&quot;</span><span class="p">])</span> <span class="c1"># just in case that we continue</span></div>
+
+    <span class="k">def</span> <span class="nf">__doInit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">solver</span><span class="p">,</span>
+                 <span class="n">originalCase</span><span class="p">,</span>
+                 <span class="n">minimumRunTime</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">referenceData</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">tailLength</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                 <span class="n">headLength</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialzation method to be called before running the actual</span>
+<span class="sd">        test (purpose of this method is to avoid cascaded of</span>
+<span class="sd">        constructor-calls</span>
+
+<span class="sd">        :param solver: name of the solver to test</span>
+<span class="sd">        :param originalCase: location of the original case files (they</span>
+<span class="sd">        will be copied)</span>
+<span class="sd">        :param minimumRuntime: the solver has to run at least to this time</span>
+<span class="sd">        to be considered &quot;ran successful&quot;</span>
+<span class="sd">        :param referenceData: directory with data that is used for testing</span>
+<span class="sd">        :param tailLength: output that many lines from the end of the solver output</span>
+<span class="sd">        :param headLength: output that many lines from the beginning of the solver output</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Creating test&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">testName</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__setParameterAsUsed</span><span class="p">([</span><span class="s2">&quot;solver&quot;</span><span class="p">,</span><span class="s2">&quot;originalCase&quot;</span><span class="p">,</span><span class="s2">&quot;minimumRunTime&quot;</span><span class="p">,</span>
+                                   <span class="s2">&quot;referenceData&quot;</span><span class="p">,</span><span class="s2">&quot;tailLength&quot;</span><span class="p">,</span><span class="s2">&quot;headLength&quot;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__failed</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__failMessage</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__runInfo</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__tailLength</span><span class="o">=</span><span class="n">tailLength</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__headLength</span><span class="o">=</span><span class="n">headLength</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setTimeout</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fatalFail</span><span class="p">(</span><span class="s2">&quot;Solver&quot;</span><span class="p">,</span><span class="n">solver</span><span class="p">,</span><span class="s2">&quot;not in PATH&quot;</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Using solver&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;originalCaseBasis&quot;</span><span class="p">]:</span>
+            <span class="n">originalCase</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;originalCaseBasis&quot;</span><span class="p">],</span><span class="n">originalCase</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Expanding original case path with&quot;</span><span class="p">,</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;originalCaseBasis&quot;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">originalCase</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">originalCase</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">originalCase</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fatalFail</span><span class="p">(</span><span class="s2">&quot;Original case&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">originalCase</span><span class="p">,</span><span class="s2">&quot;does not exist&quot;</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Original case&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">originalCase</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workDir</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">testName</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;_runDir&quot;</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Running case in&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">removeOldCase</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Removing old case&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">)</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">doClone</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fatalFail</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">,</span><span class="s2">&quot;already existing&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">,</span><span class="s2">&quot;already existing&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">referenceData</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">referenceData</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataDir</span><span class="p">(),</span><span class="n">referenceData</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">referenceData</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fatalFail</span><span class="p">(</span><span class="s2">&quot;Data directory&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">referenceData</span><span class="p">,</span><span class="s2">&quot;does not exist&quot;</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Using reference data from&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">referenceData</span><span class="o">=</span><span class="bp">None</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;No reference data specified&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doReadRunInfo</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Attempting to read the runInfo-file&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">readRunInfo</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">minimumRunTime</span><span class="o">=</span><span class="n">minimumRunTime</span>
+        <span class="n">print_</span><span class="p">()</span>
+
+<div class="viewcode-block" id="CTestRun.readRunInfo"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.readRunInfo">[docs]</a>    <span class="k">def</span> <span class="nf">readRunInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;read the runInfo from a file&quot;&quot;&quot;</span>
+        <span class="n">pick</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">Unpickler</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">,</span><span class="s2">&quot;runInfo.pickle&quot;</span><span class="p">),</span><span class="s2">&quot;rb&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__runInfo</span><span class="o">=</span><span class="n">pick</span><span class="o">.</span><span class="n">load</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CTestRun.writeRunInfo"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.writeRunInfo">[docs]</a>    <span class="k">def</span> <span class="nf">writeRunInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;read the runInfo from a file&quot;&quot;&quot;</span>
+        <span class="n">pick</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">Pickler</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">,</span><span class="s2">&quot;runInfo.pickle&quot;</span><span class="p">),</span><span class="s2">&quot;wb&quot;</span><span class="p">))</span>
+        <span class="n">pick</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__runInfo</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.wrapACallback"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.wrapACallback">[docs]</a>    <span class="k">def</span> <span class="nf">wrapACallback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Has to be a separate method because the loop in</span>
+<span class="sd">        wrapCallbacks didn&#39;t work&quot;&quot;&quot;</span>
+        <span class="n">original</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+            <span class="n">original_callable</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">original</span><span class="p">,</span><span class="s1">&#39;__func__&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">original_callable</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">original</span><span class="p">,</span><span class="s1">&#39;im_func&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrapped</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="c1">#            print_(&quot;Wrapping&quot;,name,args,kwargs,original_callable)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">runAndCatchExceptions</span><span class="p">(</span><span class="n">original_callable</span><span class="p">,</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">wrapped</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.wrapCallbacks"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.wrapCallbacks">[docs]</a>    <span class="k">def</span> <span class="nf">wrapCallbacks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Wrap the callback methods with a Python exception handler.</span>
+<span class="sd">        This is not done here so that methoids that the child classes</span>
+<span class="sd">        overwrote will be wrapped to&quot;&quot;&quot;</span>
+
+        <span class="c1"># not yet working</span>
+
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">callbackMethods</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Wrapping method&quot;</span><span class="p">,</span><span class="n">m</span><span class="p">)</span>
+            <span class="c1">#            setattr(self,m,original)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wrapACallback</span><span class="p">(</span><span class="n">m</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.processOptions"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.processOptions">[docs]</a>    <span class="k">def</span> <span class="nf">processOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Select which phase of the test should be run&quot;&quot;&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span><span class="p">,</span><span class="n">OptionGroup</span>
+
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">(</span><span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog: [options]&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Phase&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;Select which phases to run&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-clone&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doClone&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Skip cloning phase&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-preparation&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doPreparation&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Skip preparation phase&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-serial-pre-tests&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doSerialPreTests&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Skip pre-run test phase&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-decompose&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doDecompose&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Skip decomposition phase&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-parallel-preparation&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doParallelPreparation&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Skip the parallel preparation phase&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-pre-tests&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doPreTests&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Skip pre-run test phase&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-simulation&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doSimulation&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Skip simulation phase&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-postprocessing&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doPostprocessing&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Skip postprocessing phase&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-post-tests&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doPostTests&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Skip post-run test phase&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-reconstruction&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doReconstruction&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Skip reconstruction phase&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-serial-post-tests&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doSerialPostTests&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Skip serial post-run test phase&quot;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--jump-to-tests&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;jumpToTests&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Skip everything except the final tests&quot;</span><span class="p">)</span>
+
+        <span class="n">behave</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Behaviour&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;Determine the behaviour&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">behave</span><span class="p">)</span>
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--fatal-not-fatal&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;fatalIsNotFatal&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Continue running the tests although a fatal error occured&quot;</span><span class="p">)</span>
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--remove-old-case&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;removeOldCase&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Remove the case directory if it exists&quot;</span><span class="p">)</span>
+
+        <span class="n">info</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span>
+                         <span class="s2">&quot;Info&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;Information about the test (all these options print to the screen and stop the test before doing anything)&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+        <span class="n">info</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--parameter-value&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;parameterValue&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Just print the value of a parameter. Nothing if the parameter does not exist&quot;</span><span class="p">)</span>
+        <span class="n">info</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--dump-parameters&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;dumpParameters&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Dump all the parameter values&quot;</span><span class="p">)</span>
+        <span class="n">info</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--verbose-dump-parameters&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;verboseDumpParameters&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Dump all the parameter values plus the information where they were set&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span>
+                         <span class="s2">&quot;Data&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;Reading and writing data that allows rerunning cases&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--read-run-info&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;readRunInfo&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Read the runInfo-File if it exists in the runDirectory (mostly used to test tests without running the solver)&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--print-run-info&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;printRunInfo&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print the runInfo when it becomes available&quot;</span><span class="p">)</span>
+
+        <span class="n">script</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Script parameters&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;Information about the test (all these options print to the screen and stop the test before doing anything and can be used as input in scripts)&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">script</span><span class="p">)</span>
+        <span class="n">script</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--print-test-name&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;printTestName&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print the test name under which this test will be known to the world&quot;</span><span class="p">)</span>
+        <span class="n">script</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--timeout&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;timeout&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print the timeout for this test&quot;</span><span class="p">)</span>
+
+        <span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">parameterValue</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">options</span><span class="o">.</span><span class="n">parameterValue</span><span class="p">])</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">printTestName</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">testName</span><span class="p">())</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">timeout</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setTimeout</span><span class="p">(</span><span class="n">quiet</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">dumpParameters</span> <span class="ow">or</span> <span class="n">options</span><span class="o">.</span><span class="n">verboseDumpParameters</span><span class="p">:</span>
+            <span class="n">keys</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">keys</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="n">maxLen</span><span class="o">=</span><span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">maxLen</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="p">)),</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">verboseDumpParameters</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;   &quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__parameters</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;setter&quot;</span><span class="p">])</span>
+                    <span class="n">print_</span><span class="p">()</span>
+
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">doReadRunInfo</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">readRunInfo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doPrintRunInfo</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">printRunInfo</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">doClone</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">doClone</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doPreparation</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">doPreparation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doSerialPreTests</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">doSerialPreTests</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doDecompose</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">doDecompose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doParallelPreparation</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">doParallelPreparation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doPreTests</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">doPreTests</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doSimulation</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">doSimulation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doPostprocessing</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">doPostprocessing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doPostTests</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">doPostTests</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doReconstruction</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">doReconstruction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doSerialPostTests</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">doSerialPostTests</span>
+
+        <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">jumpToTests</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doClone</span><span class="o">=</span><span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doPreparation</span><span class="o">=</span><span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doSerialPreTests</span><span class="o">=</span><span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doDecompose</span><span class="o">=</span><span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doParallelPreparation</span><span class="o">=</span><span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doPreTests</span><span class="o">=</span><span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doSimulation</span><span class="o">=</span><span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doPostprocessing</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fatalIsNotFatal</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">fatalIsNotFatal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">removeOldCase</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">removeOldCase</span></div>
+
+<div class="viewcode-block" id="CTestRun.run"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run the actual test&quot;&quot;&quot;</span>
+
+        <span class="n">startTime</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">processOptions</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__doInit</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">parameterValues</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapCallbacks</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__runParallel</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doClone</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Cloning case&quot;</span><span class="p">)</span>
+
+            <span class="n">clone</span><span class="o">=</span><span class="n">CloneCase</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">originalCase</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">]</span><span class="o">+</span>
+                            <span class="p">[</span><span class="s2">&quot;--add=&quot;</span><span class="o">+</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__addToClone</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Skipping cloning&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doPreparation</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">referenceData</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">referenceData</span><span class="p">,</span><span class="s2">&quot;copyToCase&quot;</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Copying reference data&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cloneData</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">referenceData</span><span class="p">,</span><span class="s2">&quot;copyToCase&quot;</span><span class="p">),</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;No reference data - No &#39;copyToCase&#39; in&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">referenceData</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">referenceData</span><span class="p">,</span><span class="s2">&quot;additionalFunctionObjects&quot;</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Adding function objects&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">addFunctionObjects</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">referenceData</span><span class="p">,</span><span class="s2">&quot;additionalFunctionObjects&quot;</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;No additional function objects - No &#39;additionalFunctionObjects&#39; in&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">referenceData</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Preparing mesh&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">meshPrepare</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Preparing case&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">casePrepare</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Skipping case preparation&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doSerialPreTests</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Running serial pre-run tests&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runTests</span><span class="p">(</span><span class="s2">&quot;serialPreRunTest&quot;</span><span class="p">,</span><span class="n">warnSerial</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Skipping the serial pre-tests&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;parallel&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doDecompose</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Decomposing the case&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;autoDecompose&quot;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">autoDecompose</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">decompose</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Skipping the decomposition&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__runParallel</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;parallel&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;parallel&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doParallelPreparation</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Parallel preparation of the case&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parallelPrepare</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Skipping parallel preparation&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doPreTests</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Running pre-run tests&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runTests</span><span class="p">(</span><span class="s2">&quot;preRunTest&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Skipping the pre-tests&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doSimulation</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Run solver&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__runInfo</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="p">)</span><span class="o">.</span><span class="n">getData</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeRunInfo</span><span class="p">()</span>
+            <span class="n">print_</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">runInfo</span><span class="p">()[</span><span class="s2">&quot;OK&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s2">&quot;Solver&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="p">,</span><span class="s2">&quot;ended with an error&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Solver ran until time&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">runInfo</span><span class="p">()[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s2">&quot;No information how long the solver ran&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Skipping running of the simulation&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doPrintRunInfo</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">()</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;runInfo used in further tests&quot;</span><span class="p">)</span>
+            <span class="kn">import</span> <span class="nn">pprint</span>
+
+            <span class="n">printer</span><span class="o">=</span><span class="n">pprint</span><span class="o">.</span><span class="n">PrettyPrinter</span><span class="p">()</span>
+            <span class="n">printer</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__runInfo</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doPostprocessing</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Running postprocessing tools&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">postprocess</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Skipping the postprocessing tools&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doPostTests</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Running post-run tests&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runTests</span><span class="p">(</span><span class="s2">&quot;postRunTest&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Skipping the post-run tests&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__runParallel</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;parallel&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doReconstruction</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;doReconstruct&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Reconstructing the case&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;autoDecompose&quot;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">autoReconstruct</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">reconstruct</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Skipping the reconstruction&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doSerialPostTests</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Running serial post-run tests&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runTests</span><span class="p">(</span><span class="s2">&quot;serialPostRunTest&quot;</span><span class="p">,</span><span class="n">warnSerial</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Skipping the serial post-tests&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimumRunTime</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runInfo</span><span class="p">()[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span><span class="o">&lt;</span><span class="bp">self</span><span class="o">.</span><span class="n">minimumRunTime</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s2">&quot;Solver only ran to&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">runInfo</span><span class="p">()[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span>
+                              <span class="s2">&quot;but should at least run to&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">minimumRunTime</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s2">&quot;No information about run-time. Should have run to&quot;</span><span class="p">,</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">minimumRunTime</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Silently ignoring missing runInfo()&quot;</span><span class="p">)</span>
+
+        <span class="n">runTime</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">startTime</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Total running time&quot;</span><span class="p">,</span><span class="n">runTime</span><span class="p">,</span><span class="s2">&quot;seconds&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">runTime</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Running time&quot;</span><span class="p">,</span><span class="n">runTime</span><span class="p">,</span><span class="s2">&quot;bigger than assigned timeout&quot;</span><span class="p">,</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">,</span><span class="s2">&quot;. Consider other sizeclass than&quot;</span><span class="p">,</span>
+                      <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;sizeClass&quot;</span><span class="p">],</span><span class="s2">&quot;from sizeclasses&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">sizeClassString</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="n">runTime</span><span class="o">&lt;</span><span class="bp">self</span><span class="o">.</span><span class="n">toSmallTimeout</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Running time&quot;</span><span class="p">,</span><span class="n">runTime</span><span class="p">,</span><span class="s2">&quot;much smaller than assigned timeout&quot;</span><span class="p">,</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">,</span><span class="s2">&quot;. Consider other sizeclass than&quot;</span><span class="p">,</span>
+                      <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;sizeClass&quot;</span><span class="p">],</span><span class="s2">&quot;from sizeclasses&quot;</span><span class="p">,</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">sizeClassString</span><span class="p">(),</span><span class="s2">&quot;for instance&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">proposedSizeClass</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">endTest</span><span class="p">()</span></div>
+
+    <span class="c1"># make configuration-dependent</span>
+<div class="viewcode-block" id="CTestRun.workDir"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.workDir">[docs]</a>    <span class="k">def</span> <span class="nf">workDir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYFOAM_CTESTRUN_WORKDIR&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;__checkWorkDir&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__checkWorkDir</span><span class="o">=</span><span class="bp">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No environment variable PYFOAM_CTESTRUN_WORKDIR defined. Using current directory&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">curdir</span></div>
+
+    <span class="c1"># make configuration-dependent</span>
+<div class="viewcode-block" id="CTestRun.dataDir"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.dataDir">[docs]</a>    <span class="k">def</span> <span class="nf">dataDir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYFOAM_CTESTRUN_DATADIR&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;__checkDataDir&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__checkDataDir</span><span class="o">=</span><span class="bp">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No environment variable PYFOAM_CTESTRUN_DATADIR defined. Using current directory&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">curdir</span></div>
+
+<div class="viewcode-block" id="CTestRun.addFunctionObjects"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.addFunctionObjects">[docs]</a>    <span class="k">def</span> <span class="nf">addFunctionObjects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">templateFile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add entries for libraries and functionObjects to the controlDict</span>
+<span class="sd">        (if they don&#39;t exist</span>
+<span class="sd">        :param templateFile: file withe the data that should be added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tf</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">templateFile</span><span class="p">)</span>
+        <span class="n">cd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">controlDict</span><span class="p">()</span>
+        <span class="n">touchedCD</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">if</span> <span class="s2">&quot;libs&quot;</span> <span class="ow">in</span> <span class="n">tf</span><span class="p">:</span>
+            <span class="n">touchedCD</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;libs&quot;</span> <span class="ow">in</span> <span class="n">cd</span><span class="p">:</span>
+                <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;libs&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;libs&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;libs&quot;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="s2">&quot;already in &#39;libs&#39; in the controlDict&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;libs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;functions&quot;</span> <span class="ow">in</span> <span class="n">tf</span><span class="p">:</span>
+            <span class="n">touchedCD</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;functions&quot;</span> <span class="ow">in</span> <span class="n">cd</span><span class="p">:</span>
+                <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;functions&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">tf</span><span class="p">[</span><span class="s2">&quot;functions&quot;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;functions&quot;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Overwriting function object&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">)</span>
+                <span class="n">cd</span><span class="p">[</span><span class="s2">&quot;functions&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">v</span>
+
+        <span class="k">if</span> <span class="n">touchedCD</span><span class="p">:</span>
+            <span class="n">cd</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CTestRun.cloneData"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.cloneData">[docs]</a>    <span class="k">def</span> <span class="nf">cloneData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">src</span><span class="p">,</span><span class="n">dst</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Copy files recurivly into a case</span>
+<span class="sd">        :param src: the source directory the files come fro</span>
+<span class="sd">        :param dst: the destination directory the files go to&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;.&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Ignoring dot-file&quot;</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">f</span><span class="p">))</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">f</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span><span class="n">f</span><span class="p">)):</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span><span class="n">f</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cloneData</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">f</span><span class="p">),</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span><span class="n">f</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span><span class="n">f</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;File&quot;</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span><span class="n">f</span><span class="p">),</span><span class="s2">&quot;exists already in case. Overwritten&quot;</span><span class="p">)</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">f</span><span class="p">),</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span><span class="n">f</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="CTestRun.runCommand"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.runCommand">[docs]</a>    <span class="k">def</span> <span class="nf">runCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run a command and let it directly write to the output&quot;&quot;&quot;</span>
+        <span class="n">p</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">shellExecutionPrefix</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]),</span>
+                           <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                           <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                           <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">sts</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">returncode</span>
+
+        <span class="k">if</span> <span class="n">sts</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s2">&quot;Command&quot;</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">),</span><span class="s2">&quot;ended with status&quot;</span><span class="p">,</span><span class="n">sts</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.shell"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.shell">[docs]</a>    <span class="k">def</span> <span class="nf">shell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+              <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run a command in the case directory and let it directly</span>
+<span class="sd">        write to the output</span>
+<span class="sd">        :param workingDirectory: change to this directory&quot;&quot;&quot;</span>
+
+        <span class="n">workingDirectory</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">workingDirectory</span><span class="p">:</span>
+            <span class="n">workingDirectory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span>
+        <span class="n">cmd</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Executing&quot;</span><span class="p">,</span><span class="n">cmd</span><span class="p">,</span><span class="s2">&quot;in&quot;</span><span class="p">,</span><span class="n">workingDirectory</span><span class="p">)</span>
+        <span class="n">oldDir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">workingDirectory</span><span class="p">)</span>
+
+        <span class="n">p</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">shellExecutionPrefix</span><span class="p">()</span><span class="o">+</span><span class="n">cmd</span><span class="p">,</span>
+                           <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                           <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                           <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Output of the command&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">()</span>
+        <span class="n">print_</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">()</span>
+
+        <span class="n">sts</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">returncode</span>
+
+        <span class="k">if</span> <span class="n">sts</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s2">&quot;Command&quot;</span><span class="p">,</span><span class="n">cmd</span><span class="p">,</span><span class="s2">&quot;ended with status&quot;</span><span class="p">,</span><span class="n">sts</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span><span class="s2">&quot;ran OK&quot;</span><span class="p">)</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">oldDir</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.execute"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Execute the passed arguments on the case and check if</span>
+<span class="sd">        everything went alright</span>
+<span class="sd">        :param regexps: a list of regular expressions that the output should be scanned for&quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">regexps</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;regexps&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">regexps</span><span class="p">)</span><span class="o">!=</span><span class="nb">list</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="n">regexps</span><span class="p">,</span><span class="s2">&quot;is not a list of strings&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">regexps</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%c</span><span class="s2">ase%&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+
+        <span class="n">pyArgs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--silent&quot;</span><span class="p">,</span><span class="s2">&quot;--no-server-process&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__runParallel</span><span class="p">:</span>
+            <span class="n">pyArgs</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--procnr=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;nrCpus&quot;</span><span class="p">]]</span>
+
+        <span class="n">argList</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">+</span>\
+                 <span class="p">[</span><span class="s2">&quot;-case&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Executing&quot;</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">argList</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">regexps</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Also looking for the expressions&quot;</span><span class="p">,</span><span class="s1">&#39;&quot;&#39;</span><span class="o">+</span><span class="p">(</span><span class="s1">&#39;&quot; &quot;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">regexps</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+            <span class="n">pyArgs</span><span class="o">+=</span><span class="p">[</span><span class="s1">r&#39;--custom-regexp=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">regexps</span><span class="p">]</span>
+
+        <span class="n">runner</span><span class="o">=</span><span class="n">Runner</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">pyArgs</span><span class="o">+</span><span class="n">argList</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Execution ended&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">runner</span><span class="p">[</span><span class="s2">&quot;OK&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s2">&quot;Running &quot;</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">argList</span><span class="p">),</span><span class="s2">&quot;failed&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Execution was OK&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;warnings&quot;</span> <span class="ow">in</span> <span class="n">runner</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="n">runner</span><span class="p">[</span><span class="s2">&quot;warnings&quot;</span><span class="p">],</span><span class="s2">&quot;during execution&quot;</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Output of&quot;</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">argList</span><span class="p">),</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">runner</span><span class="p">[</span><span class="s2">&quot;lines&quot;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__tailLength</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">__headLength</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;The first&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__headLength</span><span class="p">,</span><span class="s2">&quot;lines of the output.&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;Of a total of&quot;</span><span class="p">,</span><span class="n">runner</span><span class="p">[</span><span class="s2">&quot;lines&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="s2">&quot;head&quot;</span><span class="p">,</span><span class="s2">&quot;-n&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__headLength</span><span class="p">,</span><span class="n">runner</span><span class="p">[</span><span class="s2">&quot;logfile&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">()</span>
+            <span class="n">print_</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;The last&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__tailLength</span><span class="p">,</span><span class="s2">&quot;lines of the output.&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;Of a total of&quot;</span><span class="p">,</span><span class="n">runner</span><span class="p">[</span><span class="s2">&quot;lines&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="s2">&quot;tail&quot;</span><span class="p">,</span><span class="s2">&quot;-n&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__tailLength</span><span class="p">,</span><span class="n">runner</span><span class="p">[</span><span class="s2">&quot;logfile&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="s2">&quot;cat&quot;</span><span class="p">,</span><span class="n">runner</span><span class="p">[</span><span class="s2">&quot;logfile&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;End of output&quot;</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">runner</span></div>
+
+<div class="viewcode-block" id="CTestRun.runInfo"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.runInfo">[docs]</a>    <span class="k">def</span> <span class="nf">runInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;return the run information. If the solver was actually run&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__runInfo</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fatalFail</span><span class="p">(</span><span class="s2">&quot;runInfo() called although solver was not yet run&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__runInfo</span></div>
+
+<div class="viewcode-block" id="CTestRun.solution"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.solution">[docs]</a>    <span class="k">def</span> <span class="nf">solution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Access to a SolutionDirectory-object that represents the</span>
+<span class="sd">        current solution&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_solution&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_solution</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">,</span>
+                                              <span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solution</span></div>
+
+<div class="viewcode-block" id="CTestRun.controlDict"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.controlDict">[docs]</a>    <span class="k">def</span> <span class="nf">controlDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Access a representation of the controlDict of the case&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_controlDict&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_controlDict</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="p">()</span><span class="o">.</span><span class="n">controlDict</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_controlDict</span></div>
+
+<div class="viewcode-block" id="CTestRun.line"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.line">[docs]</a>    <span class="k">def</span> <span class="nf">line</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;/</span><span class="se">\\</span><span class="s2">&quot;</span><span class="o">*</span><span class="nb">int</span><span class="p">((</span><span class="mi">78</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="s2">&quot;TEST &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">shortTestName</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot; :&quot;</span><span class="p">))</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="CTestRun.status"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.status">[docs]</a>    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;print a status message about the test&quot;&quot;&quot;</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;TEST&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">shortTestName</span><span class="p">(),</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CTestRun.messageGeneral"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.messageGeneral">[docs]</a>    <span class="k">def</span> <span class="nf">messageGeneral</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">prefix</span><span class="p">,</span><span class="n">say</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Everything that passes through this method will be repeated</span>
+<span class="sd">        in the end</span>
+<span class="sd">        :param args: arbitrary number of arguments that build the</span>
+<span class="sd">        fail-message</span>
+<span class="sd">        :param prefix: General classification of the message</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">msg</span><span class="o">=</span><span class="n">prefix</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">msg</span><span class="o">+=</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+        <span class="n">print_</span><span class="p">()</span>
+        <span class="n">print_</span><span class="p">(</span><span class="n">say</span><span class="p">,</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__failMessage</span><span class="o">+=</span><span class="n">msg</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span></div>
+
+<div class="viewcode-block" id="CTestRun.failGeneral"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.failGeneral">[docs]</a>    <span class="k">def</span> <span class="nf">failGeneral</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">prefix</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param args: arbitrary number of arguments that build the</span>
+<span class="sd">        fail-message</span>
+<span class="sd">        :param prefix: General classification of the failure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__failed</span><span class="o">=</span><span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">messageGeneral</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span><span class="s2">&quot;Test failed:&quot;</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.warn"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.warn">[docs]</a>    <span class="k">def</span> <span class="nf">warn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param args: arbitrary number of arguments that build the</span>
+<span class="sd">        warning-message&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">messageGeneral</span><span class="p">(</span><span class="s2">&quot;warning&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.fail"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.fail">[docs]</a>    <span class="k">def</span> <span class="nf">fail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To be called if the test failed but other tests should be tried</span>
+<span class="sd">        :param args: arbitrary number of arguments that build the</span>
+<span class="sd">        fail-message&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">failGeneral</span><span class="p">(</span><span class="s2">&quot;failure&quot;</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.fatalFail"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.fatalFail">[docs]</a>    <span class="k">def</span> <span class="nf">fatalFail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param args: arbitrary number of arguments that build the</span>
+<span class="sd">        fail-message&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">failGeneral</span><span class="p">(</span><span class="s2">&quot;fatal failure&quot;</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fatalIsNotFatal</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">endTest</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CTestRun.endTest"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.endTest">[docs]</a>    <span class="k">def</span> <span class="nf">endTest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">unused</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__parameters</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">v</span><span class="p">[</span><span class="s2">&quot;used&quot;</span><span class="p">]:</span>
+                <span class="n">unused</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unused</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Unused parameters (possible typo):&quot;</span><span class="p">,</span><span class="n">unused</span><span class="p">)</span>
+
+        <span class="n">print_</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__failed</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Test failed.&quot;</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">()</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Summary of failures&quot;</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__failMessage</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">()</span>
+
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Test successful&quot;</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__failMessage</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Summary of warnings&quot;</span><span class="p">)</span>
+                <span class="n">print_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__failMessage</span><span class="p">)</span>
+                <span class="n">print_</span><span class="p">()</span>
+
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.which"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.which">[docs]</a>    <span class="k">def</span> <span class="nf">which</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">command</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Like the regular which command - return the full path to an</span>
+<span class="sd">        executable&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PATH&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">command</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">command</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="CTestRun.runAndCatchExceptions"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.runAndCatchExceptions">[docs]</a>    <span class="k">def</span> <span class="nf">runAndCatchExceptions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">func</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run a callable and catch Python-exceptions if they occur</span>
+<span class="sd">        :param func: The actual thing to be run&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="ne">SystemExit</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s2">&quot;sys.exit() called somewhere while executing&quot;</span><span class="p">,</span>
+                      <span class="n">func</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">e</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s2">&quot;Python problem during execution of&quot;</span><span class="p">,</span>
+                      <span class="n">func</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="CTestRun.runTests"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.runTests">[docs]</a>    <span class="k">def</span> <span class="nf">runTests</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">namePrefix</span><span class="p">,</span><span class="n">warnSerial</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run all methods that fit a certain name prefix&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Looking for tests that fit the prefix&quot;</span><span class="p">,</span><span class="n">namePrefix</span><span class="p">)</span>
+        <span class="n">cnt</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">namePrefix</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">meth</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">inspect</span><span class="o">.</span><span class="n">ismethod</span><span class="p">(</span><span class="n">meth</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s2">&quot;Found attribute&quot;</span><span class="p">,</span><span class="n">n</span><span class="p">,</span>
+                              <span class="s2">&quot;that fits the prefix&quot;</span><span class="p">,</span><span class="n">namePrefix</span><span class="p">,</span>
+                              <span class="s2">&quot;in test class but it is not a method&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;Running the test&quot;</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;parallel&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">warnSerial</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;This is a serial test. No need to have special serial tests like&quot;</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">runAndCatchExceptions</span><span class="p">(</span><span class="n">meth</span><span class="p">)</span>
+                    <span class="n">cnt</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="n">cnt</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="n">cnt</span><span class="p">,</span><span class="s2">&quot;tests with prefix&quot;</span><span class="p">,</span><span class="n">namePrefix</span><span class="p">,</span><span class="s2">&quot;run&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">&quot;No test fit the prefix&quot;</span><span class="p">,</span><span class="n">namePrefix</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.generalTest"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.generalTest">[docs]</a>    <span class="k">def</span> <span class="nf">generalTest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">testFunction</span><span class="p">,</span>
+                    <span class="n">args</span><span class="p">,</span>
+                    <span class="o">*</span><span class="n">message</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">testFunction</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="o">*</span><span class="n">message</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.compareSamples"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.compareSamples">[docs]</a>    <span class="k">def</span> <span class="nf">compareSamples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">data</span><span class="p">,</span>
+                       <span class="n">reference</span><span class="p">,</span>
+                       <span class="n">fields</span><span class="p">,</span>
+                       <span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                       <span class="n">line</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                       <span class="n">scaleData</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                       <span class="n">offsetData</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                       <span class="n">scaleX</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                       <span class="n">offsetX</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                       <span class="n">useReferenceForComparison</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compare sample data and return the statistics</span>
+<span class="sd">        :param data: the name of the data directory</span>
+<span class="sd">        :param reference:the name of the directory with the reference data</span>
+<span class="sd">        :param fields: list of the fields to compare</span>
+<span class="sd">        :param time: the time to compare for. If empty the latest time is used&quot;&quot;&quot;</span>
+        <span class="n">timeOpt</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--latest-time&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">time</span><span class="p">:</span>
+            <span class="n">timeOpt</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--time=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">timeOpt</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--line=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">line</span><span class="p">]</span>
+        <span class="n">addOpt</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">if</span> <span class="n">useReferenceForComparison</span><span class="p">:</span>
+            <span class="n">addOpt</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--use-reference-for-comparison&quot;</span><span class="p">)</span>
+
+        <span class="n">sample</span><span class="o">=</span><span class="n">SamplePlot</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">,</span>
+                                <span class="s2">&quot;--silent&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;--dir=&quot;</span><span class="o">+</span><span class="n">data</span><span class="p">,</span>
+                                <span class="s2">&quot;--reference-dir=&quot;</span><span class="o">+</span><span class="n">reference</span><span class="p">,</span>
+                                <span class="s2">&quot;--tolerant-reference-time&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;--compare&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;--index-tolerant-compare&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;--common-range-compare&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;--metrics&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;--scale-data=</span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">scaleData</span><span class="p">,</span>
+                                <span class="s2">&quot;--scale-x=</span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">scaleX</span><span class="p">,</span>
+                                <span class="s2">&quot;--offset-data=</span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">offsetData</span><span class="p">,</span>
+                                <span class="s2">&quot;--offset-x=</span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">offsetX</span>
+                            <span class="p">]</span><span class="o">+</span>
+                          <span class="n">timeOpt</span><span class="o">+</span>
+                          <span class="n">addOpt</span><span class="o">+</span>
+                          <span class="p">[</span><span class="s2">&quot;--field=&quot;</span><span class="o">+</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">Data2DStatistics</span><span class="p">(</span><span class="n">metrics</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">&quot;metrics&quot;</span><span class="p">],</span>
+                                <span class="n">compare</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">&quot;compare&quot;</span><span class="p">],</span>
+                                <span class="n">noStrings</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                <span class="n">failureValue</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.compareTimelines"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.compareTimelines">[docs]</a>    <span class="k">def</span> <span class="nf">compareTimelines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">data</span><span class="p">,</span>
+                       <span class="n">reference</span><span class="p">,</span>
+                       <span class="n">fields</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compare timeline data and return the statistics</span>
+<span class="sd">        :param data: the name of the data directory</span>
+<span class="sd">        :param reference:the name of the directory with the reference data</span>
+<span class="sd">        :param fields: list of the fields to compare&quot;&quot;&quot;</span>
+        <span class="n">sample</span><span class="o">=</span><span class="n">TimelinePlot</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">,</span>
+                                <span class="s2">&quot;--silent&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;--dir=&quot;</span><span class="o">+</span><span class="n">data</span><span class="p">,</span>
+                                <span class="s2">&quot;--reference-dir=&quot;</span><span class="o">+</span><span class="n">reference</span><span class="p">,</span>
+                                <span class="s2">&quot;--compare&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;--basic-mode=lines&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;--metrics&quot;</span><span class="p">]</span><span class="o">+</span>
+                          <span class="p">[</span><span class="s2">&quot;--field=&quot;</span><span class="o">+</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">Data2DStatistics</span><span class="p">(</span><span class="n">metrics</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">&quot;metrics&quot;</span><span class="p">],</span>
+                                <span class="n">compare</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">&quot;compare&quot;</span><span class="p">],</span>
+                                <span class="n">noStrings</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                <span class="n">failureValue</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CTestRun.isNotEqual"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.isNotEqual">[docs]</a>    <span class="k">def</span> <span class="nf">isNotEqual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="n">target</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generalTest</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">y</span><span class="p">)</span><span class="o">&gt;</span><span class="n">tolerance</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="n">target</span><span class="p">),</span>
+            <span class="n">message</span><span class="p">,</span><span class="s2">&quot;( value&quot;</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="s2">&quot;within tolerance&quot;</span><span class="p">,</span><span class="n">tolerance</span><span class="p">,</span>
+            <span class="s2">&quot;of target&quot;</span><span class="p">,</span><span class="n">target</span><span class="p">,</span><span class="s2">&quot;)&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.isEqual"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.isEqual">[docs]</a>    <span class="k">def</span> <span class="nf">isEqual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="n">target</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generalTest</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">y</span><span class="p">)</span><span class="o">&lt;</span><span class="n">tolerance</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="n">target</span><span class="p">),</span>
+            <span class="n">message</span><span class="p">,</span><span class="s2">&quot;( value&quot;</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="s2">&quot; not within tolerance&quot;</span><span class="p">,</span><span class="n">tolerance</span><span class="p">,</span>
+            <span class="s2">&quot;of target&quot;</span><span class="p">,</span><span class="n">target</span><span class="p">,</span><span class="s2">&quot;)&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.isBigger"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.isBigger">[docs]</a>    <span class="k">def</span> <span class="nf">isBigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="n">threshold</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generalTest</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">&gt;</span><span class="n">threshold</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">value</span><span class="p">),</span>
+            <span class="n">message</span><span class="p">,</span><span class="s2">&quot;( value&quot;</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="s2">&quot; not bigger than&quot;</span><span class="p">,</span><span class="n">threshold</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.isSmaller"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.isSmaller">[docs]</a>    <span class="k">def</span> <span class="nf">isSmaller</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="n">threshold</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generalTest</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">&lt;</span><span class="n">threshold</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">value</span><span class="p">),</span>
+            <span class="n">message</span><span class="p">,</span><span class="s2">&quot;( value&quot;</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="s2">&quot; not smaller than&quot;</span><span class="p">,</span><span class="n">threshold</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.preRunTestCheckMesh"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.preRunTestCheckMesh">[docs]</a>    <span class="k">def</span> <span class="nf">preRunTestCheckMesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This test is always run. If this is not desirable it has to</span>
+<span class="sd">        be overridden in a child-class&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;checkMesh&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CTestRun.autoDecompose"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.autoDecompose">[docs]</a>    <span class="k">def</span> <span class="nf">autoDecompose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Decomposition used if no callback is specified&quot;&quot;&quot;</span>
+        <span class="n">deco</span><span class="o">=</span><span class="n">Decomposer</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">caseDir</span><span class="p">,</span>
+                              <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;nrCpus&quot;</span><span class="p">]),</span>
+                              <span class="s2">&quot;--all-regions&quot;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="CTestRun.autoReconstruct"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.autoReconstruct">[docs]</a>    <span class="k">def</span> <span class="nf">autoReconstruct</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reconstruction used if no callback is specified&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;reconstructPar&quot;</span><span class="p">,</span><span class="s2">&quot;-latestTime&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@isCallback</span>
+<div class="viewcode-block" id="CTestRun.meshPrepare"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.meshPrepare">[docs]</a>    <span class="k">def</span> <span class="nf">meshPrepare</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback to prepare the mesh for the case. Default</span>
+<span class="sd">        behaviour is to run blockMesh on the case&quot;&quot;&quot;</span>
+        <span class="n">result</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;blockMesh&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;OK&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fatalFail</span><span class="p">(</span><span class="s2">&quot;blockMesh was not able to create a mesh&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@isCallback</span>
+<div class="viewcode-block" id="CTestRun.casePrepare"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.casePrepare">[docs]</a>    <span class="k">def</span> <span class="nf">casePrepare</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback to prepare the case. Default behaviour is to do</span>
+<span class="sd">        nothing&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    <span class="nd">@isCallback</span>
+<div class="viewcode-block" id="CTestRun.parallelPrepare"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.parallelPrepare">[docs]</a>    <span class="k">def</span> <span class="nf">parallelPrepare</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback to prepare the case in parallel (after it was decomposed).</span>
+<span class="sd">        Default behaviour is to do nothing&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    <span class="nd">@isCallback</span>
+<div class="viewcode-block" id="CTestRun.postprocess"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.postprocess">[docs]</a>    <span class="k">def</span> <span class="nf">postprocess</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback to run after the solver has finished. Default</span>
+<span class="sd">        behaviour is to do nothing&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    <span class="nd">@isCallback</span>
+<div class="viewcode-block" id="CTestRun.decompose"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.decompose">[docs]</a>    <span class="k">def</span> <span class="nf">decompose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback to do the decomposition (if automatic is not sufficient)&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fatalFail</span><span class="p">(</span><span class="s2">&quot;Manual decomposition specified but no callback for manual decomposition specified&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@isCallback</span>
+<div class="viewcode-block" id="CTestRun.reconstruct"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.CTestRun.html#PyFoam.Infrastructure.CTestRun.CTestRun.reconstruct">[docs]</a>    <span class="k">def</span> <span class="nf">reconstruct</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback to do the reconstruction (if automatic is not sufficient)&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Manual decomposition specified, but no callback &#39;reconstruct&#39; implemented. Using the automatic reconstruction&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">autoReconstruct</span><span class="p">()</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

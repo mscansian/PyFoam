@@ -1,0 +1,367 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Wrappers.Pandas &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Wrappers.Pandas</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Wrappers.Pandas</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Extended version of the Pandas-Dataframe</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span><span class="p">,</span><span class="n">Series</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">hstack</span><span class="p">,</span><span class="n">unique</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">isnan</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span><span class="p">,</span><span class="n">PyFoamException</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">string_types</span><span class="p">,</span><span class="n">text_type</span><span class="p">,</span><span class="n">u</span>
+
+<div class="viewcode-block" id="PyFoamDataFrame"><a class="viewcode-back" href="../../../api/PyFoam.Wrappers.Pandas.html#PyFoam.Wrappers.Pandas.PyFoamDataFrame">[docs]</a><span class="k">class</span> <span class="nc">PyFoamDataFrame</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class adds some convenience functions to the regular Datafram class&quot;&quot;&quot;</span>
+
+    <span class="n">validOtherTypes</span><span class="o">=</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">,</span><span class="n">Series</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PyFoamDataFrame.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Wrappers.Pandas.html#PyFoam.Wrappers.Pandas.PyFoamDataFrame.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Adds no data. Just passes the arguments to the super-class&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PyFoamDataFrame</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__allStrings</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">PandasWrapperPyFoamException</span><span class="p">(</span><span class="s2">&quot;Columns must be strings&quot;</span><span class="p">)</span></div>
+        <span class="c1"># if not self.axes[0].is_unique:</span>
+        <span class="c1">#     # not working as expected</span>
+        <span class="c1">#     #            self.drop_duplicates(inplace=True)</span>
+        <span class="c1">#     self.axes[0].is_unique=True</span>
+
+    <span class="k">def</span> <span class="nf">__allStrings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">keys</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">keys</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">string_types</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+<div class="viewcode-block" id="PyFoamDataFrame.addData"><a class="viewcode-back" href="../../../api/PyFoam.Wrappers.Pandas.html#PyFoam.Wrappers.Pandas.PyFoamDataFrame.addData">[docs]</a>    <span class="k">def</span> <span class="nf">addData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">,</span>
+                <span class="n">sameIndex</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                <span class="n">mergeIndex</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">prefix</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">suffix</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">allowExtrapolate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">interpolationMethod</span><span class="o">=</span><span class="s2">&quot;values&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add data from another DataFrame or Series</span>
+<span class="sd">        :param other: data as Pandas-DataFrame or Series</span>
+<span class="sd">        :param sameIndex: assum both have the same indices. If False the other data will be interpolated to the current indices</span>
+<span class="sd">        :param mergeIndex: make the result indices a mixture of the indices&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sameIndex</span> <span class="ow">and</span> <span class="n">mergeIndex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PandasWrapperPyFoamException</span><span class="p">(</span><span class="s2">&quot;Can&#39;t specify sameIndex=False and mergeIndex=True at the same time&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">validOtherTypes</span><span class="p">):</span>
+             <span class="k">raise</span> <span class="n">PandasWrapperPyFoamException</span><span class="p">(</span><span class="s2">&quot;Other data is of type&quot;</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">),</span>
+                                                <span class="s2">&quot;should be one of&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">validOtherTypes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span><span class="n">DataFrame</span><span class="p">):</span>
+             <span class="n">o</span><span class="o">=</span><span class="n">other</span>
+        <span class="k">else</span><span class="p">:</span>
+             <span class="n">o</span><span class="o">=</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+        <span class="n">k</span><span class="o">=</span><span class="n">o</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__allStrings</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">PandasWrapperPyFoamException</span><span class="p">(</span><span class="s2">&quot;Added data with non-string columns&quot;</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">=</span><span class="n">k</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">prefix</span><span class="p">:</span>
+             <span class="n">v</span><span class="o">=</span><span class="p">[</span><span class="n">prefix</span><span class="o">+</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">suffix</span><span class="p">:</span>
+             <span class="n">v</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">+</span><span class="n">suffix</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">&amp;</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+             <span class="k">raise</span> <span class="n">PandasWrapperPyFoamException</span><span class="p">(</span><span class="s2">&quot;Keys of this&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span><span class="s2">&quot;and other&quot;</span><span class="p">,</span><span class="n">v</span><span class="p">,</span>
+                                                <span class="s2">&quot;intersect&quot;</span><span class="p">,</span><span class="nb">set</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">&amp;</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">keys</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">))</span>
+        <span class="n">interpolate</span><span class="o">=</span><span class="bp">False</span> <span class="c1"># only interpolate if necessary</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">!=</span><span class="nb">len</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">!=</span><span class="n">o</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+             <span class="k">if</span> <span class="n">sameIndex</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">mergeIndex</span><span class="p">:</span>
+                  <span class="k">raise</span> <span class="n">PandasWrapperPyFoamException</span><span class="p">(</span><span class="s2">&quot;Other data has different index. Specify sameIndex=False or mergeIndex=True&quot;</span><span class="p">)</span>
+             <span class="n">ni</span><span class="o">=</span><span class="n">unique</span><span class="p">(</span><span class="n">hstack</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">index</span><span class="p">]))</span>
+             <span class="n">interpolate</span><span class="o">=</span><span class="bp">True</span>
+             <span class="k">if</span> <span class="n">mergeIndex</span><span class="p">:</span>
+                 <span class="n">minOld</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                 <span class="n">maxOld</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+                 <span class="n">result</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">ni</span><span class="p">,</span><span class="n">copy</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span>
+                    <span class="n">method</span><span class="o">=</span><span class="n">interpolationMethod</span><span class="p">,</span><span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+                 <span class="k">if</span> <span class="ow">not</span> <span class="n">allowExtrapolate</span><span class="p">:</span>
+                     <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                         <span class="n">result</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="o">&lt;</span><span class="n">minOld</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">)</span>
+                         <span class="n">result</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="o">&gt;</span><span class="n">maxOld</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">)</span>
+             <span class="k">else</span><span class="p">:</span>
+                  <span class="c1"># make sure we have values at the current position</span>
+<span class="c1">#                  o=o.reindex_axis(ni,axis=&#39;index&#39;).interpolate(method=interpolationMethod)</span>
+                  <span class="n">o</span><span class="o">=</span><span class="n">o</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">ni</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">o</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">interpolationMethod</span><span class="p">)</span>
+                  <span class="c1"># ,takeable=True</span>
+                  <span class="n">result</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="n">minOld</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">maxOld</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">=</span><span class="n">o</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">interpolate</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">interpolationMethod</span><span class="p">,</span><span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">allowExtrapolate</span><span class="p">:</span>
+                     <span class="n">result</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="o">&lt;</span><span class="n">minOld</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">)</span>
+                     <span class="n">result</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="o">&gt;</span><span class="n">maxOld</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">PyFoamDataFrame</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PyFoamDataFrame.integrate"><a class="viewcode-back" href="../../../api/PyFoam.Wrappers.Pandas.html#PyFoam.Wrappers.Pandas.PyFoamDataFrame.integrate">[docs]</a>    <span class="k">def</span> <span class="nf">integrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Integrate by using the trapezoid rule. Return a dictionary with values.</span>
+<span class="sd">        :param values: list of column names. If unset all are integrated&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__integrateInternal</span><span class="p">(</span><span class="n">columns</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="PyFoamDataFrame.validLength"><a class="viewcode-back" href="../../../api/PyFoam.Wrappers.Pandas.html#PyFoam.Wrappers.Pandas.PyFoamDataFrame.validLength">[docs]</a>    <span class="k">def</span> <span class="nf">validLength</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Length were the values are valid (not NaN) Return a dictionary with values.</span>
+<span class="sd">        :param values: list of column names. If unset all are integrated&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__integrateInternal</span><span class="p">(</span><span class="n">columns</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="PyFoamDataFrame.weightedAverage"><a class="viewcode-back" href="../../../api/PyFoam.Wrappers.Pandas.html#PyFoam.Wrappers.Pandas.PyFoamDataFrame.weightedAverage">[docs]</a>    <span class="k">def</span> <span class="nf">weightedAverage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Weighted average. Return a dictionary with values.</span>
+<span class="sd">        :param values: list of column names. If unset all are integrated&quot;&quot;&quot;</span>
+        <span class="n">integral</span><span class="p">,</span><span class="n">length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__integrateInternal</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">integral</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">length</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isnan</span><span class="p">(</span><span class="n">length</span><span class="p">[</span><span class="n">k</span><span class="p">]):</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">integral</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">/</span><span class="n">length</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+    <span class="k">def</span> <span class="nf">__integrateInternal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">columns</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">columns</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">integrals</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">lengths</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">ind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="n">integrals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+            <span class="n">lengths</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span> <span class="c1"># no weighting possible</span>
+                <span class="n">integrals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">isnan</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                    <span class="n">w</span><span class="o">=</span><span class="mi">0</span>
+                    <span class="k">if</span> <span class="n">i</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                        <span class="n">w</span><span class="o">+=</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">ind</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">ind</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">):</span>
+                        <span class="n">w</span><span class="o">+=</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">ind</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">ind</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                    <span class="n">lengths</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">+=</span><span class="n">w</span>
+                    <span class="n">integrals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">+=</span><span class="n">w</span><span class="o">*</span><span class="n">val</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">lengths</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">integrals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">integrals</span><span class="p">,</span><span class="n">lengths</span>
+
+<div class="viewcode-block" id="PyFoamDataFrame.describe"><a class="viewcode-back" href="../../../api/PyFoam.Wrappers.Pandas.html#PyFoam.Wrappers.Pandas.PyFoamDataFrame.describe">[docs]</a>    <span class="k">def</span> <span class="nf">describe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Adds our own statistics to the regular describe&quot;&quot;&quot;</span>
+        <span class="n">d</span><span class="o">=</span><span class="nb">super</span><span class="p">(</span><span class="n">PyFoamDataFrame</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">integral</span><span class="p">,</span><span class="n">length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__integrateInternal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">d</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">integral</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;integral&quot;</span><span class="p">]))</span>
+        <span class="n">d</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">length</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;valid length&quot;</span><span class="p">]))</span>
+        <span class="n">a</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">integral</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">length</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isnan</span><span class="p">(</span><span class="n">length</span><span class="p">[</span><span class="n">k</span><span class="p">]):</span>
+                <span class="n">a</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">integral</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">/</span><span class="n">length</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;NaN&quot;</span><span class="p">)</span>
+        <span class="n">d</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">a</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;weighted average&quot;</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">d</span></div></div>
+
+<div class="viewcode-block" id="PandasWrapperPyFoamException"><a class="viewcode-back" href="../../../api/PyFoam.Wrappers.Pandas.html#PyFoam.Wrappers.Pandas.PandasWrapperPyFoamException">[docs]</a><span class="k">class</span> <span class="nc">PandasWrapperPyFoamException</span><span class="p">(</span><span class="n">PyFoamException</span><span class="p">):</span>
+     <span class="sd">&quot;&quot;&quot;The PyFoam-exception that does not expect to be caught&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PandasWrapperPyFoamException.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Wrappers.Pandas.html#PyFoam.Wrappers.Pandas.PandasWrapperPyFoamException.__init__">[docs]</a>     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">text</span><span class="p">):</span>
+          <span class="n">descr</span><span class="o">=</span><span class="s2">&quot;Problem in wrapper to pandas-library&quot;</span>
+          <span class="c1">#          super(FatalErrorPyFoamException,self).__init__(descr,*text) # does not work with Python 2.4</span>
+          <span class="n">PyFoamException</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">descr</span><span class="p">,</span><span class="o">*</span><span class="n">text</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

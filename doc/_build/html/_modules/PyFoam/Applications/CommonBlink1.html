@@ -1,0 +1,253 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.CommonBlink1 &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.CommonBlink1</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.CommonBlink1</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Common options for blink(1)-devices&quot;&quot;&quot;</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">PyFoam.Infrastructure.Blink1</span> <span class="kn">import</span> <span class="n">Blink1</span>
+    <span class="n">hasBlink</span><span class="o">=</span><span class="bp">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">hasBlink</span><span class="o">=</span><span class="bp">False</span>
+
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">conf</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">PyFoamException</span>
+
+<div class="viewcode-block" id="CommonBlink1"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonBlink1.html#PyFoam.Applications.CommonBlink1.CommonBlink1">[docs]</a><span class="k">class</span> <span class="nc">CommonBlink1</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Common options for blink1-devices&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CommonBlink1.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonBlink1.html#PyFoam.Applications.CommonBlink1.CommonBlink1.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">withExecute</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__blink1</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="n">hasBlink</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blink1grp</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                                       <span class="s2">&quot;Blink(1)&quot;</span><span class="p">,</span>
+                                       <span class="s2">&quot;Options for signalling on a blink(1)-device&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blink1grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--use-blink1&quot;</span><span class="p">,</span>
+                                      <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                      <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                      <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;useBlink1&quot;</span><span class="p">,</span>
+                                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Should we use the blink1 for notifications on this utility&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blink1grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--blink-timestep-color&quot;</span><span class="p">,</span>
+                                      <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;blink1stepcolor&quot;</span><span class="p">,</span>
+                                      <span class="n">default</span><span class="o">=</span><span class="n">conf</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Blink1&quot;</span><span class="p">,</span><span class="s2">&quot;timestepcolor&quot;</span><span class="p">),</span>
+                                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The default color for time-steps. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">withExecute</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">blink1grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--blink-execute-pattern&quot;</span><span class="p">,</span>
+                                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;blink1executepattern&quot;</span><span class="p">,</span>
+                                          <span class="n">default</span><span class="o">=</span><span class="n">conf</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Blink1&quot;</span><span class="p">,</span><span class="s2">&quot;executepattern&quot;</span><span class="p">),</span>
+                                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The default pattern to play during execution. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">blink1grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--blink-execute-interleave&quot;</span><span class="p">,</span>
+                                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;blink1executeinterleave&quot;</span><span class="p">,</span>
+                                          <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                                          <span class="n">default</span><span class="o">=</span><span class="n">conf</span><span class="p">()</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s2">&quot;Blink1&quot;</span><span class="p">,</span><span class="s2">&quot;executeinterleave&quot;</span><span class="p">),</span>
+                                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The default pause between playing the pattern during execution. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">blink1grp</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommonBlink1.initBlink"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonBlink1.html#PyFoam.Applications.CommonBlink1.CommonBlink1.initBlink">[docs]</a>    <span class="k">def</span> <span class="nf">initBlink</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">hasBlink</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">useBlink1</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__blink1</span><span class="o">=</span><span class="n">Blink1</span><span class="p">(</span><span class="n">ticColor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">blink1stepcolor</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">PyFoamException</span><span class="p">:</span>
+                    <span class="n">e</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem initializing blink(1):&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommonBlink1.stopBlink"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonBlink1.html#PyFoam.Applications.CommonBlink1.CommonBlink1.stopBlink">[docs]</a>    <span class="k">def</span> <span class="nf">stopBlink</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__blink1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__blink1</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">blink1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__blink1</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

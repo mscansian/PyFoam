@@ -1,0 +1,265 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.OutputFile &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.OutputFile</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.OutputFile</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Output of time-dependent data&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">.BasicFile</span> <span class="kn">import</span> <span class="n">BasicFile</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+<div class="viewcode-block" id="OutputFile"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutputFile.html#PyFoam.Basics.OutputFile.OutputFile">[docs]</a><span class="k">class</span> <span class="nc">OutputFile</span><span class="p">(</span><span class="n">BasicFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;output of time dependent data&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="OutputFile.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutputFile.html#PyFoam.Basics.OutputFile.OutputFile.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">titles</span><span class="o">=</span><span class="p">[],</span><span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param name: name of the file</span>
+<span class="sd">        :param titles: Titles of the columns</span>
+<span class="sd">        :param parent: A parent collection that knows about opened and</span>
+<span class="sd">        closed files</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">BasicFile</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setTitles</span><span class="p">(</span><span class="n">titles</span><span class="p">)</span></div>
+
+<span class="c1">#    def __del__(self):</span>
+<span class="c1">#            print &quot;Deleting File&quot;,self.name</span>
+
+<div class="viewcode-block" id="OutputFile.setTitles"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutputFile.html#PyFoam.Basics.OutputFile.OutputFile.setTitles">[docs]</a>    <span class="k">def</span> <span class="nf">setTitles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">titles</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the titles anew. Only has an effect if the file hasn&#39;t been opened yet</span>
+
+<span class="sd">        :param titles: The new titles</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">titles</span><span class="o">=</span><span class="n">titles</span></div>
+
+<div class="viewcode-block" id="OutputFile.outputAtStart"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutputFile.html#PyFoam.Basics.OutputFile.OutputFile.outputAtStart">[docs]</a>    <span class="k">def</span> <span class="nf">outputAtStart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write column titles if present</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">titles</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getHandle</span><span class="p">()</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# time&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">titles</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; </span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">+</span><span class="n">c</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OutputFile.write"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutputFile.html#PyFoam.Basics.OutputFile.OutputFile.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;write data set</span>
+
+<span class="sd">        :param time: the current time</span>
+<span class="sd">        :param data: tuple with data&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeLine</span><span class="p">(</span> <span class="p">(</span><span class="n">time</span><span class="p">,)</span><span class="o">+</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OutputFile.callAtOpen"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutputFile.html#PyFoam.Basics.OutputFile.OutputFile.callAtOpen">[docs]</a>    <span class="k">def</span> <span class="nf">callAtOpen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A hook that gets called when the file is opened&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">addToOpenList</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="OutputFile.callAtClose"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutputFile.html#PyFoam.Basics.OutputFile.OutputFile.callAtClose">[docs]</a>    <span class="k">def</span> <span class="nf">callAtClose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A hook that gets called when the file is closed&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">removeFromOpenList</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="OutputFile.__repr__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutputFile.html#PyFoam.Basics.OutputFile.OutputFile.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Output for debugging&quot;&quot;&quot;</span>
+
+        <span class="n">result</span><span class="o">=</span><span class="s2">&quot;Outfile:&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isOpen</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="s2">&quot; OPEN&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="s2">&quot; APPEND&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="s2">&quot; HANDLE&quot;</span>
+        <span class="k">return</span> <span class="n">result</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

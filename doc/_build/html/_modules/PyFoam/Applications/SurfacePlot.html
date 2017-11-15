@@ -1,0 +1,706 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.SurfacePlot &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.SurfacePlot</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.SurfacePlot</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application class that implements pyFoamSurfacePlot.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">string</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SurfaceDirectory</span> <span class="kn">import</span> <span class="n">SurfaceDirectory</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span>
+
+<span class="kn">from</span> <span class="nn">.PlotHelpers</span> <span class="kn">import</span> <span class="n">cleanFilename</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="nb">input</span>
+
+<div class="viewcode-block" id="SurfacePlot"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SurfacePlot.html#PyFoam.Applications.SurfacePlot.SurfacePlot">[docs]</a><span class="k">class</span> <span class="nc">SurfacePlot</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="SurfacePlot.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SurfacePlot.html#PyFoam.Applications.SurfacePlot.SurfacePlot.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Searches for sampled surface in the VTK-format in a directory and</span>
+<span class="s2">makes pictures from them</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] &lt;casedir&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SurfacePlot.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SurfacePlot.html#PyFoam.Applications.SurfacePlot.SurfacePlot.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                          <span class="s2">&quot;Data&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;Select the data to plot&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--surface&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;surface&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The sampled surface for which the data is plotted (can be used more than once)&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--field&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The fields that are plotted (can be used more than once). If none are specified all found fields are used&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--directory-name&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;surfaces&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;dirName&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Alternate name for the directory with the samples (Default: </span><span class="si">%d</span><span class="s2">efault)&quot;</span><span class="p">)</span>
+
+        <span class="n">time</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                         <span class="s2">&quot;Time&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;Select the times to plot&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+
+        <span class="n">time</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--time&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The times that are plotted (can be used more than once). If none are specified all found times are used&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--min-time&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;minTime&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The smallest time that should be used&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--max-time&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;maxTime&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The biggest time that should be used&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--fuzzy-time&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;fuzzyTime&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Try to find the next timestep if the time doesn&#39;t match exactly&quot;</span><span class="p">)</span>
+
+        <span class="n">output</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Appearance&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;How it should be plotted&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--unscaled&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;scaled&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t scale a value to the same range for all plots&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--interpolate-to-point&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;toPoint&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Plot data interpolated to point values (although the real truth lies in the cells)&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--scale-all&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;scaleAll&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use the same scale for all fields (else use one scale for each field)&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--picture-destination&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;pictureDest&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Directory the pictures should be stored to&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--name-prefix&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;namePrefix&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Prefix to the picture-name&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--clean-filename&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cleanFilename&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Clean filenames so that they can be used in HTML or Latex-documents&quot;</span><span class="p">)</span>
+
+        <span class="n">colorMaps</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;blueToRed&quot;</span><span class="p">,</span><span class="s2">&quot;redToBlue&quot;</span><span class="p">,</span><span class="s2">&quot;blackToWhite&quot;</span><span class="p">,</span><span class="s2">&quot;redToWhite&quot;</span><span class="p">]</span>
+        <span class="c1">#        colorMaps.append(&quot;experimental&quot;)</span>
+
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--color-map&quot;</span><span class="p">,</span>
+                          <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;choice&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;colorMap&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="s2">&quot;blueToRed&quot;</span><span class="p">,</span>
+                          <span class="n">choices</span><span class="o">=</span><span class="n">colorMaps</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Sets the used colormap to one of &quot;</span><span class="o">+</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">colorMaps</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; with the default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--info&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print info about the sampled data and exit&quot;</span><span class="p">)</span>
+
+        <span class="n">camera</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Camera&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;How to look at things&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">camera</span><span class="p">)</span>
+        <span class="n">camera</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-auto-camera&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;autoCamera&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The position of the camera should not be determined automagically&quot;</span><span class="p">)</span>
+        <span class="n">camera</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--dolly-factor&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;dollyFactor&quot;</span><span class="p">,</span>
+                          <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The dolly-factor used to focus the camera: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">camera</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--width-of-bitmap&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;width&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="mi">720</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The width that the render-window should have. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">camera</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--height-of-bitmap&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;height&quot;</span><span class="p">,</span>
+                          <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The height that the render-window should have. If unspecified it is determined from the size of the data&quot;</span><span class="p">)</span>
+        <span class="n">camera</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--focal-point-offset&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;focalOffset&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="s2">&quot;0,0,0&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Offset of the focal point from the center of the data. Only used in manual-camera mode. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">camera</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--camera-offset&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cameraOffset&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="s2">&quot;0,0,1&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Offset of the position of the camera from the center of the data. Only used in manual-camera mode. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">camera</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--up-direction&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;upDirection&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="s2">&quot;0,1,0&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Which direction is up. Only used in manual-camera mode. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">camera</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--report-camera&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;reportCamera&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Report the used settings for the camera&quot;</span><span class="p">)</span>
+
+        <span class="n">behave</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Behaviour&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;How the program affects its environment&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">behave</span><span class="p">)</span>
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--offscreen&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;offscreen&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Try to render the image offscreen (without a window)&quot;</span><span class="p">)</span>
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--silent&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;silent&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t write progress to the terminal&quot;</span><span class="p">)</span>
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--wait&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;wait&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Keep window open until a key is pressed&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SurfacePlot.setupPipeline"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SurfacePlot.html#PyFoam.Applications.SurfacePlot.SurfacePlot.setupPipeline">[docs]</a>    <span class="k">def</span> <span class="nf">setupPipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">offscreen</span><span class="p">:</span>
+            <span class="n">grap</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkGraphicsFactory</span><span class="p">()</span>
+            <span class="n">grap</span><span class="o">.</span><span class="n">SetOffScreenOnlyMode</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">grap</span><span class="o">.</span><span class="n">SetUseMesaClasses</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">img</span><span class="o">=</span><span class="n">vtk</span><span class="o">.</span><span class="n">vtkImagingFactory</span><span class="p">()</span>
+            <span class="n">img</span><span class="o">.</span><span class="n">SetUseMesaClasses</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkDataSetReader</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">SetFileName</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">toPoint</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toPoint</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkCellDataToPointData</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surfMapper</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkDataSetMapper</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surfMapper</span><span class="o">.</span><span class="n">SetColorModeToMapScalars</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lut</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkLookupTable</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">colorMap</span><span class="o">==</span><span class="s2">&quot;blueToRed&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lut</span><span class="o">.</span><span class="n">SetHueRange</span><span class="p">(</span><span class="mf">0.667</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">colorMap</span><span class="o">==</span><span class="s2">&quot;redToBlue&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lut</span><span class="o">.</span><span class="n">SetHueRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.667</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">colorMap</span><span class="o">==</span><span class="s2">&quot;blackToWhite&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lut</span><span class="o">.</span><span class="n">SetHueRange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lut</span><span class="o">.</span><span class="n">SetValueRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lut</span><span class="o">.</span><span class="n">SetSaturationRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">colorMap</span><span class="o">==</span><span class="s2">&quot;redToWhite&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lut</span><span class="o">.</span><span class="n">SetHueRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lut</span><span class="o">.</span><span class="n">SetValueRange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lut</span><span class="o">.</span><span class="n">SetSaturationRange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Unknown colormap&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">colorMap</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">surfMapper</span><span class="o">.</span><span class="n">SetLookupTable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lut</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surfActor</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkActor</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surfActor</span><span class="o">.</span><span class="n">SetMapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">surfMapper</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textActor</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkTextActor</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textActor</span><span class="o">.</span><span class="n">SetDisplayPosition</span><span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textActor</span><span class="o">.</span><span class="n">SetTextScaleModeToViewport</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textActor</span><span class="o">.</span><span class="n">SetWidth</span><span class="p">(</span><span class="mf">0.75</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">barActor</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkScalarBarActor</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">barActor</span><span class="o">.</span><span class="n">SetLookupTable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lut</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">barActor</span><span class="o">.</span><span class="n">SetDisplayPosition</span><span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">barActor</span><span class="o">.</span><span class="n">SetOrientationToHorizontal</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">barActor</span><span class="o">.</span><span class="n">SetHeight</span><span class="p">(</span><span class="mf">0.15</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">barActor</span><span class="o">.</span><span class="n">SetWidth</span><span class="p">(</span><span class="mf">0.75</span><span class="p">)</span>
+
+<span class="c1">#        self.axes=vtk.vtkCubeAxesActor()</span>
+<span class="c1">#        self.axes.SetFlyModeToClosestTriad()</span>
+        <span class="c1">#        self.axes.SetCornerOffset(0.1)</span>
+        <span class="c1">#        self.axes.SetXLabelFormat(&quot;%6.1f&quot;)</span>
+        <span class="c1">#        self.axes.SetYLabelFormat(&quot;%6.1f&quot;)</span>
+        <span class="c1">#        self.axes.SetZLabelFormat(&quot;%6.1f&quot;)</span>
+        <span class="c1"># Create graphics stuff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkRenderer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renWin</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkRenderWindow</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">offscreen</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">renWin</span><span class="o">.</span><span class="n">SetOffScreenRendering</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renWin</span><span class="o">.</span><span class="n">AddRenderer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">surfActor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor2D</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">textActor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">AddActor2D</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">barActor</span><span class="p">)</span>
+<span class="c1">#        self.ren.AddViewProp(self.axes)</span>
+
+<span class="c1">#        self.axes.SetCamera(self.ren.GetActiveCamera())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">SetBackground</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">hasPipeline</span><span class="o">=</span><span class="bp">True</span></div>
+
+<div class="viewcode-block" id="SurfacePlot.setFilename"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SurfacePlot.html#PyFoam.Applications.SurfacePlot.SurfacePlot.setFilename">[docs]</a>    <span class="k">def</span> <span class="nf">setFilename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasPipeline</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setupPipeline</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">SetFileName</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">toPoint</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toPoint</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">surfMapper</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">toPoint</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">surfMapper</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cData</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">GetCellData</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cData</span><span class="o">.</span><span class="n">SetScalars</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cData</span><span class="o">.</span><span class="n">GetArray</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surfMapper</span><span class="o">.</span><span class="n">SetScalarRange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">()</span><span class="o">.</span><span class="n">GetScalarRange</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="SurfacePlot.setRange"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SurfacePlot.html#PyFoam.Applications.SurfacePlot.SurfacePlot.setRange">[docs]</a>    <span class="k">def</span> <span class="nf">setRange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">rng</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surfMapper</span><span class="o">.</span><span class="n">SetScalarRange</span><span class="p">(</span><span class="n">rng</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SurfacePlot.setTitles"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SurfacePlot.html#PyFoam.Applications.SurfacePlot.SurfacePlot.setTitles">[docs]</a>    <span class="k">def</span> <span class="nf">setTitles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">bar</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textActor</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">barActor</span><span class="o">.</span><span class="n">SetTitle</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SurfacePlot.getCurrentRange"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SurfacePlot.html#PyFoam.Applications.SurfacePlot.SurfacePlot.getCurrentRange">[docs]</a>    <span class="k">def</span> <span class="nf">getCurrentRange</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">()</span><span class="o">.</span><span class="n">GetScalarRange</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SurfacePlot.getVector"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SurfacePlot.html#PyFoam.Applications.SurfacePlot.SurfacePlot.getVector">[docs]</a>    <span class="k">def</span> <span class="nf">getVector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">opt</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span><span class="n">opt</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="SurfacePlot.writePicture"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SurfacePlot.html#PyFoam.Applications.SurfacePlot.SurfacePlot.writePicture">[docs]</a>    <span class="k">def</span> <span class="nf">writePicture</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">ResetCamera</span><span class="p">()</span>
+
+        <span class="n">xMin</span><span class="p">,</span><span class="n">xMax</span><span class="p">,</span><span class="n">yMin</span><span class="p">,</span><span class="n">yMax</span><span class="p">,</span><span class="n">zMin</span><span class="p">,</span><span class="n">zMax</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">GetBounds</span><span class="p">()</span>
+<span class="c1">#        self.axes.SetBounds(self.output.GetBounds())</span>
+        <span class="n">boundRange</span><span class="o">=</span><span class="p">[(</span><span class="n">xMax</span><span class="o">-</span><span class="n">xMin</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">yMax</span><span class="o">-</span><span class="n">yMin</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">zMax</span><span class="o">-</span><span class="n">zMin</span><span class="p">,</span><span class="mi">2</span><span class="p">)]</span>
+        <span class="n">boundRange</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a</span><span class="p">:</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">focalPoint</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">xMax</span><span class="o">+</span><span class="n">xMin</span><span class="p">),</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">yMax</span><span class="o">+</span><span class="n">yMin</span><span class="p">),</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">zMax</span><span class="o">+</span><span class="n">zMin</span><span class="p">)]</span>
+        <span class="n">position</span><span class="o">=</span><span class="n">copy</span><span class="p">(</span><span class="n">focalPoint</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">autoCamera</span><span class="p">:</span>
+            <span class="n">ratio</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span><span class="n">boundRange</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="nb">max</span><span class="p">(</span><span class="n">boundRange</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="mf">1e-10</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">height</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">width</span><span class="o">*</span><span class="n">ratio</span><span class="p">)</span><span class="o">+</span><span class="mi">70</span>
+            <span class="n">camOffset</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">camOffset</span><span class="p">[</span><span class="n">boundRange</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span><span class="o">=</span><span class="n">boundRange</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">3</span>
+            <span class="n">up</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">up</span><span class="p">[</span><span class="n">boundRange</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span><span class="o">=</span><span class="mf">1.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">height</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">height</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">width</span><span class="o">/</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+            <span class="n">offset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getVector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">focalOffset</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">focalPoint</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+=</span><span class="n">offset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">camOffset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getVector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cameraOffset</span><span class="p">)</span>
+            <span class="n">up</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getVector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">upDirection</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+=</span><span class="n">camOffset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">reportCamera</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Picture size:&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">width</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Data bounds:&quot;</span><span class="p">,</span><span class="n">xMin</span><span class="p">,</span><span class="n">xMax</span><span class="p">,</span><span class="n">yMin</span><span class="p">,</span><span class="n">yMax</span><span class="p">,</span><span class="n">zMin</span><span class="p">,</span><span class="n">zMax</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Focal point:&quot;</span><span class="p">,</span><span class="n">focalPoint</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Up-direction:&quot;</span><span class="p">,</span><span class="n">up</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Camera position:&quot;</span><span class="p">,</span><span class="n">position</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">renWin</span><span class="o">.</span><span class="n">SetSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">width</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">barActor</span><span class="o">.</span><span class="n">SetDisplayPosition</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">width</span><span class="o">*</span><span class="mf">0.124</span><span class="p">),</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">textActor</span><span class="o">.</span><span class="n">SetDisplayPosition</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">width</span><span class="o">*</span><span class="mf">0.124</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">height</span><span class="o">-</span><span class="mi">30</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">GetActiveCamera</span><span class="p">()</span><span class="o">.</span><span class="n">SetFocalPoint</span><span class="p">(</span><span class="n">focalPoint</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">GetActiveCamera</span><span class="p">()</span><span class="o">.</span><span class="n">SetViewUp</span><span class="p">(</span><span class="n">up</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">GetActiveCamera</span><span class="p">()</span><span class="o">.</span><span class="n">SetPosition</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">GetActiveCamera</span><span class="p">()</span><span class="o">.</span><span class="n">Dolly</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dollyFactor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="o">.</span><span class="n">ResetCameraClippingRange</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">renWin</span><span class="o">.</span><span class="n">Render</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">renderLarge</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkRenderLargeImage</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renderLarge</span><span class="o">.</span><span class="n">SetInput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ren</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renderLarge</span><span class="o">.</span><span class="n">SetMagnification</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPNGWriter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">renderLarge</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="n">SetFileName</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="n">Write</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">wait</span><span class="p">:</span>
+            <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;waiting for key&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SurfacePlot.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SurfacePlot.html#PyFoam.Applications.SurfacePlot.SurfacePlot.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">global</span> <span class="n">vtk</span>
+        <span class="kn">import</span> <span class="nn">vtk</span>
+
+        <span class="n">caseName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">samples</span><span class="o">=</span><span class="n">SurfaceDirectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span><span class="n">dirName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dirName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hasPipeline</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Times    : &quot;</span><span class="p">,</span><span class="n">samples</span><span class="o">.</span><span class="n">times</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Surfaces : &quot;</span><span class="p">,</span><span class="n">samples</span><span class="o">.</span><span class="n">surfaces</span><span class="p">())</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Values   : &quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">surfaces</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">surfaces</span><span class="p">()</span>
+        <span class="n">times</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">times</span>
+        <span class="n">values</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">surface</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="c1">#            error(&quot;At least one line has to be specified. Found were&quot;,samples.lines())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">surface</span><span class="o">=</span><span class="n">surfaces</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">surface</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">l</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">surfaces</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;The line&quot;</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="s2">&quot;does not exist in&quot;</span><span class="p">,</span><span class="n">lines</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Times&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">,</span><span class="s2">&quot;and range [&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="p">,</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span><span class="p">,</span><span class="s2">&quot;] set: contradiction&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span><span class="o">=</span> <span class="mf">1e20</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="o">=-</span><span class="mf">1e20</span>
+
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">&lt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">&gt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No times in range [&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="p">,</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span><span class="p">,</span><span class="s2">&quot;] found: &quot;</span><span class="p">,</span><span class="n">times</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+            <span class="n">iTimes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">iTimes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">samples</span><span class="o">.</span><span class="n">times</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fuzzyTime</span><span class="p">:</span>
+                    <span class="n">tf</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                    <span class="n">use</span><span class="o">=</span><span class="bp">None</span>
+                    <span class="n">dist</span><span class="o">=</span><span class="mf">1e20</span>
+                    <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">samples</span><span class="o">.</span><span class="n">times</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">tf</span><span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">ts</span><span class="p">))</span><span class="o">&lt;</span><span class="n">dist</span><span class="p">:</span>
+                            <span class="n">use</span><span class="o">=</span><span class="n">ts</span>
+                            <span class="n">dist</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">tf</span><span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">ts</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">use</span> <span class="ow">and</span> <span class="n">use</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">use</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="s2">&quot;not found in the sample-times. Use option --fuzzy&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Getting data about plots&quot;</span><span class="p">)</span>
+        <span class="n">plots</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">times</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No times specified. Exiting&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">surface</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="n">surface</span><span class="o">=</span><span class="p">[</span><span class="n">s</span><span class="p">],</span>
+                                        <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">f</span><span class="p">],</span>
+                                        <span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">plt</span><span class="p">:</span>
+                        <span class="n">plots</span><span class="o">+=</span><span class="n">plt</span>
+
+        <span class="n">vRanges</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaled</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Getting ranges&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleAll</span><span class="p">:</span>
+                <span class="n">vRange</span><span class="o">=</span><span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">vRanges</span><span class="o">=</span><span class="p">{}</span>
+
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">plots</span><span class="p">:</span>
+                <span class="n">f</span><span class="p">,</span><span class="n">tm</span><span class="p">,</span><span class="n">surf</span><span class="p">,</span><span class="n">nm</span><span class="o">=</span><span class="n">p</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setFilename</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+                <span class="n">mi</span><span class="p">,</span><span class="n">ma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getCurrentRange</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleAll</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">vRanges</span><span class="p">:</span>
+                        <span class="n">vRange</span><span class="o">=</span><span class="n">vRanges</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">vRange</span><span class="o">=</span><span class="bp">None</span>
+
+                <span class="k">if</span> <span class="n">vRange</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                    <span class="n">vRange</span><span class="o">=</span><span class="n">mi</span><span class="p">,</span><span class="n">ma</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">vRange</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">vRange</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">mi</span><span class="p">),</span><span class="nb">max</span><span class="p">(</span><span class="n">vRange</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">ma</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleAll</span><span class="p">:</span>
+                    <span class="n">vRanges</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span><span class="o">=</span><span class="n">vRange</span>
+
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">plots</span><span class="p">:</span>
+            <span class="n">f</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">surf</span><span class="p">,</span><span class="n">nm</span><span class="o">=</span><span class="n">p</span>
+
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">namePrefix</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">namePrefix</span><span class="o">+</span><span class="s2">&quot;_&quot;</span>
+            <span class="n">name</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dirName</span>
+            <span class="n">tIndex</span><span class="o">=</span><span class="n">times</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+
+            <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">surf</span>
+
+            <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%04d</span><span class="s2">&quot;</span>   <span class="o">%</span> <span class="p">(</span><span class="n">nm</span><span class="p">,</span><span class="n">tIndex</span><span class="p">)</span>
+            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> : </span><span class="si">%s</span><span class="s2"> - </span><span class="si">%s</span><span class="s2">   t=</span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">caseName</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dirName</span><span class="p">,</span><span class="n">surf</span><span class="p">,</span><span class="nb">float</span><span class="p">(</span><span class="n">time</span><span class="p">))</span>
+
+            <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;.png&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cleanFilename</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">cleanFilename</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pictureDest</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pictureDest</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">setFilename</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleAll</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">vRange</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="n">vRange</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">vRanges</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">vRanges</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="n">vRanges</span><span class="p">[</span><span class="n">nm</span><span class="p">])</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">setTitles</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="n">nm</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Writing picture&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">writePicture</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

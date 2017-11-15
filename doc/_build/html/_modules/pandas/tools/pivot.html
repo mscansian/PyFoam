@@ -1,0 +1,575 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pandas.tools.pivot &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="../../../index.html" class="fa fa-home"> PyFoam</a>
+        
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/PyFoam.html">PyFoam package</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>pandas.tools.pivot</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for pandas.tools.pivot</h1><div class="highlight"><pre>
+<span class="c"># pylint: disable=E1103</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">Series</span><span class="p">,</span> <span class="n">DataFrame</span>
+<span class="kn">from</span> <span class="nn">pandas.core.index</span> <span class="kn">import</span> <span class="n">MultiIndex</span><span class="p">,</span> <span class="n">Index</span>
+<span class="kn">from</span> <span class="nn">pandas.core.groupby</span> <span class="kn">import</span> <span class="n">Grouper</span>
+<span class="kn">from</span> <span class="nn">pandas.tools.merge</span> <span class="kn">import</span> <span class="n">concat</span>
+<span class="kn">from</span> <span class="nn">pandas.tools.util</span> <span class="kn">import</span> <span class="n">cartesian_product</span>
+<span class="kn">from</span> <span class="nn">pandas.compat</span> <span class="kn">import</span> <span class="nb">range</span><span class="p">,</span> <span class="n">lrange</span><span class="p">,</span> <span class="nb">zip</span>
+<span class="kn">from</span> <span class="nn">pandas.util.decorators</span> <span class="kn">import</span> <span class="n">deprecate_kwarg</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">compat</span>
+<span class="kn">import</span> <span class="nn">pandas.core.common</span> <span class="kn">as</span> <span class="nn">com</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="k">def</span> <span class="nf">pivot_table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">aggfunc</span><span class="o">=</span><span class="s">&#39;mean&#39;</span><span class="p">,</span>
+                <span class="n">fill_value</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">margins</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">dropna</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a spreadsheet-style pivot table as a DataFrame. The levels in the</span>
+<span class="sd">    pivot table will be stored in MultiIndex objects (hierarchical indexes) on</span>
+<span class="sd">    the index and columns of the result DataFrame</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : DataFrame</span>
+<span class="sd">    values : column to aggregate, optional</span>
+<span class="sd">    index : a column, Grouper, array which has the same length as data, or list of them.</span>
+<span class="sd">        Keys to group by on the pivot table index.</span>
+<span class="sd">        If an array is passed, it is being used as the same manner as column values.</span>
+<span class="sd">    columns : a column, Grouper, array which has the same length as data, or list of them.</span>
+<span class="sd">        Keys to group by on the pivot table column.</span>
+<span class="sd">        If an array is passed, it is being used as the same manner as column values.</span>
+<span class="sd">    aggfunc : function, default numpy.mean, or list of functions</span>
+<span class="sd">        If list of functions passed, the resulting pivot table will have</span>
+<span class="sd">        hierarchical columns whose top level are the function names (inferred</span>
+<span class="sd">        from the function objects themselves)</span>
+<span class="sd">    fill_value : scalar, default None</span>
+<span class="sd">        Value to replace missing values with</span>
+<span class="sd">    margins : boolean, default False</span>
+<span class="sd">        Add all row / columns (e.g. for subtotal / grand totals)</span>
+<span class="sd">    dropna : boolean, default True</span>
+<span class="sd">        Do not include columns whose entries are all NaN</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; df</span>
+<span class="sd">       A   B   C      D</span>
+<span class="sd">    0  foo one small  1</span>
+<span class="sd">    1  foo one large  2</span>
+<span class="sd">    2  foo one large  2</span>
+<span class="sd">    3  foo two small  3</span>
+<span class="sd">    4  foo two small  3</span>
+<span class="sd">    5  bar one large  4</span>
+<span class="sd">    6  bar one small  5</span>
+<span class="sd">    7  bar two small  6</span>
+<span class="sd">    8  bar two large  7</span>
+
+<span class="sd">    &gt;&gt;&gt; table = pivot_table(df, values=&#39;D&#39;, index=[&#39;A&#39;, &#39;B&#39;],</span>
+<span class="sd">    ...                     columns=[&#39;C&#39;], aggfunc=np.sum)</span>
+<span class="sd">    &gt;&gt;&gt; table</span>
+<span class="sd">              small  large</span>
+<span class="sd">    foo  one  1      4</span>
+<span class="sd">         two  6      NaN</span>
+<span class="sd">    bar  one  5      4</span>
+<span class="sd">         two  6      7</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    table : DataFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">_convert_by</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="n">_convert_by</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aggfunc</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">pieces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">aggfunc</span><span class="p">:</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">pivot_table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span>
+                                <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">,</span> <span class="n">aggfunc</span><span class="o">=</span><span class="n">func</span><span class="p">,</span>
+                                <span class="n">margins</span><span class="o">=</span><span class="n">margins</span><span class="p">)</span>
+            <span class="n">pieces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+            <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">concat</span><span class="p">(</span><span class="n">pieces</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="n">keys</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">index</span> <span class="o">+</span> <span class="n">columns</span>
+
+    <span class="n">values_passed</span> <span class="o">=</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">values_passed</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">values_multi</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">values_multi</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">values</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">values_passed</span><span class="p">:</span>
+        <span class="n">to_filter</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">keys</span> <span class="o">+</span> <span class="n">values</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">Grouper</span><span class="p">):</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">key</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                    <span class="n">to_filter</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">to_filter</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">to_filter</span><span class="p">]</span>
+
+    <span class="n">grouped</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+    <span class="n">agged</span> <span class="o">=</span> <span class="n">grouped</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">aggfunc</span><span class="p">)</span>
+
+    <span class="n">table</span> <span class="o">=</span> <span class="n">agged</span>
+    <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">nlevels</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">to_unstack</span> <span class="o">=</span> <span class="p">[</span><span class="n">agged</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">or</span> <span class="n">i</span>
+                      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">))]</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">agged</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">to_unstack</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">dropna</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_arrays</span><span class="p">(</span><span class="n">cartesian_product</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">levels</span><span class="p">))</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">reindex_axis</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span> <span class="c"># it&#39;s a single level</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_arrays</span><span class="p">(</span><span class="n">cartesian_product</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">levels</span><span class="p">))</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">reindex_axis</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span> <span class="c"># it&#39;s a single level or a series</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">DataFrame</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">MultiIndex</span><span class="p">):</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">sortlevel</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">fill_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">,</span> <span class="n">downcast</span><span class="o">=</span><span class="s">&#39;infer&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">margins</span><span class="p">:</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">_add_margins</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
+                             <span class="n">cols</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">aggfunc</span><span class="o">=</span><span class="n">aggfunc</span><span class="p">)</span>
+
+    <span class="c"># discard the top level</span>
+    <span class="k">if</span> <span class="n">values_passed</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">values_multi</span><span class="p">:</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">return</span> <span class="n">table</span>
+
+
+<span class="n">DataFrame</span><span class="o">.</span><span class="n">pivot_table</span> <span class="o">=</span> <span class="n">pivot_table</span>
+
+
+<span class="k">def</span> <span class="nf">_add_margins</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">aggfunc</span><span class="p">):</span>
+
+    <span class="n">grand_margin</span> <span class="o">=</span> <span class="n">_compute_grand_margin</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">aggfunc</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">values</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">Series</span><span class="p">):</span>
+        <span class="c"># If there are no values and the table is a series, then there is only</span>
+        <span class="c"># one column in the data. Compute grand margin and return it.</span>
+        <span class="n">row_key</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;All&#39;</span><span class="p">,)</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s">&#39;All&#39;</span>
+        <span class="k">return</span> <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Series</span><span class="p">({</span><span class="n">row_key</span><span class="p">:</span> <span class="n">grand_margin</span><span class="p">[</span><span class="s">&#39;All&#39;</span><span class="p">]}))</span>
+
+    <span class="k">if</span> <span class="n">values</span><span class="p">:</span>
+        <span class="n">marginal_result_set</span> <span class="o">=</span> <span class="n">_generate_marginal_results</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">aggfunc</span><span class="p">,</span> <span class="n">grand_margin</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">marginal_result_set</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">marginal_result_set</span>
+        <span class="n">result</span><span class="p">,</span> <span class="n">margin_keys</span><span class="p">,</span> <span class="n">row_margin</span> <span class="o">=</span> <span class="n">marginal_result_set</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">marginal_result_set</span> <span class="o">=</span> <span class="n">_generate_marginal_results_without_values</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">aggfunc</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">marginal_result_set</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">marginal_result_set</span>
+        <span class="n">result</span><span class="p">,</span> <span class="n">margin_keys</span><span class="p">,</span> <span class="n">row_margin</span> <span class="o">=</span> <span class="n">marginal_result_set</span>
+
+    <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;All&#39;</span><span class="p">,)</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s">&#39;All&#39;</span>
+
+    <span class="n">row_margin</span> <span class="o">=</span> <span class="n">row_margin</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="c"># populate grand margin</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">margin_keys</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">compat</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="n">row_margin</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">grand_margin</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">row_margin</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">grand_margin</span><span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+    <span class="n">margin_dummy</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">row_margin</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="n">row_names</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">margin_dummy</span><span class="p">)</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="n">row_names</span>
+
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span> <span class="nf">_compute_grand_margin</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">aggfunc</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">values</span><span class="p">:</span>
+        <span class="n">grand_margin</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">values</span><span class="p">]</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aggfunc</span><span class="p">,</span> <span class="n">compat</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+                    <span class="n">grand_margin</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">aggfunc</span><span class="p">)()</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aggfunc</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aggfunc</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">compat</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+                        <span class="n">grand_margin</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">aggfunc</span><span class="p">[</span><span class="n">k</span><span class="p">])()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">grand_margin</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggfunc</span><span class="p">[</span><span class="n">k</span><span class="p">](</span><span class="n">v</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">grand_margin</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">aggfunc</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">grand_margin</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s">&#39;All&#39;</span><span class="p">:</span> <span class="n">aggfunc</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">)}</span>
+
+
+<span class="k">def</span> <span class="nf">_generate_marginal_results</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">aggfunc</span><span class="p">,</span> <span class="n">grand_margin</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c"># need to &quot;interleave&quot; the margins</span>
+        <span class="n">table_pieces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">margin_keys</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">def</span> <span class="nf">_all_key</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s">&#39;All&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">margin</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">rows</span> <span class="o">+</span> <span class="n">values</span><span class="p">]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">aggfunc</span><span class="p">)</span>
+            <span class="n">cat_axis</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">piece</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">cat_axis</span><span class="p">):</span>
+                <span class="n">all_key</span> <span class="o">=</span> <span class="n">_all_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+                <span class="c"># we are going to mutate this, so need to copy!</span>
+                <span class="n">piece</span> <span class="o">=</span> <span class="n">piece</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">piece</span><span class="p">[</span><span class="n">all_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">margin</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+                <span class="n">table_pieces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">piece</span><span class="p">)</span>
+                <span class="n">margin_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">all_key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">margin</span> <span class="o">=</span> <span class="n">grand_margin</span>
+            <span class="n">cat_axis</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">piece</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">cat_axis</span><span class="p">):</span>
+                <span class="n">all_key</span> <span class="o">=</span> <span class="n">_all_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="n">table_pieces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">piece</span><span class="p">)</span>
+                <span class="n">table_pieces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Series</span><span class="p">(</span><span class="n">margin</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">all_key</span><span class="p">]))</span>
+                <span class="n">margin_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">all_key</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">concat</span><span class="p">(</span><span class="n">table_pieces</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">cat_axis</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">table</span>
+        <span class="n">margin_keys</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">row_margin</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">cols</span> <span class="o">+</span> <span class="n">values</span><span class="p">]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">aggfunc</span><span class="p">)</span>
+        <span class="n">row_margin</span> <span class="o">=</span> <span class="n">row_margin</span><span class="o">.</span><span class="n">stack</span><span class="p">()</span>
+
+        <span class="c"># slight hack</span>
+        <span class="n">new_order</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)]</span> <span class="o">+</span> <span class="n">lrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">))</span>
+        <span class="n">row_margin</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">row_margin</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">reorder_levels</span><span class="p">(</span><span class="n">new_order</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">row_margin</span> <span class="o">=</span> <span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result</span><span class="p">,</span> <span class="n">margin_keys</span><span class="p">,</span> <span class="n">row_margin</span>
+
+
+<span class="k">def</span> <span class="nf">_generate_marginal_results_without_values</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">aggfunc</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c"># need to &quot;interleave&quot; the margins</span>
+        <span class="n">margin_keys</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">def</span> <span class="nf">_all_key</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s">&#39;All&#39;</span>
+            <span class="k">return</span> <span class="p">(</span><span class="s">&#39;All&#39;</span><span class="p">,</span> <span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">margin</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">rows</span><span class="p">]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">aggfunc</span><span class="p">)</span>
+            <span class="n">all_key</span> <span class="o">=</span> <span class="n">_all_key</span><span class="p">()</span>
+            <span class="n">table</span><span class="p">[</span><span class="n">all_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">margin</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">table</span>
+            <span class="n">margin_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">all_key</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">margin</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">aggfunc</span><span class="p">)</span>
+            <span class="n">all_key</span> <span class="o">=</span> <span class="n">_all_key</span><span class="p">()</span>
+            <span class="n">table</span><span class="p">[</span><span class="n">all_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">margin</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">table</span>
+            <span class="n">margin_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">all_key</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">result</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">table</span>
+        <span class="n">margin_keys</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">columns</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
+        <span class="n">row_margin</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">aggfunc</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">row_margin</span> <span class="o">=</span> <span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result</span><span class="p">,</span> <span class="n">margin_keys</span><span class="p">,</span> <span class="n">row_margin</span>
+
+
+<span class="k">def</span> <span class="nf">_convert_by</span><span class="p">(</span><span class="n">by</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">by</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">by</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">by</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">by</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Index</span><span class="p">,</span> <span class="n">Series</span><span class="p">,</span> <span class="n">Grouper</span><span class="p">))</span>
+          <span class="ow">or</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">by</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">)):</span>
+        <span class="n">by</span> <span class="o">=</span> <span class="p">[</span><span class="n">by</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">by</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">by</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">by</span>
+
+<span class="k">def</span> <span class="nf">crosstab</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rownames</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+             <span class="n">aggfunc</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">margins</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">dropna</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute a simple cross-tabulation of two (or more) factors. By default</span>
+<span class="sd">    computes a frequency table of the factors unless an array of values and an</span>
+<span class="sd">    aggregation function are passed</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    index : array-like, Series, or list of arrays/Series</span>
+<span class="sd">        Values to group by in the rows</span>
+<span class="sd">    columns : array-like, Series, or list of arrays/Series</span>
+<span class="sd">        Values to group by in the columns</span>
+<span class="sd">    values : array-like, optional</span>
+<span class="sd">        Array of values to aggregate according to the factors</span>
+<span class="sd">    aggfunc : function, optional</span>
+<span class="sd">        If no values array is passed, computes a frequency table</span>
+<span class="sd">    rownames : sequence, default None</span>
+<span class="sd">        If passed, must match number of row arrays passed</span>
+<span class="sd">    colnames : sequence, default None</span>
+<span class="sd">        If passed, must match number of column arrays passed</span>
+<span class="sd">    margins : boolean, default False</span>
+<span class="sd">        Add row/column margins (subtotals)</span>
+<span class="sd">    dropna : boolean, default True</span>
+<span class="sd">        Do not include columns whose entries are all NaN</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Any Series passed will have their name attributes used unless row or column</span>
+<span class="sd">    names for the cross-tabulation are specified</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; a</span>
+<span class="sd">    array([foo, foo, foo, foo, bar, bar,</span>
+<span class="sd">           bar, bar, foo, foo, foo], dtype=object)</span>
+<span class="sd">    &gt;&gt;&gt; b</span>
+<span class="sd">    array([one, one, one, two, one, one,</span>
+<span class="sd">           one, two, two, two, one], dtype=object)</span>
+<span class="sd">    &gt;&gt;&gt; c</span>
+<span class="sd">    array([dull, dull, shiny, dull, dull, shiny,</span>
+<span class="sd">           shiny, dull, shiny, shiny, shiny], dtype=object)</span>
+
+<span class="sd">    &gt;&gt;&gt; crosstab(a, [b, c], rownames=[&#39;a&#39;], colnames=[&#39;b&#39;, &#39;c&#39;])</span>
+<span class="sd">    b    one          two</span>
+<span class="sd">    c    dull  shiny  dull  shiny</span>
+<span class="sd">    a</span>
+<span class="sd">    bar  1     2      1     0</span>
+<span class="sd">    foo  2     2      1     2</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    crosstab : DataFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">index</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">_maybe_make_list</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">_maybe_make_list</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span>
+
+    <span class="n">rownames</span> <span class="o">=</span> <span class="n">_get_names</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">rownames</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;row&#39;</span><span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="n">_get_names</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;col&#39;</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">rownames</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">colnames</span><span class="p">,</span> <span class="n">columns</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s">&#39;__dummy__&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="s">&#39;__dummy__&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">rownames</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">colnames</span><span class="p">,</span>
+                               <span class="n">aggfunc</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">margins</span><span class="o">=</span><span class="n">margins</span><span class="p">,</span> <span class="n">dropna</span><span class="o">=</span><span class="n">dropna</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">table</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;__dummy__&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="s">&#39;__dummy__&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">rownames</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">colnames</span><span class="p">,</span>
+                               <span class="n">aggfunc</span><span class="o">=</span><span class="n">aggfunc</span><span class="p">,</span> <span class="n">margins</span><span class="o">=</span><span class="n">margins</span><span class="p">,</span> <span class="n">dropna</span><span class="o">=</span><span class="n">dropna</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">table</span>
+
+
+<span class="k">def</span> <span class="nf">_get_names</span><span class="p">(</span><span class="n">arrs</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;row&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">arr</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">arrs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">Series</span><span class="p">)</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">_</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrs</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;arrays and names must have the same length&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">names</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+    </p>
+  </div>
+
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

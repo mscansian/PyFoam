@@ -1,0 +1,487 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.UpgradeDictionariesTo20 &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.UpgradeDictionariesTo20</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.UpgradeDictionariesTo20</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application class that implements pyFoamUpgradeDictionariesTo20</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+<span class="kn">from</span> <span class="nn">.UpgradeDictionariesTo17</span> <span class="kn">import</span> <span class="n">UpgradeDictionariesTo17</span><span class="p">,</span><span class="n">DictionaryUpgradeInfo</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.DataStructures</span> <span class="kn">import</span> <span class="n">DictProxy</span><span class="p">,</span><span class="n">TupleProxy</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+
+<div class="viewcode-block" id="ReactionFileUpgradeInfo"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo">[docs]</a><span class="k">class</span> <span class="nc">ReactionFileUpgradeInfo</span><span class="p">(</span><span class="n">DictionaryUpgradeInfo</span><span class="p">):</span>
+<div class="viewcode-block" id="ReactionFileUpgradeInfo.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">DictionaryUpgradeInfo</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">noHeader</span><span class="o">=</span><span class="bp">True</span></div>
+
+<div class="viewcode-block" id="ReactionFileUpgradeInfo.name"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;reactionFile20&quot;</span></div>
+
+<div class="viewcode-block" id="ReactionFileUpgradeInfo.location"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.location">[docs]</a>    <span class="k">def</span> <span class="nf">location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span><span class="s2">&quot;reactions&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReactionFileUpgradeInfo.checkUpgrade"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.checkUpgrade">[docs]</a>    <span class="k">def</span> <span class="nf">checkUpgrade</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">content</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;reactions&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="s2">&quot;reactions&quot;</span><span class="p">])</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">list</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ReactionFileUpgradeInfo.makeCoeffList"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.makeCoeffList">[docs]</a>    <span class="k">def</span> <span class="nf">makeCoeffList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">raw</span><span class="p">,</span><span class="n">default</span><span class="p">,</span><span class="n">specNames</span><span class="p">):</span>
+        <span class="n">specs</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="n">specNames</span><span class="p">)</span>
+        <span class="n">lst</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">s</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">raw</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">],</span><span class="n">raw</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]):</span>
+            <span class="n">lst</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">s</span><span class="p">,</span><span class="n">v</span><span class="p">])</span>
+            <span class="n">specs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">:</span>
+            <span class="n">lst</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">s</span><span class="p">,</span><span class="n">default</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">lst</span></div>
+
+<div class="viewcode-block" id="ReactionFileUpgradeInfo.manipulate"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.manipulate">[docs]</a>    <span class="k">def</span> <span class="nf">manipulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">content</span><span class="p">):</span>
+        <span class="n">newReactions</span><span class="o">=</span><span class="n">DictProxy</span><span class="p">()</span>
+        <span class="n">rData</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">content</span><span class="p">[</span><span class="s2">&quot;reactions&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">::</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)])</span>
+        <span class="n">cnt</span><span class="o">=</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">rType</span><span class="p">,</span><span class="n">scheme</span><span class="p">,</span><span class="n">parameters</span> <span class="ow">in</span> <span class="n">rData</span><span class="p">:</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;reaction</span><span class="si">%d</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">cnt</span>
+            <span class="n">cnt</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="n">r</span><span class="o">=</span><span class="p">{}</span>
+            <span class="n">r</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">rType</span>
+            <span class="n">r</span><span class="p">[</span><span class="s2">&quot;reaction&quot;</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;&quot;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">scheme</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span>
+            <span class="k">if</span> <span class="n">rType</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;irreversibleArrheniusReaction&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;reversibleArrheniusReaction&quot;</span><span class="p">]:</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;Ta&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">rType</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;reversiblethirdBodyArrheniusReaction&quot;</span><span class="p">]:</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;Ta&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;defaultEfficiency&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;coeffs&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeCoeffList</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:],</span>
+                                               <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                               <span class="n">content</span><span class="p">[</span><span class="s2">&quot;species&quot;</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">rType</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;reversibleArrheniusLindemannFallOffReaction&quot;</span><span class="p">]:</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;k0&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;k0&quot;</span><span class="p">][</span><span class="s2">&quot;A&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;k0&quot;</span><span class="p">][</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;k0&quot;</span><span class="p">][</span><span class="s2">&quot;Ta&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;kInf&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;kInf&quot;</span><span class="p">][</span><span class="s2">&quot;A&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;kInf&quot;</span><span class="p">][</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;kInf&quot;</span><span class="p">][</span><span class="s2">&quot;Ta&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;F&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;thirdBodyEfficiencies&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;thirdBodyEfficiencies&quot;</span><span class="p">][</span><span class="s2">&quot;defaultEfficiency&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;thirdBodyEfficiencies&quot;</span><span class="p">][</span><span class="s2">&quot;coeffs&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeCoeffList</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">:],</span>
+                                                                        <span class="n">parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                                                        <span class="n">content</span><span class="p">[</span><span class="s2">&quot;species&quot;</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">rType</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;reversibleArrheniusTroeFallOffReaction&quot;</span><span class="p">]:</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;k0&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;k0&quot;</span><span class="p">][</span><span class="s2">&quot;A&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;k0&quot;</span><span class="p">][</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;k0&quot;</span><span class="p">][</span><span class="s2">&quot;Ta&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;kInf&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;kInf&quot;</span><span class="p">][</span><span class="s2">&quot;A&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;kInf&quot;</span><span class="p">][</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;kInf&quot;</span><span class="p">][</span><span class="s2">&quot;Ta&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;F&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;F&quot;</span><span class="p">][</span><span class="s2">&quot;alpha&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;F&quot;</span><span class="p">][</span><span class="s2">&quot;Tsss&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;F&quot;</span><span class="p">][</span><span class="s2">&quot;Ts&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;F&quot;</span><span class="p">][</span><span class="s2">&quot;Tss&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;thirdBodyEfficiencies&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;thirdBodyEfficiencies&quot;</span><span class="p">][</span><span class="s2">&quot;defaultEfficiency&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;thirdBodyEfficiencies&quot;</span><span class="p">][</span><span class="s2">&quot;coeffs&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeCoeffList</span><span class="p">(</span><span class="n">parameters</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">:],</span>
+                                                                        <span class="n">parameters</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                                                        <span class="n">content</span><span class="p">[</span><span class="s2">&quot;species&quot;</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">&quot;unsupported&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">parameters</span>
+            <span class="n">newReactions</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">r</span>
+        <span class="n">content</span><span class="p">[</span><span class="s2">&quot;reactions&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">newReactions</span></div></div>
+
+<div class="viewcode-block" id="BlockMeshUpgradeInfo"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo">[docs]</a><span class="k">class</span> <span class="nc">BlockMeshUpgradeInfo</span><span class="p">(</span><span class="n">DictionaryUpgradeInfo</span><span class="p">):</span>
+<div class="viewcode-block" id="BlockMeshUpgradeInfo.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">DictionaryUpgradeInfo</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BlockMeshUpgradeInfo.name"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;blockMesh20&quot;</span></div>
+
+<div class="viewcode-block" id="BlockMeshUpgradeInfo.location"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.location">[docs]</a>    <span class="k">def</span> <span class="nf">location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span><span class="s2">&quot;polyMesh&quot;</span><span class="p">,</span><span class="s2">&quot;blockMeshDict&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BlockMeshUpgradeInfo.checkUpgrade"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.checkUpgrade">[docs]</a>    <span class="k">def</span> <span class="nf">checkUpgrade</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">content</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;boundary&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">content</span></div>
+
+<div class="viewcode-block" id="BlockMeshUpgradeInfo.manipulate"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.manipulate">[docs]</a>    <span class="k">def</span> <span class="nf">manipulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">content</span><span class="p">):</span>
+        <span class="n">p</span><span class="o">=</span><span class="n">content</span><span class="p">[</span><span class="s2">&quot;patches&quot;</span><span class="p">]</span>
+        <span class="n">bnd</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">f</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">3</span><span class="p">],</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">3</span><span class="p">],</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">::</span><span class="mi">3</span><span class="p">]):</span>
+            <span class="n">bnd</span><span class="o">+=</span><span class="p">[</span> <span class="n">n</span><span class="p">,</span> <span class="p">{</span> <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="n">t</span><span class="p">,</span>
+                        <span class="s2">&quot;faces&quot;</span> <span class="p">:</span> <span class="n">f</span> <span class="p">}]</span>
+        <span class="n">content</span><span class="p">[</span><span class="s2">&quot;boundary&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">bnd</span></div></div>
+
+<div class="viewcode-block" id="ThermophysicalUpgradeInfo"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo">[docs]</a><span class="k">class</span> <span class="nc">ThermophysicalUpgradeInfo</span><span class="p">(</span><span class="n">DictionaryUpgradeInfo</span><span class="p">):</span>
+<div class="viewcode-block" id="ThermophysicalUpgradeInfo.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">DictionaryUpgradeInfo</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ThermophysicalUpgradeInfo.name"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;thermophysical20&quot;</span></div>
+
+<div class="viewcode-block" id="ThermophysicalUpgradeInfo.location"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.location">[docs]</a>    <span class="k">def</span> <span class="nf">location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span><span class="s2">&quot;thermophysicalProperties&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ThermophysicalUpgradeInfo.analyzeThermoType"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.analyzeThermoType">[docs]</a>    <span class="k">def</span> <span class="nf">analyzeThermoType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">content</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;thermoType&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&lt;&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ThermophysicalUpgradeInfo.checkUpgrade"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.checkUpgrade">[docs]</a>    <span class="k">def</span> <span class="nf">checkUpgrade</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">content</span><span class="p">):</span>
+        <span class="n">tt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">analyzeThermoType</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tt</span><span class="p">)</span><span class="o">!=</span><span class="mi">6</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">for</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">content</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="ow">in</span>  <span class="p">[</span><span class="nb">tuple</span><span class="p">,</span><span class="n">TupleProxy</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">4</span><span class="p">:</span> <span class="c1"># Maybe there is a better criterium</span>
+                    <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="ThermophysicalUpgradeInfo.manipulate"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.manipulate">[docs]</a>    <span class="k">def</span> <span class="nf">manipulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">content</span><span class="p">):</span>
+        <span class="n">what</span><span class="p">,</span><span class="n">mix</span><span class="p">,</span><span class="n">trans</span><span class="p">,</span><span class="n">spec</span><span class="p">,</span><span class="n">therm</span><span class="p">,</span><span class="n">gas</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">analyzeThermoType</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">content</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span>
+            <span class="n">used</span><span class="o">=</span><span class="mi">0</span>
+
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span>  <span class="p">[</span><span class="nb">tuple</span><span class="p">,</span><span class="n">TupleProxy</span><span class="p">]:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">5</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">transDict</span><span class="o">=</span><span class="p">{}</span>
+            <span class="k">if</span> <span class="n">trans</span><span class="o">==</span><span class="s2">&quot;constTransport&quot;</span><span class="p">:</span>
+                <span class="n">transDict</span><span class="p">[</span><span class="s2">&quot;Pr&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">transDict</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">used</span><span class="o">+=</span><span class="mi">2</span>
+            <span class="k">elif</span> <span class="n">trans</span><span class="o">==</span><span class="s2">&quot;sutherlandTransport&quot;</span><span class="p">:</span>
+                <span class="n">transDict</span><span class="p">[</span><span class="s2">&quot;Ts&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">transDict</span><span class="p">[</span><span class="s2">&quot;As&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">used</span><span class="o">+=</span><span class="mi">2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Transport type&quot;</span><span class="p">,</span><span class="n">trans</span><span class="p">,</span><span class="s2">&quot;not implemented&quot;</span><span class="p">)</span>
+
+            <span class="n">thermDict</span><span class="o">=</span><span class="p">{}</span>
+            <span class="k">if</span> <span class="n">therm</span><span class="o">==</span><span class="s2">&quot;hConstThermo&quot;</span><span class="p">:</span>
+                <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;Hf&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;Cp&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">used</span><span class="o">+=</span><span class="mi">2</span>
+            <span class="k">elif</span> <span class="n">therm</span><span class="o">==</span><span class="s2">&quot;eConstThermo&quot;</span><span class="p">:</span>
+                <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;Hf&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;Cv&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">used</span><span class="o">+=</span><span class="mi">2</span>
+            <span class="k">elif</span> <span class="n">therm</span><span class="o">==</span><span class="s2">&quot;janafThermo&quot;</span><span class="p">:</span>
+                <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;lowCpCoeffs&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">7</span><span class="o">-</span><span class="n">used</span><span class="p">:</span><span class="o">-</span><span class="mi">0</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;highCpCoeffs&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">14</span><span class="o">-</span><span class="n">used</span><span class="p">:</span><span class="o">-</span><span class="mi">7</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;Tcommon&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">15</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;Thigh&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">16</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;Tlow&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">17</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">used</span><span class="o">+=</span><span class="mi">2</span><span class="o">*</span><span class="mi">7</span><span class="o">+</span><span class="mi">3</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Thermodynamics type&quot;</span><span class="p">,</span><span class="n">therm</span><span class="p">,</span><span class="s2">&quot;not implemented&quot;</span><span class="p">)</span>
+
+            <span class="n">specDict</span><span class="o">=</span><span class="p">{}</span>
+            <span class="k">if</span> <span class="n">spec</span><span class="o">==</span><span class="s2">&quot;specieThermo&quot;</span><span class="p">:</span>
+                <span class="n">specDict</span><span class="p">[</span><span class="s2">&quot;molWeight&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">specDict</span><span class="p">[</span><span class="s2">&quot;nMoles&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="o">-</span><span class="n">used</span><span class="p">]</span>
+                <span class="n">used</span><span class="o">+=</span><span class="mi">2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Specie type&quot;</span><span class="p">,</span><span class="n">spec</span><span class="p">,</span><span class="s2">&quot;not implemented&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">!=</span><span class="n">used</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Not all data for&quot;</span><span class="p">,</span><span class="n">nm</span><span class="p">,</span><span class="s2">&quot;used&quot;</span><span class="p">)</span>
+
+            <span class="n">comment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeComment</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">content</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;specie&quot;</span><span class="p">:</span><span class="n">specDict</span><span class="p">,</span>
+                         <span class="s2">&quot;thermodynamics&quot;</span><span class="p">:</span><span class="n">thermDict</span><span class="p">,</span>
+                         <span class="s2">&quot;transport&quot;</span><span class="p">:</span><span class="n">transDict</span><span class="p">}</span>
+            <span class="n">content</span><span class="o">.</span><span class="n">addDecoration</span><span class="p">(</span><span class="n">nm</span><span class="p">,</span><span class="n">comment</span><span class="p">)</span></div></div>
+
+<span class="c1">##            gasDict={}</span>
+<span class="c1">##            if gas==&quot;perfectGas&quot;:</span>
+<span class="c1">##                pass</span>
+<span class="c1">##            else:</span>
+<span class="c1">##                error(&quot;Gas type&quot;,gas,&quot;not implemented&quot;)</span>
+
+<div class="viewcode-block" id="ThermophysicalDataUpgradeInfo"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo">[docs]</a><span class="k">class</span> <span class="nc">ThermophysicalDataUpgradeInfo</span><span class="p">(</span><span class="n">DictionaryUpgradeInfo</span><span class="p">):</span>
+<div class="viewcode-block" id="ThermophysicalDataUpgradeInfo.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">DictionaryUpgradeInfo</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listDict</span><span class="o">=</span><span class="bp">True</span></div>
+
+<div class="viewcode-block" id="ThermophysicalDataUpgradeInfo.name"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;thermophysicalData20&quot;</span></div>
+
+<div class="viewcode-block" id="ThermophysicalDataUpgradeInfo.location"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.location">[docs]</a>    <span class="k">def</span> <span class="nf">location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span><span class="s2">&quot;thermoData&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ThermophysicalDataUpgradeInfo.checkUpgrade"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.checkUpgrade">[docs]</a>    <span class="k">def</span> <span class="nf">checkUpgrade</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">content</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">list</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="ThermophysicalDataUpgradeInfo.manipulate"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.manipulate">[docs]</a>    <span class="k">def</span> <span class="nf">manipulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">content</span><span class="p">):</span>
+        <span class="n">lenData</span><span class="o">=</span><span class="mi">2</span><span class="o">+</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="mi">7</span><span class="o">+</span><span class="mi">3</span><span class="p">)</span><span class="o">+</span><span class="mi">2</span>
+        <span class="n">rawData</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">content</span><span class="p">[</span><span class="n">i</span><span class="p">::</span><span class="n">lenData</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lenData</span><span class="p">)])</span>
+        <span class="n">content</span><span class="o">=</span><span class="n">DictProxy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">rawData</span><span class="p">:</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+            <span class="n">used</span><span class="o">=</span><span class="mi">0</span>
+
+            <span class="n">specDict</span><span class="o">=</span><span class="p">{}</span>
+            <span class="n">specDict</span><span class="p">[</span><span class="s2">&quot;nMoles&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">used</span><span class="p">]</span>
+            <span class="n">specDict</span><span class="p">[</span><span class="s2">&quot;molWeight&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">used</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">used</span><span class="o">+=</span><span class="mi">2</span>
+
+            <span class="n">thermDict</span><span class="o">=</span><span class="p">{}</span>
+            <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;Tlow&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">used</span><span class="p">]</span>
+            <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;Thigh&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">used</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;Tcommon&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">used</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;highCpCoeffs&quot;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">used</span><span class="o">+</span><span class="mi">3</span><span class="p">:</span><span class="n">used</span><span class="o">+</span><span class="mi">3</span><span class="o">+</span><span class="mi">7</span><span class="p">])</span>
+            <span class="n">thermDict</span><span class="p">[</span><span class="s2">&quot;lowCpCoeffs&quot;</span><span class="p">]</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">used</span><span class="o">+</span><span class="mi">3</span><span class="o">+</span><span class="mi">7</span><span class="p">:</span><span class="n">used</span><span class="o">+</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="mi">7</span><span class="p">])</span>
+            <span class="n">used</span><span class="o">+=</span><span class="mi">2</span><span class="o">*</span><span class="mi">7</span><span class="o">+</span><span class="mi">3</span>
+
+            <span class="n">transDict</span><span class="o">=</span><span class="p">{}</span>
+            <span class="n">transDict</span><span class="p">[</span><span class="s2">&quot;As&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">used</span><span class="p">]</span>
+            <span class="n">transDict</span><span class="p">[</span><span class="s2">&quot;Ts&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">used</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">used</span><span class="o">+=</span><span class="mi">2</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">!=</span><span class="n">used</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Not all data for&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;used:&quot;</span><span class="p">,</span><span class="n">used</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
+            <span class="n">comment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeComment</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="n">content</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;specie&quot;</span><span class="p">:</span><span class="n">specDict</span><span class="p">,</span>
+                           <span class="s2">&quot;thermodynamics&quot;</span><span class="p">:</span><span class="n">thermDict</span><span class="p">,</span>
+                           <span class="s2">&quot;transport&quot;</span><span class="p">:</span><span class="n">transDict</span><span class="p">}</span>
+            <span class="n">content</span><span class="o">.</span><span class="n">addDecoration</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">comment</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">content</span></div></div>
+
+<div class="viewcode-block" id="UpgradeDictionariesTo20"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.UpgradeDictionariesTo20">[docs]</a><span class="k">class</span> <span class="nc">UpgradeDictionariesTo20</span><span class="p">(</span><span class="n">UpgradeDictionariesTo17</span><span class="p">):</span>
+<div class="viewcode-block" id="UpgradeDictionariesTo20.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.UpgradeDictionariesTo20.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Examines dictionaries in a case and tries to upgrade them to a form</span>
+<span class="s2">that is compatible with OpenFOAM 2.0</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">UpgradeDictionariesTo17</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                         <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                         <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                         <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UpgradeDictionariesTo20.addDicts"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo20.html#PyFoam.Applications.UpgradeDictionariesTo20.UpgradeDictionariesTo20.addDicts">[docs]</a>    <span class="k">def</span> <span class="nf">addDicts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">UpgradeDictionariesTo17</span><span class="o">.</span><span class="n">addDicts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dicts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">BlockMeshUpgradeInfo</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dicts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ThermophysicalUpgradeInfo</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dicts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ThermophysicalDataUpgradeInfo</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dicts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ReactionFileUpgradeInfo</span><span class="p">())</span></div></div>
+
+<span class="c1">##    def addOptions(self):</span>
+<span class="c1">##        UpgradeDictionariesTo17.addOptions(self)</span>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

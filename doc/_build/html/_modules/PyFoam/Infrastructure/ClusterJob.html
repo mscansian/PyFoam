@@ -1,0 +1,852 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Infrastructure.ClusterJob &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Infrastructure.ClusterJob</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Infrastructure.ClusterJob</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Encapsulates all necessary things for a cluster-job, like setting</span>
+<span class="sd">up, running, restarting&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span><span class="nn">sys</span><span class="o">,</span><span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">unlink</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span><span class="p">,</span><span class="n">Lock</span><span class="p">,</span><span class="n">Timer</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.Decomposer</span> <span class="kn">import</span> <span class="n">Decomposer</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.Runner</span> <span class="kn">import</span> <span class="n">Runner</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.SteadyRunner</span> <span class="kn">import</span> <span class="n">SteadyRunner</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.CloneCase</span> <span class="kn">import</span> <span class="n">CloneCase</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.FromTemplate</span> <span class="kn">import</span> <span class="n">FromTemplate</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.PrepareCase</span> <span class="kn">import</span> <span class="n">PrepareCase</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.RunParameterVariation</span> <span class="kn">import</span> <span class="n">RunParameterVariation</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">changeFoamVersion</span>
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">foamVersion</span> <span class="k">as</span> <span class="n">getFoamVersion</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">config</span>
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">oldAppConvention</span> <span class="k">as</span> <span class="n">oldApp</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">iteritems</span>
+
+<div class="viewcode-block" id="checkForMessageFromAbove"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.checkForMessageFromAbove">[docs]</a><span class="k">def</span> <span class="nf">checkForMessageFromAbove</span><span class="p">(</span><span class="n">job</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">job</span><span class="o">.</span><span class="n">listenToTimer</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">stopFile</span><span class="p">()):</span>
+        <span class="n">job</span><span class="o">.</span><span class="n">stopJob</span><span class="p">()</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">checkpointFile</span><span class="p">()):</span>
+        <span class="n">job</span><span class="o">.</span><span class="n">writeCheckpoint</span><span class="p">()</span>
+
+    <span class="n">job</span><span class="o">.</span><span class="n">timer</span><span class="o">=</span><span class="n">Timer</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="n">checkForMessageFromAbove</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">job</span><span class="p">])</span>
+    <span class="n">job</span><span class="o">.</span><span class="n">timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ClusterJob"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob">[docs]</a><span class="k">class</span> <span class="nc">ClusterJob</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; All Cluster-jobs are to be derived from this base-class</span>
+
+<span class="sd">    The actual jobs are implemented by overriding methods</span>
+
+<span class="sd">    There is a number of variables in this class that are used to</span>
+<span class="sd">    &#39;communicate&#39; information between the various stages&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ClusterJob.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">basename</span><span class="p">,</span>
+                 <span class="n">arrayJob</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">hardRestart</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">autoParallel</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">doAutoReconstruct</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">foamVersion</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">compileOption</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">useFoamMPI</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">multiRegion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">parameters</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="n">isDecomposed</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes the Job</span>
+<span class="sd">        :param basename: Basis name of the job</span>
+<span class="sd">        :param arrayJob: this job is a parameter variation. The tasks</span>
+<span class="sd">        are identified by their task-id</span>
+<span class="sd">        :param hardRestart: treat the job as restarted</span>
+<span class="sd">        :param autoParallel: Parallelization is handled by the base-class</span>
+<span class="sd">        :param doAutoReconstruct: Automatically reconstruct the case if</span>
+<span class="sd">        autoParalellel is set. If the value is None then it is looked up from</span>
+<span class="sd">        the configuration</span>
+<span class="sd">        :param foamVersion: The foam-Version that is to be used</span>
+<span class="sd">        :param compileOption: Forces compile-option (usually &#39;Opt&#39; or &#39;Debug&#39;)</span>
+<span class="sd">        :param useFoamMPI: Use the OpenMPI supplied with OpenFOAM</span>
+<span class="sd">        :param multiRegion: This job consists of multiple regions</span>
+<span class="sd">        :param parameters: Dictionary with parameters that are being passed to the Runner</span>
+<span class="sd">        :param isDecomposed: Assume that the job is already decomposed&quot;&quot;&quot;</span>
+
+        <span class="c1">#        print_(os.environ)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;JOB_ID&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Not an SGE-job. Environment variable JOB_ID is missing&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jobID</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;JOB_ID&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jobName</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;JOB_NAME&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">curdir</span><span class="p">),</span><span class="n">basename</span><span class="p">)</span>
+
+        <span class="n">sgeRestarted</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">if</span> <span class="s2">&quot;RESTARTED&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="n">sgeRestarted</span><span class="o">=</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;RESTARTED&quot;</span><span class="p">])</span><span class="o">!=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sgeRestarted</span> <span class="ow">or</span> <span class="n">hardRestart</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">restarted</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">restarted</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">if</span> <span class="n">foamVersion</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">foamVersion</span><span class="o">=</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;OpenFOAM&quot;</span><span class="p">,</span><span class="s2">&quot;Version&quot;</span><span class="p">)</span>
+
+        <span class="n">changeFoamVersion</span><span class="p">(</span><span class="n">foamVersion</span><span class="p">,</span><span class="n">compileOption</span><span class="o">=</span><span class="n">compileOption</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;WM_PROJECT_VERSION&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No OpenFOAM-Version seems to be configured. Set the foamVersion-parameter&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">autoParallel</span><span class="o">=</span><span class="n">autoParallel</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">doAutoReconstruct</span><span class="o">=</span><span class="n">doAutoReconstruct</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doAutoReconstruct</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doAutoReconstruct</span><span class="o">=</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;ClusterJob&quot;</span><span class="p">,</span><span class="s2">&quot;doAutoReconstruct&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">multiRegion</span><span class="o">=</span><span class="n">multiRegion</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">hostfile</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nproc</span><span class="o">=</span><span class="mi">1</span>
+
+        <span class="k">if</span> <span class="s2">&quot;NSLOTS&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nproc</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NSLOTS&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Running on&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nproc</span><span class="p">,</span><span class="s2">&quot;CPUs&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nproc</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># self.hostfile=os.environ[&quot;PE_HOSTFILE&quot;]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hostfile</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TMP&quot;</span><span class="p">],</span><span class="s2">&quot;machines&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;ClusterJob&quot;</span><span class="p">,</span><span class="s2">&quot;useMachineFile&quot;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Using the machinefile&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">hostfile</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Contents of the machinefile:&quot;</span><span class="p">,</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hostfile</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;No machinefile used because switched off with &#39;useMachineFile&#39;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ordinaryEnd</span><span class="o">=</span><span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listenToTimer</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">taskID</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arrayJob</span><span class="o">=</span><span class="n">arrayJob</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrayJob</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">taskID</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;SGE_TASK_ID&quot;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">useFoamMPI</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">foamVersion</span> <span class="ow">in</span> <span class="nb">eval</span><span class="p">(</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ClusterJob&quot;</span><span class="p">,</span><span class="s2">&quot;useFoamMPI&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s1">&#39;[]&#39;</span><span class="p">)):</span>
+        <span class="c1">## prepend special paths for the cluster</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Adding Cluster-specific paths&quot;</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PATH&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ClusterJob&quot;</span><span class="p">,</span><span class="s2">&quot;path&quot;</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;:&quot;</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PATH&quot;</span><span class="p">]</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;LD_LIBRARY_PATH&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ClusterJob&quot;</span><span class="p">,</span><span class="s2">&quot;ldpath&quot;</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;:&quot;</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;LD_LIBRARY_PATH&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">isDecomposed</span><span class="o">=</span><span class="n">isDecomposed</span></div>
+
+<div class="viewcode-block" id="ClusterJob.fullJobId"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.fullJobId">[docs]</a>    <span class="k">def</span> <span class="nf">fullJobId</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a string with the full job-ID&quot;&quot;&quot;</span>
+        <span class="n">result</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jobID</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrayJob</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;:&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskID</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="ClusterJob.message"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.message">[docs]</a>    <span class="k">def</span> <span class="nf">message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">txt</span><span class="p">):</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;=== CLUSTERJOB: &quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">txt</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot; ===&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ClusterJob.setState"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.setState">[docs]</a>    <span class="k">def</span> <span class="nf">setState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">txt</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Setting Job state to&quot;</span><span class="p">,</span><span class="n">txt</span><span class="p">)</span>
+        <span class="n">fName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">casedir</span><span class="p">(),</span><span class="s2">&quot;ClusterJobState&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">txt</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ClusterJob.jobFile"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.jobFile">[docs]</a>    <span class="k">def</span> <span class="nf">jobFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The file with the job information&quot;&quot;&quot;</span>
+        <span class="n">jobfile</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jobName</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">jobID</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrayJob</span><span class="p">:</span>
+            <span class="n">jobfile</span><span class="o">+=</span><span class="s2">&quot;.</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskID</span>
+        <span class="n">jobfile</span><span class="o">+=</span><span class="s2">&quot;.pyFoam.clusterjob&quot;</span>
+        <span class="n">jobfile</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="p">),</span><span class="n">jobfile</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">jobfile</span></div>
+
+<div class="viewcode-block" id="ClusterJob.checkpointFile"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.checkpointFile">[docs]</a>    <span class="k">def</span> <span class="nf">checkpointFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The file that makes the job write a checkpoint&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobFile</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;.checkpoint&quot;</span></div>
+
+<div class="viewcode-block" id="ClusterJob.stopFile"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.stopFile">[docs]</a>    <span class="k">def</span> <span class="nf">stopFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The file that makes the job write a checkpoint and end&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobFile</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;.stop&quot;</span></div>
+
+<div class="viewcode-block" id="ClusterJob.doIt"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.doIt">[docs]</a>    <span class="k">def</span> <span class="nf">doIt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The central logic. Runs the job, sets it up etc&quot;&quot;&quot;</span>
+
+        <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jobFile</span><span class="p">(),</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Running on directory&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">casename</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="s2">&quot;Starting up&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrayJob</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskParameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskID</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">v</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">additionalParameters</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Parameters:&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">restarted</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="s2">&quot;Setting up&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoParallel</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">nproc</span><span class="o">&gt;</span><span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isDecomposed</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="s2">&quot;Decomposing&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">autoDecompose</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">isDecomposed</span><span class="o">=</span><span class="bp">True</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="s2">&quot;Setting up 2&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">postDecomposeSetup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="s2">&quot;Restarting&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">isDecomposed</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="s2">&quot;Running&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listenToTimer</span><span class="o">=</span><span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer</span><span class="o">=</span><span class="n">Timer</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="n">checkForMessageFromAbove</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listenToTimer</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jobFile</span><span class="p">()):</span>
+            <span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jobFile</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordinaryEnd</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="s2">&quot;Post Running&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">preReconstructCleanup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoParallel</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">nproc</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="s2">&quot;Reconstructing&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">autoReconstruct</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nproc</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">additionalReconstruct</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="s2">&quot;Cleaning&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="s2">&quot;Finished&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="s2">&quot;Suspended&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stopFile</span><span class="p">()):</span>
+            <span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stopFile</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">checkpointFile</span><span class="p">()):</span>
+            <span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">checkpointFile</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ClusterJob.casedir"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.casedir">[docs]</a>    <span class="k">def</span> <span class="nf">casedir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the actual directory of the case</span>
+<span class="sd">        To be overridden if appropriate&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">arrayJob</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%05d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">taskID</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">basename</span></div>
+
+<div class="viewcode-block" id="ClusterJob.casename"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.casename">[docs]</a>    <span class="k">def</span> <span class="nf">casename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns just the name of the case&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">casedir</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ClusterJob.execute"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cmd</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Execute a shell command in the case directory. No checking done</span>
+<span class="sd">        :param cmd: the command as a string&quot;&quot;&quot;</span>
+        <span class="n">oldDir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Changing directory to&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">casedir</span><span class="p">())</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">casedir</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Executing&quot;</span><span class="p">,</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">retcode</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span><span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">retcode</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span><span class="s2">&quot;was terminated by signal&quot;</span><span class="p">,</span> <span class="o">-</span><span class="n">retcode</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span><span class="s2">&quot;returned&quot;</span><span class="p">,</span> <span class="n">retcode</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span><span class="s2">&quot;Execution failed:&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Executiong of&quot;</span><span class="p">,</span><span class="n">cmd</span><span class="p">,</span><span class="s2">&quot;ended&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Changing directory back to&quot;</span><span class="p">,</span><span class="n">oldDir</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">oldDir</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ClusterJob.templateFile"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.templateFile">[docs]</a>    <span class="k">def</span> <span class="nf">templateFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fileName</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Looks for a template file and evaluates the template using</span>
+<span class="sd">        the usual parameters</span>
+<span class="sd">        :param fileName: the name of the file that will be</span>
+<span class="sd">        constructed. The template file is the same plus the extension &#39;.template&#39;&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Building file&quot;</span><span class="p">,</span><span class="n">fileName</span><span class="p">,</span><span class="s2">&quot;from template with parameters&quot;</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+
+        <span class="n">argList</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--output-file=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">casedir</span><span class="p">(),</span><span class="n">fileName</span><span class="p">),</span>
+                 <span class="s2">&quot;--dump-used-values&quot;</span>
+        <span class="p">]</span>
+
+        <span class="n">tmpl</span><span class="o">=</span><span class="n">FromTemplate</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">argList</span><span class="p">,</span>
+                          <span class="n">parameters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ClusterJob.foamRun"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.foamRun">[docs]</a>    <span class="k">def</span> <span class="nf">foamRun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">application</span><span class="p">,</span>
+                <span class="n">args</span><span class="o">=</span><span class="p">[],</span>
+                <span class="n">foamArgs</span><span class="o">=</span><span class="p">[],</span>
+                <span class="n">steady</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">multiRegion</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                <span class="n">progress</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">compress</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">noLog</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Runs a foam utility on the case.</span>
+<span class="sd">        If it is a parallel job and the grid has</span>
+<span class="sd">        already been decomposed (and not yet reconstructed) it is run in</span>
+<span class="sd">        parallel</span>
+<span class="sd">        :param application: the Foam-Application that is to be run</span>
+<span class="sd">        :param foamArgs: A list if with the additional arguments for the</span>
+<span class="sd">        Foam-Application</span>
+<span class="sd">        :param compress: Compress the log-file</span>
+<span class="sd">        :param args: A list with additional arguments for the Runner-object</span>
+<span class="sd">        :param steady: Use the steady-runner</span>
+<span class="sd">        :param multiRegion: Run this on multiple regions (if None: I don&#39;t have an opinion on this)</span>
+<span class="sd">        :param progress: Only output the time and nothing else</span>
+<span class="sd">        :param noLog: Do not generate a logfile&quot;&quot;&quot;</span>
+
+        <span class="n">arglist</span><span class="o">=</span><span class="n">args</span><span class="p">[:]</span>
+        <span class="n">arglist</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--job-id=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">fullJobId</span><span class="p">()]</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">):</span>
+            <span class="n">arglist</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--parameter=</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isDecomposed</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">nproc</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">arglist</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--procnr=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">nproc</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;ClusterJob&quot;</span><span class="p">,</span><span class="s2">&quot;useMachineFile&quot;</span><span class="p">):</span>
+                <span class="n">arglist</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--machinefile=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">hostfile</span><span class="p">]</span>
+
+        <span class="n">arglist</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--echo-command-prefix=&#39;=== Executing&#39;&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">progress</span><span class="p">:</span>
+            <span class="n">arglist</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--progress&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">noLog</span><span class="p">:</span>
+            <span class="n">arglist</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--no-log&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
+            <span class="n">arglist</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--compress&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">multiRegion</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">multiRegion</span><span class="p">:</span>
+                <span class="n">arglist</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--all-regions&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">multiRegion</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;This is not a multi-region case, so trying to run stuff multi-region won&#39;t do any good&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">restarted</span><span class="p">:</span>
+            <span class="n">arglist</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--restart&quot;</span><span class="p">]</span>
+
+        <span class="n">arglist</span><span class="o">+=</span><span class="p">[</span><span class="n">application</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">oldApp</span><span class="p">():</span>
+            <span class="n">arglist</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">casename</span><span class="p">()]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">arglist</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;-case&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">casename</span><span class="p">()]</span>
+
+        <span class="n">arglist</span><span class="o">+=</span><span class="n">foamArgs</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Executing&quot;</span><span class="p">,</span><span class="n">arglist</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">steady</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Running Steady&quot;</span><span class="p">)</span>
+            <span class="n">runner</span><span class="o">=</span><span class="n">SteadyRunner</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">arglist</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">runner</span><span class="o">=</span><span class="n">Runner</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">arglist</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ClusterJob.autoDecompose"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.autoDecompose">[docs]</a>    <span class="k">def</span> <span class="nf">autoDecompose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Automatically decomposes the grid with a metis-algorithm&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">casedir</span><span class="p">(),</span><span class="s2">&quot;processor0&quot;</span><span class="p">)):</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;A processor directory already exists. There might be a problem&quot;</span><span class="p">)</span>
+
+        <span class="n">defaultMethod</span><span class="o">=</span><span class="s2">&quot;metis&quot;</span>
+
+        <span class="k">if</span> <span class="n">getFoamVersion</span><span class="p">()</span><span class="o">&gt;=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
+            <span class="n">defaultMethod</span><span class="o">=</span><span class="s2">&quot;scotch&quot;</span>
+
+        <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--method=&quot;</span><span class="o">+</span><span class="n">defaultMethod</span><span class="p">,</span>
+              <span class="s2">&quot;--clear&quot;</span><span class="p">,</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">casename</span><span class="p">(),</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">nproc</span><span class="p">,</span>
+              <span class="s2">&quot;--job-id=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">fullJobId</span><span class="p">()]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">multiRegion</span><span class="p">:</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--all-regions&quot;</span><span class="p">)</span>
+
+        <span class="n">deco</span><span class="o">=</span><span class="n">Decomposer</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ClusterJob.autoReconstruct"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.autoReconstruct">[docs]</a>    <span class="k">def</span> <span class="nf">autoReconstruct</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Default reconstruction of a parallel run&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doAutoReconstruct</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">isDecomposed</span><span class="o">=</span><span class="bp">False</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">foamRun</span><span class="p">(</span><span class="s2">&quot;reconstructPar&quot;</span><span class="p">,</span>
+                         <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--logname=ReconstructPar&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;No reconstruction (because asked to)&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ClusterJob.setup"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.setup">[docs]</a>    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parameters</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set up the job. Called in the beginning if the</span>
+<span class="sd">        job has not been restarted</span>
+
+<span class="sd">        Usual tasks include grid conversion/setup, mesh decomposition etc</span>
+
+<span class="sd">        :param parameters: a dictionary with parameters&quot;&quot;&quot;</span>
+
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ClusterJob.postDecomposeSetup"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.postDecomposeSetup">[docs]</a>    <span class="k">def</span> <span class="nf">postDecomposeSetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parameters</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Additional setup, to be executed when the grid is already decomposed</span>
+
+<span class="sd">        Usually for tasks that can be done on a decomposed grid</span>
+
+<span class="sd">        :param parameters: a dictionary with parameters&quot;&quot;&quot;</span>
+
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ClusterJob.run"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parameters</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run the actual job. Usually the solver.</span>
+<span class="sd">        :param parameters: a dictionary with parameters&quot;&quot;&quot;</span>
+
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ClusterJob.preReconstructCleanup"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.preReconstructCleanup">[docs]</a>    <span class="k">def</span> <span class="nf">preReconstructCleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parameters</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Additional cleanup, to be executed when the grid is still decomposed</span>
+
+<span class="sd">        Usually for tasks that can be done on a decomposed grid</span>
+
+<span class="sd">        :param parameters: a dictionary with parameters&quot;&quot;&quot;</span>
+
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ClusterJob.cleanup"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.cleanup">[docs]</a>    <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parameters</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clean up after a job</span>
+<span class="sd">        :param parameters: a dictionary with parameters&quot;&quot;&quot;</span>
+
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ClusterJob.additionalReconstruct"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.additionalReconstruct">[docs]</a>    <span class="k">def</span> <span class="nf">additionalReconstruct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parameters</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Additional reconstruction of parallel runs (Stuff that the</span>
+<span class="sd">        OpenFOAM-reconstructPar doesn&#39;t do</span>
+<span class="sd">        :param parameters: a dictionary with parameters&quot;&quot;&quot;</span>
+
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ClusterJob.taskParameters"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.taskParameters">[docs]</a>    <span class="k">def</span> <span class="nf">taskParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="nb">id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parameters for a specific task</span>
+<span class="sd">        :param id: the id of the task</span>
+<span class="sd">        :return: a dictionary with parameters for this task&quot;&quot;&quot;</span>
+
+        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;taskParameter not implemented. Not a parameterized job&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="ClusterJob.additionalParameters"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.additionalParameters">[docs]</a>    <span class="k">def</span> <span class="nf">additionalParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Additional parameters</span>
+<span class="sd">        :return: a dictionary with parameters for this task&quot;&quot;&quot;</span>
+
+        <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Method &#39;additionalParameters&#39; not implemented. Not a problem. Just saying&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="ClusterJob.writeCheckpoint"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.writeCheckpoint">[docs]</a>    <span class="k">def</span> <span class="nf">writeCheckpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">listenToTimer</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="p">,</span><span class="s2">&quot;write&quot;</span><span class="p">),</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Jetzt will ich&#39;s wissen&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">checkpointFile</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;I&#39;m not listening to your callbacks&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer</span><span class="o">=</span><span class="n">Timer</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="n">checkForMessageFromAbove</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="ClusterJob.stopJob"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.ClusterJob.stopJob">[docs]</a>    <span class="k">def</span> <span class="nf">stopJob</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">listenToTimer</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ordinaryEnd</span><span class="o">=</span><span class="bp">False</span>
+            <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="p">,</span><span class="s2">&quot;stop&quot;</span><span class="p">),</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Geh z&#39;haus&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stopFile</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;I&#39;m not listening to your callbacks&quot;</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="SolverJob"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.SolverJob">[docs]</a><span class="k">class</span> <span class="nc">SolverJob</span><span class="p">(</span><span class="n">ClusterJob</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A Cluster-Job that executes a solver. It implements the run-function.</span>
+<span class="sd">    If a template-case is specified, the case is copied&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SolverJob.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.SolverJob.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">basename</span><span class="p">,</span><span class="n">solver</span><span class="p">,</span>
+                 <span class="n">template</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">cloneParameters</span><span class="o">=</span><span class="p">[],</span>
+                 <span class="n">arrayJob</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">hardRestart</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">autoParallel</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">doAutoReconstruct</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">foamVersion</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">compileOption</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">useFoamMPI</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">steady</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">multiRegion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">parameters</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="n">progress</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">solverArgs</span><span class="o">=</span><span class="p">[],</span>
+                 <span class="n">solverProgress</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">solverNoLog</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">solverLogCompress</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">isDecomposed</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param template: Name of the template-case. It is assumed that</span>
+<span class="sd">        it resides in the same directory as the actual case</span>
+<span class="sd">        :param cloneParameters: a list with additional parameters for the</span>
+<span class="sd">        CloneCase-object that copies the template</span>
+<span class="sd">        :param solverProgress: Only writes the current time of the solver&quot;&quot;&quot;</span>
+
+        <span class="n">ClusterJob</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">basename</span><span class="p">,</span>
+                            <span class="n">arrayJob</span><span class="o">=</span><span class="n">arrayJob</span><span class="p">,</span>
+                            <span class="n">hardRestart</span><span class="o">=</span><span class="n">hardRestart</span><span class="p">,</span>
+                            <span class="n">autoParallel</span><span class="o">=</span><span class="n">autoParallel</span><span class="p">,</span>
+                            <span class="n">doAutoReconstruct</span><span class="o">=</span><span class="n">doAutoReconstruct</span><span class="p">,</span>
+                            <span class="n">foamVersion</span><span class="o">=</span><span class="n">foamVersion</span><span class="p">,</span>
+                            <span class="n">compileOption</span><span class="o">=</span><span class="n">compileOption</span><span class="p">,</span>
+                            <span class="n">useFoamMPI</span><span class="o">=</span><span class="n">useFoamMPI</span><span class="p">,</span>
+                            <span class="n">multiRegion</span><span class="o">=</span><span class="n">multiRegion</span><span class="p">,</span>
+                            <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+                            <span class="n">isDecomposed</span><span class="o">=</span><span class="n">isDecomposed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">=</span><span class="n">solver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">steady</span><span class="o">=</span><span class="n">steady</span>
+        <span class="k">if</span> <span class="n">template</span><span class="o">!=</span><span class="bp">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">restarted</span><span class="p">:</span>
+            <span class="n">template</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">casedir</span><span class="p">()),</span><span class="n">template</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">basename</span><span class="p">)</span><span class="o">==</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">template</span><span class="p">):</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;The basename&quot;</span><span class="p">,</span><span class="n">basename</span><span class="p">,</span><span class="s2">&quot;and the template&quot;</span><span class="p">,</span><span class="n">template</span><span class="p">,</span><span class="s2">&quot;are the same directory&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">isDecomposed</span><span class="p">:</span>
+                <span class="n">cloneParameters</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--parallel&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Cloning from template&quot;</span><span class="p">,</span><span class="n">template</span><span class="p">)</span>
+            <span class="n">clone</span><span class="o">=</span><span class="n">CloneCase</span><span class="p">(</span>
+                <span class="n">args</span><span class="o">=</span><span class="n">cloneParameters</span><span class="o">+</span><span class="p">[</span><span class="n">template</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">casedir</span><span class="p">(),</span><span class="s2">&quot;--follow-symlinks&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solverProgress</span><span class="o">=</span><span class="n">solverProgress</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solverNoLog</span><span class="o">=</span><span class="n">solverNoLog</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solverLogCompress</span><span class="o">=</span><span class="n">solverLogCompress</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solverArgs</span><span class="o">=</span><span class="n">solverArgs</span></div>
+
+<div class="viewcode-block" id="SolverJob.run"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.SolverJob.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parameters</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">foamRun</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="p">,</span>
+                     <span class="n">steady</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">steady</span><span class="p">,</span>
+                     <span class="n">foamArgs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solverArgs</span><span class="p">,</span>
+                     <span class="n">multiRegion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                     <span class="n">progress</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solverProgress</span><span class="p">,</span>
+                     <span class="n">noLog</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solverNoLog</span><span class="p">,</span>
+                     <span class="n">compress</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solverLogCompress</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="PrepareCaseJob"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.PrepareCaseJob">[docs]</a><span class="k">class</span> <span class="nc">PrepareCaseJob</span><span class="p">(</span><span class="n">SolverJob</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Assumes that the case is prepared to be set up with</span>
+<span class="sd">    =pyFoamPrepareCase.py= and automatically sets it up with</span>
+<span class="sd">    this. Needs one parameterfile to be specified and then a list of</span>
+<span class="sd">    name/value-pairs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PrepareCaseJob.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.PrepareCaseJob.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">basename</span><span class="p">,</span><span class="n">solver</span><span class="p">,</span>
+                 <span class="n">parameterfile</span><span class="p">,</span>
+                 <span class="n">arguments</span><span class="p">,</span>
+                 <span class="n">parameters</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="n">noMeshCreate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__parameterfile</span><span class="o">=</span><span class="n">parameterfile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__noMeshCreate</span><span class="o">=</span><span class="n">noMeshCreate</span>
+
+        <span class="n">para</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">arguments</span><span class="p">)</span><span class="o">==</span><span class="nb">list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arguments</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Length of arguments should be an even number. Is&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">arguments</span><span class="p">),</span>
+                      <span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">arguments</span><span class="p">)</span>
+
+            <span class="c1"># make all string arguments that could be boolean boolean values</span>
+            <span class="kn">from</span> <span class="nn">PyFoam.Basics.DataStructures</span> <span class="kn">import</span> <span class="n">BoolProxy</span>
+
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">arguments</span><span class="p">[::</span><span class="mi">2</span><span class="p">],</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]))</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">para</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">BoolProxy</span><span class="p">(</span><span class="n">textual</span><span class="o">=</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">val</span>
+                    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                        <span class="n">para</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">para</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">para</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="p">(</span><span class="ne">SyntaxError</span><span class="p">,</span><span class="ne">NameError</span><span class="p">):</span>
+                            <span class="n">para</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;&#39;&quot;</span><span class="o">+</span><span class="n">v</span><span class="o">+</span><span class="s2">&quot;&#39;&quot;</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">arguments</span><span class="p">)</span><span class="o">==</span><span class="nb">dict</span><span class="p">:</span>
+            <span class="n">para</span><span class="o">=</span><span class="n">arguments</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Type of arguments is &quot;</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="n">arguments</span><span class="p">),</span><span class="s2">&quot;Should be &#39;dict&#39; or &#39;list&#39;:&quot;</span><span class="p">,</span><span class="n">arguments</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__parametervalues</span><span class="o">=</span><span class="n">para</span>
+
+        <span class="n">parameters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__parametervalues</span><span class="p">)</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Parameter file&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__parameterfile</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Parameter values&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__parametervalues</span><span class="p">)</span>
+
+        <span class="n">SolverJob</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">basename</span><span class="p">,</span><span class="n">solver</span><span class="p">,</span>
+                           <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+                           <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PrepareCaseJob.setup"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.PrepareCaseJob.setup">[docs]</a>    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parameters</span><span class="p">):</span>
+        <span class="n">parameterString</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39;:</span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+        <span class="n">PrepareCase</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">casedir</span><span class="p">(),</span>
+                          <span class="s2">&quot;--allow-exec&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;--parameter=&quot;</span><span class="o">+</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">casedir</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">__parameterfile</span><span class="p">),</span>
+                          <span class="s2">&quot;--number-of-processors=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">nproc</span><span class="p">,</span>
+                          <span class="s2">&quot;--values={&quot;</span><span class="o">+</span><span class="n">parameterString</span><span class="o">+</span><span class="s2">&quot;}&quot;</span><span class="p">]</span><span class="o">+</span>
+                          <span class="p">([</span><span class="s2">&quot;--no-mesh-create&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__noMeshCreate</span> <span class="k">else</span> <span class="p">[]))</span></div></div>
+
+<div class="viewcode-block" id="VariationCaseJob"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.VariationCaseJob">[docs]</a><span class="k">class</span> <span class="nc">VariationCaseJob</span><span class="p">(</span><span class="n">SolverJob</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Assumes that the case is prepared to be set up with</span>
+<span class="sd">    =pyFoamRunParameterVariation.py= and automatically sets it up with</span>
+<span class="sd">    this. Needs one parameterfile and a variation-file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="VariationCaseJob.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.VariationCaseJob.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">basename</span><span class="p">,</span>
+                 <span class="n">parameterfile</span><span class="p">,</span>
+                 <span class="n">variationfile</span><span class="p">,</span>
+                 <span class="n">template</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__parameterfile</span><span class="o">=</span><span class="n">parameterfile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__variationfile</span><span class="o">=</span><span class="n">variationfile</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Parameter file&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__parameterfile</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Variation file&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__variationfile</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="o">=</span><span class="n">RunParameterVariation</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">template</span><span class="p">,</span>
+                                         <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">template</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__variationfile</span><span class="p">),</span>
+                                         <span class="s2">&quot;--parameter=&quot;</span><span class="o">+</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">template</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__parameterfile</span><span class="p">),</span>
+                                         <span class="s2">&quot;--list-variations&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span>
+        <span class="n">taskID</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;SGE_TASK_ID&quot;</span><span class="p">])</span><span class="o">-</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="s2">&quot;solver&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;variations&quot;</span><span class="p">][</span><span class="n">taskID</span><span class="p">]:</span>
+            <span class="n">solver</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;variations&quot;</span><span class="p">][</span><span class="n">taskID</span><span class="p">][</span><span class="s2">&quot;solver&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">solver</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;fixed&quot;</span><span class="p">][</span><span class="s2">&quot;solver&quot;</span><span class="p">]</span>
+
+        <span class="n">SolverJob</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">basename</span><span class="p">,</span><span class="n">solver</span><span class="p">,</span>
+                           <span class="n">arrayJob</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                           <span class="n">template</span><span class="o">=</span><span class="n">template</span><span class="p">,</span>
+                           <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="VariationCaseJob.taskParameters"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.VariationCaseJob.taskParameters">[docs]</a>    <span class="k">def</span> <span class="nf">taskParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="nb">id</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="VariationCaseJob.setup"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.ClusterJob.html#PyFoam.Infrastructure.ClusterJob.VariationCaseJob.setup">[docs]</a>    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parameters</span><span class="p">):</span>
+        <span class="n">RunParameterVariation</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">casedir</span><span class="p">(),</span>
+                                    <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">casedir</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">__variationfile</span><span class="p">),</span>
+                                    <span class="s2">&quot;--allow-exec&quot;</span><span class="p">,</span>
+                                    <span class="s2">&quot;--parameter-file=&quot;</span><span class="o">+</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">casedir</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">__parameterfile</span><span class="p">),</span>
+                                    <span class="s2">&quot;--single-variation=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskID</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+                                    <span class="s2">&quot;--no-execute-solver&quot;</span><span class="p">,</span>
+                                    <span class="s2">&quot;--auto-create-database&quot;</span><span class="p">,</span>
+                                    <span class="s2">&quot;--no-database-write&quot;</span><span class="p">,</span>
+                                    <span class="s2">&quot;--inplace-execution&quot;</span><span class="p">])</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

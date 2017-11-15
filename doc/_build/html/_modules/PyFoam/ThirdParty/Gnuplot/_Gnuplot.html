@@ -1,0 +1,753 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.ThirdParty.Gnuplot._Gnuplot &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../../PyFoam.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="../../../../index.html" class="fa fa-home"> PyFoam</a>
+        
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">API documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../api/PyFoam.html">PyFoam package</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.ThirdParty.Gnuplot._Gnuplot</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for PyFoam.ThirdParty.Gnuplot._Gnuplot</h1><div class="highlight"><pre>
+<span class="c"># $Id: _Gnuplot.py 305 2008-01-17 20:10:44Z bmcage $</span>
+
+<span class="c"># Copyright (C) 1998-2003 Michael Haggerty &lt;mhagger@alum.mit.edu&gt;</span>
+<span class="c">#</span>
+<span class="c"># This file is licensed under the GNU Lesser General Public License</span>
+<span class="c"># (LGPL).  See LICENSE.txt for details.</span>
+
+<span class="sd">&quot;&quot;&quot;_Gnuplot.py -- An object that represents a running gnuplot process.</span>
+
+<span class="sd">This file implements the Gnuplot plotter object, which is an abstract</span>
+<span class="sd">interface to a running gnuplot process.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">string</span><span class="o">,</span> <span class="nn">types</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">gp</span><span class="p">,</span> <span class="n">PlotItems</span><span class="p">,</span> <span class="n">termdefs</span><span class="p">,</span> <span class="n">Errors</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">string_types</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="nb">input</span> <span class="k">as</span> <span class="n">rinput</span>
+
+<span class="k">class</span> <span class="nc">_GnuplotFile</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A file to which gnuplot commands can be written.</span>
+
+<span class="sd">    Sometimes it is convenient to write gnuplot commands to a command</span>
+<span class="sd">    file for later evaluation.  In that case, one of these objects is</span>
+<span class="sd">    used as a mock gnuplot process.  Note that temporary files may be</span>
+<span class="sd">    deleted before you have time to execute the file!</span>
+
+<span class="sd">    Members:</span>
+
+<span class="sd">        &#39;gnuplot&#39; -- the file object gathering the commands.</span>
+
+<span class="sd">    Methods:</span>
+
+<span class="sd">        &#39;__init__&#39; -- open the file.</span>
+
+<span class="sd">        &#39;__call__&#39; -- write a gnuplot command to the file, followed by a</span>
+<span class="sd">            newline.</span>
+
+<span class="sd">        &#39;write&#39; -- write an arbitrary string to the file.</span>
+
+<span class="sd">        &#39;flush&#39; -- cause pending output to be written immediately.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open the file for writing.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="c"># forward write and flush methods:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span><span class="o">.</span><span class="n">write</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flush</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span><span class="o">.</span><span class="n">flush</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write a command string to the file, followed by newline.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+
+<span class="k">class</span> <span class="nc">Gnuplot</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Interface to a gnuplot program.</span>
+
+<span class="sd">    A Gnuplot represents a higher-level interface to a gnuplot</span>
+<span class="sd">    program.  It can plot &#39;PlotItem&#39;s, which represent each thing to</span>
+<span class="sd">    be plotted on the current graph.  It keeps a reference to each of</span>
+<span class="sd">    the &#39;PlotItems&#39; used in the current plot, so that they (and their</span>
+<span class="sd">    associated temporary files) are not deleted prematurely.</span>
+
+<span class="sd">    Members:</span>
+
+<span class="sd">        &#39;itemlist&#39; -- a list of the PlotItems that are associated with</span>
+<span class="sd">            the current plot.  These are deleted whenever a new plot</span>
+<span class="sd">            command is issued via the &#39;plot&#39; method.</span>
+
+<span class="sd">        &#39;plotcmd&#39; -- &#39;plot&#39; or &#39;splot&#39;, depending on what was the last</span>
+<span class="sd">            plot command.</span>
+
+<span class="sd">    Methods:</span>
+
+<span class="sd">        &#39;__init__&#39; -- if a filename argument is specified, the</span>
+<span class="sd">            commands will be written to that file instead of being</span>
+<span class="sd">            piped to gnuplot.</span>
+
+<span class="sd">        &#39;plot&#39; -- clear the old plot and old &#39;PlotItems&#39;, then plot</span>
+<span class="sd">            the arguments in a fresh plot command.  Arguments can be:</span>
+<span class="sd">            a &#39;PlotItem&#39;, which is plotted along with its internal</span>
+<span class="sd">            options; a string, which is plotted as a &#39;Func&#39;; or</span>
+<span class="sd">            anything else, which is plotted as a &#39;Data&#39;.</span>
+
+<span class="sd">        &#39;splot&#39; -- like &#39;plot&#39;, except for 3-d plots.</span>
+
+<span class="sd">        &#39;hardcopy&#39; -- replot the plot to a postscript file (if</span>
+<span class="sd">            filename argument is specified) or pipe it to the printer</span>
+<span class="sd">            as postscript othewise.  If the option &#39;color&#39; is set to</span>
+<span class="sd">            true, then output color postscript.</span>
+
+<span class="sd">        &#39;replot&#39; -- replot the old items, adding any arguments as</span>
+<span class="sd">            additional items as in the plot method.</span>
+
+<span class="sd">        &#39;refresh&#39; -- issue (or reissue) the plot command using the</span>
+<span class="sd">            current &#39;PlotItems&#39;.</span>
+
+<span class="sd">        &#39;__call__&#39; -- pass an arbitrary string to the gnuplot process,</span>
+<span class="sd">            followed by a newline.</span>
+
+<span class="sd">        &#39;xlabel&#39;, &#39;ylabel&#39;, &#39;zlabel&#39;, &#39;title&#39; -- set corresponding plot</span>
+<span class="sd">            attribute.</span>
+
+<span class="sd">        &#39;interact&#39; -- read lines from stdin and send them, one by one,</span>
+<span class="sd">            to the gnuplot interpreter.  Basically you can type</span>
+<span class="sd">            commands directly to the gnuplot command processor.</span>
+
+<span class="sd">        &#39;load&#39; -- load a file (using the gnuplot &#39;load&#39; command).</span>
+
+<span class="sd">        &#39;save&#39; -- save gnuplot commands to a file (using gnuplot</span>
+<span class="sd">            &#39;save&#39; command) If any of the &#39;PlotItem&#39;s is a temporary</span>
+<span class="sd">            file, it will be deleted at the usual time and the save</span>
+<span class="sd">            file will be pretty useless :-).</span>
+
+<span class="sd">        &#39;clear&#39; -- clear the plot window (but not the itemlist).</span>
+
+<span class="sd">        &#39;reset&#39; -- reset all gnuplot settings to their defaults and</span>
+<span class="sd">            clear the current itemlist.</span>
+
+<span class="sd">        &#39;set_string&#39; -- set or unset a gnuplot option whose value is a</span>
+<span class="sd">            string.</span>
+
+<span class="sd">        &#39;_clear_queue&#39; -- clear the current &#39;PlotItem&#39; list.</span>
+
+<span class="sd">        &#39;_add_to_queue&#39; -- add the specified items to the current</span>
+<span class="sd">            &#39;PlotItem&#39; list.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># optiontypes tells how to set parameters.  Specifically, the</span>
+    <span class="c"># parameter will be set using self.set_&lt;type&gt;(option, value),</span>
+    <span class="c"># where &lt;type&gt; is a string looked up in the following table.</span>
+    <span class="n">optiontypes</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;title&#39;</span> <span class="p">:</span> <span class="s">&#39;string&#39;</span><span class="p">,</span>
+        <span class="s">&#39;xlabel&#39;</span> <span class="p">:</span> <span class="s">&#39;string&#39;</span><span class="p">,</span>
+        <span class="s">&#39;ylabel&#39;</span> <span class="p">:</span> <span class="s">&#39;string&#39;</span><span class="p">,</span>
+        <span class="s">&#39;zlabel&#39;</span> <span class="p">:</span> <span class="s">&#39;string&#39;</span><span class="p">,</span>
+        <span class="s">&#39;xrange&#39;</span> <span class="p">:</span> <span class="s">&#39;range&#39;</span><span class="p">,</span>
+        <span class="s">&#39;yrange&#39;</span> <span class="p">:</span> <span class="s">&#39;range&#39;</span><span class="p">,</span>
+        <span class="s">&#39;zrange&#39;</span> <span class="p">:</span> <span class="s">&#39;range&#39;</span><span class="p">,</span>
+        <span class="s">&#39;trange&#39;</span> <span class="p">:</span> <span class="s">&#39;range&#39;</span><span class="p">,</span>
+        <span class="s">&#39;urange&#39;</span> <span class="p">:</span> <span class="s">&#39;range&#39;</span><span class="p">,</span>
+        <span class="s">&#39;vrange&#39;</span> <span class="p">:</span> <span class="s">&#39;range&#39;</span><span class="p">,</span>
+        <span class="s">&#39;parametric&#39;</span> <span class="p">:</span> <span class="s">&#39;boolean&#39;</span><span class="p">,</span>
+        <span class="s">&#39;polar&#39;</span> <span class="p">:</span> <span class="s">&#39;boolean&#39;</span><span class="p">,</span>
+        <span class="s">&#39;output&#39;</span> <span class="p">:</span> <span class="s">&#39;string&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a Gnuplot object.</span>
+
+<span class="sd">        Create a &#39;Gnuplot&#39; object.  By default, this starts a gnuplot</span>
+<span class="sd">        process and prepares to write commands to it.</span>
+
+<span class="sd">        Keyword arguments:</span>
+
+<span class="sd">          &#39;filename=&lt;string&gt;&#39; -- if a filename is specified, the</span>
+<span class="sd">              commands are instead written to that file (e.g., for</span>
+<span class="sd">              later use using &#39;load&#39;).</span>
+
+<span class="sd">          &#39;persist=1&#39; -- start gnuplot with the &#39;-persist&#39; option</span>
+<span class="sd">              (which creates a new plot window for each plot command).</span>
+<span class="sd">              (This option is not available on older versions of</span>
+<span class="sd">              gnuplot.)</span>
+
+<span class="sd">          &#39;debug=1&#39; -- echo the gnuplot commands to stderr as well as</span>
+<span class="sd">              sending them to gnuplot.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">GnuplotProcess</span><span class="p">(</span><span class="n">persist</span><span class="o">=</span><span class="n">persist</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">persist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">Errors</span><span class="o">.</span><span class="n">OptionError</span><span class="p">(</span>
+                    <span class="s">&#39;Gnuplot with output to file does not allow &#39;</span>
+                    <span class="s">&#39;persist option.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span> <span class="o">=</span> <span class="n">_GnuplotFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_queue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotcmd</span> <span class="o">=</span> <span class="s">&#39;plot&#39;</span>
+        <span class="bp">self</span><span class="p">(</span><span class="s">&#39;set terminal </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">GnuplotOpts</span><span class="o">.</span><span class="n">default_term</span><span class="p">,))</span>
+
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># This may cause a wait for the gnuplot process to finish</span>
+        <span class="c"># working, which is generally a good thing because it delays</span>
+        <span class="c"># the deletion of temporary files.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_queue</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send a command string to gnuplot.</span>
+
+<span class="sd">        Send the string s as a command to gnuplot, followed by a</span>
+<span class="sd">        newline.  All communication with the gnuplot process (except</span>
+<span class="sd">        for inline data) is through this method.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+            <span class="c"># also echo to stderr for user to see:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;gnuplot&gt; </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="p">,))</span>
+
+    <span class="k">def</span> <span class="nf">refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Refresh the plot, using the current &#39;PlotItem&#39;s.</span>
+
+<span class="sd">        Refresh the current plot by reissuing the gnuplot plot command</span>
+<span class="sd">        corresponding to the current itemlist.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">plotcmds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">itemlist</span><span class="p">:</span>
+            <span class="n">plotcmds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">command</span><span class="p">())</span>
+        <span class="bp">self</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plotcmd</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plotcmds</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">itemlist</span><span class="p">:</span>
+            <span class="c"># Uses self.gnuplot.write():</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">pipein</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_clear_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clear the &#39;PlotItems&#39; from the queue.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">itemlist</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">_add_to_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a list of items to the itemlist (but don&#39;t plot them).</span>
+
+<span class="sd">        &#39;items&#39; is a sequence of items, each of which should be a</span>
+<span class="sd">        &#39;PlotItem&#39; of some kind, a string (interpreted as a function</span>
+<span class="sd">        string for gnuplot to evaluate), or a numpy array (or</span>
+<span class="sd">        something that can be converted to a numpy array).</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">PlotItems</span><span class="o">.</span><span class="n">PlotItem</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">itemlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">itemlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PlotItems</span><span class="o">.</span><span class="n">Func</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># assume data is an array:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">itemlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PlotItems</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">items</span><span class="p">,</span> <span class="o">**</span><span class="n">keyw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Draw a new plot.</span>
+
+<span class="sd">        Clear the current plot and create a new 2-d plot containing</span>
+<span class="sd">        the specified items.  Each arguments should be of the</span>
+<span class="sd">        following types:</span>
+
+<span class="sd">        &#39;PlotItem&#39; (e.g., &#39;Data&#39;, &#39;File&#39;, &#39;Func&#39;) -- This is the most</span>
+<span class="sd">            flexible way to call plot because the PlotItems can</span>
+<span class="sd">            contain suboptions.  Moreover, PlotItems can be saved to</span>
+<span class="sd">            variables so that their lifetime is longer than one plot</span>
+<span class="sd">            command; thus they can be replotted with minimal overhead.</span>
+
+<span class="sd">        &#39;string&#39; (e.g., &#39;sin(x)&#39;) -- The string is interpreted as</span>
+<span class="sd">            &#39;Func(string)&#39; (a function that is computed by gnuplot).</span>
+
+<span class="sd">        Anything else -- The object, which should be convertible to an</span>
+<span class="sd">            array, is passed to the &#39;Data&#39; constructor, and thus</span>
+<span class="sd">            plotted as data.  If the conversion fails, an exception is</span>
+<span class="sd">            raised.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">keyw</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="n">keyw</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotcmd</span> <span class="o">=</span> <span class="s">&#39;plot&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_queue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_to_queue</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">splot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">items</span><span class="p">,</span> <span class="o">**</span><span class="n">keyw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Draw a new three-dimensional plot.</span>
+
+<span class="sd">        Clear the current plot and create a new 3-d plot containing</span>
+<span class="sd">        the specified items.  Arguments can be of the following types:</span>
+
+<span class="sd">        &#39;PlotItem&#39; (e.g., &#39;Data&#39;, &#39;File&#39;, &#39;Func&#39;, &#39;GridData&#39; ) -- This</span>
+<span class="sd">            is the most flexible way to call plot because the</span>
+<span class="sd">            PlotItems can contain suboptions.  Moreover, PlotItems can</span>
+<span class="sd">            be saved to variables so that their lifetime is longer</span>
+<span class="sd">            than one plot command--thus they can be replotted with</span>
+<span class="sd">            minimal overhead.</span>
+
+<span class="sd">        &#39;string&#39; (e.g., &#39;sin(x*y)&#39;) -- The string is interpreted as a</span>
+<span class="sd">            &#39;Func()&#39; (a function that is computed by gnuplot).</span>
+
+<span class="sd">        Anything else -- The object is converted to a Data() item, and</span>
+<span class="sd">            thus plotted as data.  Note that each data point should</span>
+<span class="sd">            normally have at least three values associated with it</span>
+<span class="sd">            (i.e., x, y, and z).  If the conversion fails, an</span>
+<span class="sd">            exception is raised.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">keyw</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="n">keyw</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotcmd</span> <span class="o">=</span> <span class="s">&#39;splot&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_queue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_to_queue</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">replot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">items</span><span class="p">,</span> <span class="o">**</span><span class="n">keyw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Replot the data, possibly adding new &#39;PlotItem&#39;s.</span>
+
+<span class="sd">        Replot the existing graph, using the items in the current</span>
+<span class="sd">        itemlist.  If arguments are specified, they are interpreted as</span>
+<span class="sd">        additional items to be plotted alongside the existing items on</span>
+<span class="sd">        the same graph.  See &#39;plot&#39; for details.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">keyw</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="n">keyw</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_to_queue</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">interact</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Allow user to type arbitrary commands to gnuplot.</span>
+
+<span class="sd">        Read stdin, line by line, and send each line as a command to</span>
+<span class="sd">        gnuplot.  End by typing C-d.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="kn">import</span> <span class="nn">time</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s">&#39;win32&#39;</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Press Ctrl-z twice to end interactive input</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># What should this be for the Macintosh?</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Press C-d to end interactive input</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">rinput</span><span class="p">(</span><span class="s">&#39;gnuplot&gt;&gt;&gt; &#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">EOFError</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="bp">self</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span> <span class="c"># give a little time for errors to be written</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clear the plot window (without affecting the current itemlist).&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="p">(</span><span class="s">&#39;clear&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset all gnuplot settings to their defaults and clear itemlist.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="p">(</span><span class="s">&#39;reset&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">itemlist</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load a file using gnuplot&#39;s &#39;load&#39; command.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="p">(</span><span class="s">&quot;load &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename</span><span class="p">,))</span>
+
+    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save the current plot commands using gnuplot&#39;s &#39;save&#39; command.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="p">(</span><span class="s">&quot;save &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename</span><span class="p">,))</span>
+
+    <span class="k">def</span> <span class="nf">set_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set a string option, or if s is omitted, unset the option.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">s</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">(</span><span class="s">&#39;set </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">option</span><span class="p">,))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">(</span><span class="s">&#39;set </span><span class="si">%s</span><span class="s"> &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">option</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">set_label</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set or clear a label option, which can include an offset or font.</span>
+
+<span class="sd">        If offset is specified, it should be a tuple of two integers</span>
+<span class="sd">        or floats.</span>
+
+<span class="sd">        If font is specified, it is appended to the command as a</span>
+<span class="sd">        string in double quotes.  Its interpretation is</span>
+<span class="sd">        terminal-dependent; for example, for postscript it might be</span>
+<span class="sd">        &#39;Helvetica,14&#39; for 14 point Helvetica.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;set&#39;</span><span class="p">,</span> <span class="n">option</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">s</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="p">,))</span>
+
+            <span class="k">if</span> <span class="n">offset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">offset</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">font</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">font</span><span class="p">,))</span>
+
+        <span class="bp">self</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">set_boolean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set an on/off option.  It is assumed that the way to turn</span>
+<span class="sd">        the option on is to type `set &lt;option&gt;&#39; and to turn it off,</span>
+<span class="sd">        `set no&lt;option&gt;&#39;.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">(</span><span class="s">&#39;set </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">option</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">(</span><span class="s">&#39;set no</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">option</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set a range option (xrange, yrange, trange, urange, etc.).</span>
+<span class="sd">        The value can be a string (which is passed as-is, without</span>
+<span class="sd">        quotes) or a tuple (minrange,maxrange) of numbers or string</span>
+<span class="sd">        expressions recognized by gnuplot.  If either range is None</span>
+<span class="sd">        then that range is passed as `*&#39; (which means to</span>
+<span class="sd">        autoscale).&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">(</span><span class="s">&#39;set </span><span class="si">%s</span><span class="s"> [*:*]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">option</span><span class="p">,))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="bp">self</span><span class="p">(</span><span class="s">&#39;set </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">,))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Must be a tuple:</span>
+            <span class="p">(</span><span class="n">minrange</span><span class="p">,</span><span class="n">maxrange</span><span class="p">)</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">if</span> <span class="n">minrange</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">minrange</span> <span class="o">=</span> <span class="s">&#39;*&#39;</span>
+            <span class="k">if</span> <span class="n">maxrange</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">maxrange</span> <span class="o">=</span> <span class="s">&#39;*&#39;</span>
+            <span class="bp">self</span><span class="p">(</span><span class="s">&#39;set </span><span class="si">%s</span><span class="s"> [</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">option</span><span class="p">,</span> <span class="n">minrange</span><span class="p">,</span> <span class="n">maxrange</span><span class="p">,))</span>
+
+    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set one or more settings at once from keyword arguments.</span>
+<span class="sd">        The allowed settings and their treatments are determined from</span>
+<span class="sd">        the optiontypes mapping.&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">keyw</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optiontypes</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="s">&#39;option </span><span class="si">%s</span><span class="s"> is not supported&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,)</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;set_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">)(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">xlabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the plot&#39;s xlabel.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s">&#39;xlabel&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">ylabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the plot&#39;s ylabel.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s">&#39;ylabel&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">zlabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the plot&#39;s zlabel.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s">&#39;zlabel&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the plot&#39;s title.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">hardcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">terminal</span><span class="o">=</span><span class="s">&#39;postscript&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">keyw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a hardcopy of the current plot.</span>
+
+<span class="sd">        Output the current plot to the default printer (if configured)</span>
+<span class="sd">        or to the specified filename.</span>
+
+<span class="sd">        Note that gnuplot remembers the printer suboptions across</span>
+<span class="sd">        terminal changes (at least for postscript).  Therefore if you</span>
+<span class="sd">        set, for example, color=1 for one hardcopy then the next</span>
+<span class="sd">        hardcopy will also be color unless you explicitly choose</span>
+<span class="sd">        color=0.  Alternately you can force all of the options to</span>
+<span class="sd">        their defaults by setting mode=&#39;default&#39;.  I consider this to</span>
+<span class="sd">        be a bug in gnuplot.</span>
+
+<span class="sd">        Keyword arguments:</span>
+
+<span class="sd">          &#39;filename=&lt;string&gt;&#39; -- if a filename is specified, save the</span>
+<span class="sd">              output in that file; otherwise print it immediately</span>
+<span class="sd">              using the &#39;default_lpr&#39; configuration option.</span>
+
+<span class="sd">          &#39;terminal=&lt;string&gt;&#39; -- the type of gnuplot &#39;terminal&#39; to use</span>
+<span class="sd">              for the output (e.g., &#39;postscript&#39;, &#39;png&#39;, &#39;latex&#39;,</span>
+<span class="sd">              etc).  Look in termdefs.py to see what terminal types</span>
+<span class="sd">              are defined, or check termdefs.terminal_opts.keys().</span>
+
+<span class="sd">        The rest of the keyword arguments depend on the terminal type.</span>
+
+<span class="sd">        Keyword arguments for &#39;postscript&#39; terminal:</span>
+
+<span class="sd">          &#39;mode=&lt;string&gt;&#39; -- set the postscript submode (&#39;landscape&#39;,</span>
+<span class="sd">              &#39;portrait&#39;, &#39;eps&#39;, or &#39;default&#39;).  The default is</span>
+<span class="sd">              to leave this option unspecified.</span>
+
+<span class="sd">          &#39;eps=&lt;bool&gt;&#39; -- shorthand for &#39;mode=&quot;eps&quot;&#39;; asks gnuplot to</span>
+<span class="sd">              generate encapsulated postscript.</span>
+
+<span class="sd">          &#39;enhanced=&lt;bool&gt;&#39; -- if set (the default), then generate</span>
+<span class="sd">              enhanced postscript, which allows extra features like</span>
+<span class="sd">              font-switching, superscripts, and subscripts in axis</span>
+<span class="sd">              labels.  (Some old gnuplot versions do not support</span>
+<span class="sd">              enhanced postscript; if this is the case set</span>
+<span class="sd">              gp.GnuplotOpts.prefer_enhanced_postscript=None.)</span>
+
+<span class="sd">          &#39;color=&lt;bool&gt;&#39; -- if set, create a plot with color.  Default</span>
+<span class="sd">              is to leave this option unchanged.</span>
+
+<span class="sd">          &#39;solid=&lt;bool&gt;&#39; -- if set, force lines to be solid (i.e., not</span>
+<span class="sd">              dashed).</span>
+
+<span class="sd">          &#39;duplexing=&lt;string&gt;&#39; -- set duplexing option (&#39;defaultplex&#39;,</span>
+<span class="sd">              &#39;simplex&#39;, or &#39;duplex&#39;).  Only request double-sided</span>
+<span class="sd">              printing if your printer can handle it.  Actually this</span>
+<span class="sd">              option is probably meaningless since hardcopy() can only</span>
+<span class="sd">              print a single plot at a time.</span>
+
+<span class="sd">          &#39;fontname=&lt;string&gt;&#39; -- set the default font to &lt;string&gt;,</span>
+<span class="sd">              which must be a valid postscript font.  The default is</span>
+<span class="sd">              to leave this option unspecified.</span>
+
+<span class="sd">          &#39;fontsize=&lt;double&gt;&#39; -- set the default font size, in</span>
+<span class="sd">              postscript points.</span>
+
+<span class="sd">        Note that this command will return immediately even though it</span>
+<span class="sd">        might take gnuplot a while to actually finish working.  Be</span>
+<span class="sd">        sure to pause briefly before issuing another command that</span>
+<span class="sd">        might cause the temporary files to be deleted.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">gp</span><span class="o">.</span><span class="n">GnuplotOpts</span><span class="o">.</span><span class="n">default_lpr</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">Errors</span><span class="o">.</span><span class="n">OptionError</span><span class="p">(</span>
+                    <span class="s">&#39;default_lpr is not set, so you can only print to a file.&#39;</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">GnuplotOpts</span><span class="o">.</span><span class="n">default_lpr</span>
+
+        <span class="c"># Be careful processing the options.  If the user didn&#39;t</span>
+        <span class="c"># request an option explicitly, do not specify it on the &#39;set</span>
+        <span class="c"># terminal&#39; line (don&#39;t even specify the default value for the</span>
+        <span class="c"># option).  This is to avoid confusing older versions of</span>
+        <span class="c"># gnuplot that do not support all of these options.  The</span>
+        <span class="c"># exception is postscript&#39;s &#39;enhanced&#39; option, which is just</span>
+        <span class="c"># too useful to have to specify each time!</span>
+
+        <span class="c"># Build up the &#39;set terminal&#39; command here:</span>
+        <span class="n">setterm</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;set&#39;</span><span class="p">,</span> <span class="s">&#39;terminal&#39;</span><span class="p">,</span> <span class="n">terminal</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">opts</span> <span class="o">=</span> <span class="n">termdefs</span><span class="o">.</span><span class="n">terminal_opts</span><span class="p">[</span><span class="n">terminal</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">Errors</span><span class="o">.</span><span class="n">OptionError</span><span class="p">(</span>
+                <span class="s">&#39;Terminal &quot;</span><span class="si">%s</span><span class="s">&quot; is not configured in Gnuplot.py.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">terminal</span><span class="p">,))</span>
+
+        <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="n">opts</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="n">opt</span><span class="p">(</span><span class="n">keyw</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">setterm</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">keyw</span><span class="p">:</span>
+            <span class="c"># Not all options were consumed.</span>
+            <span class="k">raise</span> <span class="n">Errors</span><span class="o">.</span><span class="n">OptionError</span><span class="p">(</span>
+                <span class="s">&#39;The following options are unrecognized: </span><span class="si">%s</span><span class="s">&#39;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">keyw</span><span class="o">.</span><span class="n">keys</span><span class="p">())),)</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s">&#39;output&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">setterm</span><span class="p">))</span>
+        <span class="c"># replot the current figure (to the printer):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+        <span class="c"># reset the terminal to its `default&#39; setting:</span>
+        <span class="bp">self</span><span class="p">(</span><span class="s">&#39;set terminal </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">gp</span><span class="o">.</span><span class="n">GnuplotOpts</span><span class="o">.</span><span class="n">default_term</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s">&#39;output&#39;</span><span class="p">)</span>
+
+<span class="c"># Should work with Python3 and Python2</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+    </p>
+  </div>
+
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

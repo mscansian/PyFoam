@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.RunDictionary.RegionCases &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.RunDictionary.RegionCases</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.RunDictionary.RegionCases</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Pseudo-Cases for Regions, built from symlinks&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.Utilities</span> <span class="kn">import</span> <span class="n">rmtree</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">mkdir</span><span class="p">,</span><span class="n">symlink</span><span class="p">,</span><span class="n">unlink</span><span class="p">,</span><span class="n">listdir</span><span class="p">,</span><span class="n">renames</span>
+
+<div class="viewcode-block" id="RegionCases"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.RegionCases.html#PyFoam.RunDictionary.RegionCases.RegionCases">[docs]</a><span class="k">class</span> <span class="nc">RegionCases</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Builds pseudocases for the regions&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="RegionCases.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.RegionCases.html#PyFoam.RunDictionary.RegionCases.RegionCases.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sol</span><span class="p">,</span><span class="n">clean</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">processorDirs</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param sol: solution directory</span>
+<span class="sd">        :param clean: Remove old pseudo-cases&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">=</span><span class="n">sol</span>
+        <span class="n">regions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">getRegions</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">regions</span><span class="p">)</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No regions in&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">clean</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cleanAll</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">regions</span><span class="p">:</span>
+                <span class="n">rName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">r</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">rName</span><span class="p">):</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Directory&quot;</span><span class="p">,</span><span class="n">rName</span><span class="p">,</span><span class="s2">&quot;alread existing. Did not clean up?&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">regions</span><span class="p">:</span>
+            <span class="n">rName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">r</span>
+            <span class="n">mkdir</span><span class="p">(</span><span class="n">rName</span><span class="p">)</span>
+
+            <span class="n">mkdir</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rName</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">systemDir</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">r</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mklink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">r</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="n">prefix</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">,</span><span class="n">postfix</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">symlink</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="s2">&quot;controlDict&quot;</span><span class="p">),</span>
+                    <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rName</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="s2">&quot;controlDict&quot;</span><span class="p">))</span>
+            <span class="n">symlink</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="s2">&quot;decomposeParDict&quot;</span><span class="p">),</span>
+                    <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rName</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="s2">&quot;decomposeParDict&quot;</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mklink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">r</span><span class="p">,</span><span class="s2">&quot;constant&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">getTimes</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mklink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">r</span><span class="p">,</span><span class="n">t</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">processorDirs</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">processorDirs</span><span class="p">():</span>
+                    <span class="n">pDir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
+                    <span class="n">sDir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">r</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">sDir</span><span class="p">):</span>
+                        <span class="n">mkdir</span><span class="p">(</span><span class="n">sDir</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">listdir</span><span class="p">(</span><span class="n">pDir</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_mklink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">r</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">f</span><span class="p">),</span><span class="n">prefix</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RegionCases.resyncAll"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.RegionCases.html#PyFoam.RunDictionary.RegionCases.RegionCases.resyncAll">[docs]</a>    <span class="k">def</span> <span class="nf">resyncAll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the master Case from all the region-cases&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">getRegions</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">resync</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RegionCases.resync"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.RegionCases.html#PyFoam.RunDictionary.RegionCases.RegionCases.resync">[docs]</a>    <span class="k">def</span> <span class="nf">resync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">region</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the master case from a region case</span>
+<span class="sd">        :param region: Name of the region&quot;&quot;&quot;</span>
+        <span class="n">rCase</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">region</span><span class="p">)</span>
+        <span class="n">rTimes</span><span class="o">=</span><span class="n">rCase</span><span class="o">.</span><span class="n">getTimes</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">rTimes</span><span class="o">+</span><span class="p">[</span><span class="s2">&quot;constant&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rCase</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">t</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">region</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">region</span><span class="p">,</span><span class="n">t</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">rCase</span><span class="o">.</span><span class="n">processorDirs</span><span class="p">():</span>
+                <span class="n">pDir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pDir</span><span class="p">):</span>
+                    <span class="n">mkdir</span><span class="p">(</span><span class="n">pDir</span><span class="p">)</span>
+                    <span class="n">symlink</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">),</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pDir</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rCase</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">t</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pDir</span><span class="p">,</span><span class="n">region</span><span class="p">,</span><span class="n">t</span><span class="p">)):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">region</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">processor</span><span class="o">=</span><span class="n">p</span><span class="p">,</span><span class="n">prefix</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">t</span><span class="o">==</span><span class="s2">&quot;constant&quot;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">listdir</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">region</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="n">f</span><span class="o">!=</span><span class="s2">&quot;polyMesh&quot;</span><span class="p">:</span>
+                            <span class="c1">#                            print path.join(pDir,&quot;constant&quot;,region,f),&quot;-&gt;&quot;,path.join(path.pardir,path.pardir,path.pardir,&quot;constant&quot;,region,f)</span>
+                            <span class="c1">#                            print path.exists(path.join(path.join(pDir,&quot;constant&quot;,region),path.join(path.pardir,path.pardir,path.pardir,&quot;constant&quot;,region,f)))</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pDir</span><span class="p">,</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span><span class="n">region</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+                            <span class="n">src</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">,</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span><span class="n">region</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dest</span><span class="p">):</span>
+                                <span class="n">symlink</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">dest</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RegionCases._mklink"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.RegionCases.html#PyFoam.RunDictionary.RegionCases.RegionCases._mklink">[docs]</a>    <span class="k">def</span> <span class="nf">_mklink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">master</span><span class="p">,</span><span class="n">region</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">postfix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Makes a link from the master case to the pseudo-case</span>
+<span class="sd">        :param master: Name of the master directory</span>
+<span class="sd">        :param region: Name of one region</span>
+<span class="sd">        :param name: Name of the directory to link</span>
+<span class="sd">        :param prefix:  A prefix to the path</span>
+<span class="sd">        :param postfix:  An actual file to the path&quot;&quot;&quot;</span>
+
+        <span class="n">destname</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">master</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">region</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">srcname</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">,</span><span class="n">master</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">region</span><span class="p">,</span><span class="n">postfix</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">postfix</span><span class="o">!=</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">destname</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">destname</span><span class="p">,</span><span class="n">postfix</span><span class="p">)</span>
+
+        <span class="c1">#        print srcname,&quot;-&gt;&quot;,destname</span>
+
+        <span class="n">symlink</span><span class="p">(</span><span class="n">srcname</span><span class="p">,</span><span class="n">destname</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">srcname</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RegionCases._rename"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.RegionCases.html#PyFoam.RunDictionary.RegionCases.RegionCases._rename">[docs]</a>    <span class="k">def</span> <span class="nf">_rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">master</span><span class="p">,</span><span class="n">region</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">processor</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Moves a directory from</span>
+<span class="sd">        :param master: Name of the master directory</span>
+<span class="sd">        :param region: Name of one region</span>
+<span class="sd">        :param name: Name of the directory to link</span>
+<span class="sd">        :param prefix:  A prefix to the path&quot;&quot;&quot;</span>
+
+        <span class="n">rName</span><span class="o">=</span><span class="n">master</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">region</span>
+
+        <span class="k">if</span> <span class="n">processor</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">destName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">master</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">region</span><span class="p">)</span>
+            <span class="n">srcName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rName</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">destName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">master</span><span class="p">,</span><span class="n">processor</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">region</span><span class="p">)</span>
+            <span class="n">srcName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rName</span><span class="p">,</span><span class="n">processor</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">pardir</span><span class="p">)</span>
+
+        <span class="c1">#       print srcName,&quot;-&gt;&quot;,destName</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">destName</span><span class="p">):</span>
+            <span class="n">renames</span><span class="p">(</span><span class="n">srcName</span><span class="p">,</span><span class="n">destName</span><span class="p">)</span>
+            <span class="n">symlink</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span><span class="n">destName</span><span class="p">),</span><span class="n">srcName</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RegionCases.cleanAll"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.RegionCases.html#PyFoam.RunDictionary.RegionCases.RegionCases.cleanAll">[docs]</a>    <span class="k">def</span> <span class="nf">cleanAll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">getRegions</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RegionCases.clean"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.RegionCases.html#PyFoam.RunDictionary.RegionCases.RegionCases.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">region</span><span class="p">):</span>
+        <span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">region</span><span class="p">,</span><span class="n">ignore_errors</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

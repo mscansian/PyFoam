@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.OutFileCollection &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.OutFileCollection</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.OutFileCollection</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Collections of output files&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+<span class="kn">from</span> <span class="nn">.OutputFile</span> <span class="kn">import</span> <span class="n">OutputFile</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">conf</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<div class="viewcode-block" id="OutFileCollection"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutFileCollection.html#PyFoam.Basics.OutFileCollection.OutFileCollection">[docs]</a><span class="k">class</span> <span class="nc">OutFileCollection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Collection of output files</span>
+
+<span class="sd">    The files are stored in a common directory and are created on</span>
+<span class="sd">    first access</span>
+
+<span class="sd">    Each file can be identified by a unique name. If a file is</span>
+<span class="sd">    accessed a second time at the same simulation-time a file with the</span>
+<span class="sd">    ending _2 is created (incrementing with each access)&quot;&quot;&quot;</span>
+
+    <span class="n">maxOpenFiles</span><span class="o">=</span><span class="mi">10</span>
+
+<div class="viewcode-block" id="OutFileCollection.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutFileCollection.html#PyFoam.Basics.OutFileCollection.OutFileCollection.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">basename</span><span class="p">,</span>
+                 <span class="n">titles</span><span class="o">=</span><span class="p">[],</span>
+                 <span class="n">singleFile</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param basename: name of the base directory</span>
+<span class="sd">        :param titles: names of the data columns</span>
+<span class="sd">        :param singleFile: don&#39;t split into multiple files if more than one</span>
+<span class="sd">        datum is insert per time-step</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="o">=</span><span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastTime</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">called</span><span class="o">=</span><span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="o">=</span><span class="n">basename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setTitles</span><span class="p">(</span><span class="n">titles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">singleFile</span><span class="o">=</span><span class="n">singleFile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="o">=</span><span class="p">[]</span></div>
+
+<span class="c1">#    def __del__(self):</span>
+<span class="c1">#        print &quot;\n  Deleting this OutputFile\n&quot;</span>
+
+<div class="viewcode-block" id="OutFileCollection.setTitles"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutFileCollection.html#PyFoam.Basics.OutFileCollection.OutFileCollection.setTitles">[docs]</a>    <span class="k">def</span> <span class="nf">setTitles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">titles</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the titles anew</span>
+
+<span class="sd">        :param titles: the new titles</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">titles</span><span class="o">=</span><span class="n">titles</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">setTitles</span><span class="p">(</span><span class="n">titles</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OutFileCollection.checkTime"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutFileCollection.html#PyFoam.Basics.OutFileCollection.OutFileCollection.checkTime">[docs]</a>    <span class="k">def</span> <span class="nf">checkTime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">time</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;check whether the time has changed&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">time</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">lastTime</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lastTime</span><span class="o">=</span><span class="n">time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">called</span><span class="o">=</span><span class="p">{}</span></div>
+
+<div class="viewcode-block" id="OutFileCollection.getFile"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutFileCollection.html#PyFoam.Basics.OutFileCollection.OutFileCollection.getFile">[docs]</a>    <span class="k">def</span> <span class="nf">getFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;get a OutputFile-object&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+            <span class="n">fullname</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">OutputFile</span><span class="p">(</span><span class="n">fullname</span><span class="p">,</span><span class="n">titles</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">titles</span><span class="p">,</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="OutFileCollection.addToOpenList"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutFileCollection.html#PyFoam.Basics.OutFileCollection.OutFileCollection.addToOpenList">[docs]</a>    <span class="k">def</span> <span class="nf">addToOpenList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Adds a file to the list of open files. Closes another</span>
+<span class="sd">        file if limit is reached&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="p">[:</span><span class="n">ind</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="p">)</span><span class="o">&gt;=</span><span class="n">OutFileCollection</span><span class="o">.</span><span class="n">maxOpenFiles</span><span class="p">:</span>
+                <span class="n">old</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+                <span class="c1">#                print &quot;Closing&quot;,old.name</span>
+                <span class="c1">#                assert old.handle!=None</span>
+                <span class="n">old</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">temporary</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="c1">#                assert old.handle==None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OutFileCollection.removeFromOpenList"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutFileCollection.html#PyFoam.Basics.OutFileCollection.OutFileCollection.removeFromOpenList">[docs]</a>    <span class="k">def</span> <span class="nf">removeFromOpenList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Adds a file to the list of open files. Closes another</span>
+<span class="sd">        file if limit is reached&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="p">[:</span><span class="n">ind</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="p">[</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="OutFileCollection.prevCalls"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutFileCollection.html#PyFoam.Basics.OutFileCollection.OutFileCollection.prevCalls">[docs]</a>    <span class="k">def</span> <span class="nf">prevCalls</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;checks whether the name was used previously at that time-step&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">called</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">called</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="OutFileCollection.incrementCalls"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutFileCollection.html#PyFoam.Basics.OutFileCollection.OutFileCollection.incrementCalls">[docs]</a>    <span class="k">def</span> <span class="nf">incrementCalls</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;increments the access counter for name&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">called</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">prevCalls</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OutFileCollection.write"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutFileCollection.html#PyFoam.Basics.OutFileCollection.OutFileCollection.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;writes data to file</span>
+
+<span class="sd">        name - name of the file</span>
+<span class="sd">        time - simulation time</span>
+<span class="sd">        data - tuple with the data&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkTime</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+
+        <span class="n">fname</span><span class="o">=</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">incrementCalls</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prevCalls</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">singleFile</span><span class="p">:</span>
+            <span class="n">fname</span><span class="o">+=</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prevCalls</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+        <span class="n">f</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getFile</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="n">print_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">openList</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">))</span>
+            <span class="n">print_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Open:&quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">cnt</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">.</span><span class="n">handle</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                    <span class="n">cnt</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="n">print_</span><span class="p">()</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Actually open&quot;</span><span class="p">,</span><span class="n">cnt</span><span class="p">,</span><span class="s2">&quot;of&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">e</span></div>
+
+<div class="viewcode-block" id="OutFileCollection.close"><a class="viewcode-back" href="../../../api/PyFoam.Basics.OutFileCollection.html#PyFoam.Basics.OutFileCollection.OutFileCollection.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Force all files to be closed&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
+
+<span class="n">OutFileCollection</span><span class="o">.</span><span class="n">maxOpenFiles</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">conf</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;OutfileCollection&quot;</span><span class="p">,</span><span class="s2">&quot;maximumOpenFiles&quot;</span><span class="p">))</span>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

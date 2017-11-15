@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.RunDictionary.ParameterFile &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.RunDictionary.ParameterFile</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.RunDictionary.ParameterFile</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$ </span>
+<span class="sd">&quot;&quot;&quot;Working with parameter-files&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">re</span><span class="o">,</span><span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.LineReader</span> <span class="kn">import</span> <span class="n">LineReader</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.FileBasis</span> <span class="kn">import</span> <span class="n">FileBasisBackup</span>
+
+<div class="viewcode-block" id="ParameterFile"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParameterFile.html#PyFoam.RunDictionary.ParameterFile.ParameterFile">[docs]</a><span class="k">class</span> <span class="nc">ParameterFile</span><span class="p">(</span><span class="n">FileBasisBackup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represents a OpenFOAM parameter file&quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="ParameterFile.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParameterFile.html#PyFoam.RunDictionary.ParameterFile.ParameterFile.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">backup</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param name: The name of the parameter file</span>
+<span class="sd">        :param backup: create a backup-copy of the file&quot;&quot;&quot;</span>
+
+        <span class="n">FileBasisBackup</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">backup</span><span class="o">=</span><span class="n">backup</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="ParameterFile.parameterPattern"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParameterFile.html#PyFoam.RunDictionary.ParameterFile.ParameterFile.parameterPattern">[docs]</a>    <span class="k">def</span> <span class="nf">parameterPattern</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parameter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;creates a regular expression that looks for aparameter</span>
+
+<span class="sd">        parameter - name of the parameter&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;(.*)\s*&quot;</span><span class="o">+</span><span class="n">parameter</span><span class="o">+</span><span class="s2">&quot;\s+(.*)\s*;(.*)&quot;</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="ParameterFile.readParameter"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParameterFile.html#PyFoam.RunDictionary.ParameterFile.ParameterFile.readParameter">[docs]</a>    <span class="k">def</span> <span class="nf">readParameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parameter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;reads the value of a parameter</span>
+
+<span class="sd">        parameter - name of the parameter&quot;&quot;&quot;</span>
+        <span class="n">exp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parameterPattern</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+        
+        <span class="n">l</span><span class="o">=</span><span class="n">LineReader</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">openFile</span><span class="p">()</span>
+
+        <span class="n">erg</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        
+        <span class="k">while</span> <span class="n">l</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="p">):</span>
+            <span class="n">m</span><span class="o">=</span><span class="n">exp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">removedString</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">erg</span><span class="o">=</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="k">break</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">closeFile</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">erg</span></div>
+    
+<div class="viewcode-block" id="ParameterFile.replaceParameter"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParameterFile.html#PyFoam.RunDictionary.ParameterFile.ParameterFile.replaceParameter">[docs]</a>    <span class="k">def</span> <span class="nf">replaceParameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parameter</span><span class="p">,</span><span class="n">newval</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;writes the value of a parameter</span>
+
+<span class="sd">        :param parameter: name of the parameter</span>
+<span class="sd">        :param newval: the new value</span>
+<span class="sd">        :return: old value of the parameter&quot;&quot;&quot;</span>
+        
+        <span class="n">oldVal</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">readParameter</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+        
+        <span class="n">exp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parameterPattern</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+
+        <span class="n">l</span><span class="o">=</span><span class="n">LineReader</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">openFile</span><span class="p">()</span>
+
+        <span class="p">(</span><span class="n">fh</span><span class="p">,</span><span class="n">fn</span><span class="p">)</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeTemp</span><span class="p">()</span>
+
+        <span class="k">while</span> <span class="n">l</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="p">):</span>
+            <span class="n">toPrint</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">line</span>
+
+            <span class="n">m</span><span class="o">=</span><span class="n">exp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">removedString</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">toPrint</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">removedString</span><span class="o">+</span><span class="n">l</span><span class="o">.</span><span class="n">line</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="n">toPrint</span><span class="o">+=</span><span class="n">parameter</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">newval</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;; &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">addedString</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">toPrint</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">closeFile</span><span class="p">()</span>
+        <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">oldVal</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

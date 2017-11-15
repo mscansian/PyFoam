@@ -1,0 +1,388 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.GnuplotTimelines &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.GnuplotTimelines</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.GnuplotTimelines</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Plots a collection of timelines&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.Gnuplot</span> <span class="kn">import</span> <span class="n">Gnuplot</span><span class="p">,</span><span class="n">Data</span><span class="p">,</span><span class="n">gp</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">warning</span>
+
+<span class="kn">from</span> <span class="nn">.GeneralPlotTimelines</span> <span class="kn">import</span> <span class="n">GeneralPlotTimelines</span>
+
+<span class="kn">from</span> <span class="nn">platform</span> <span class="kn">import</span> <span class="n">uname</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">config</span>
+
+<div class="viewcode-block" id="validTerminals"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GnuplotTimelines.html#PyFoam.Basics.GnuplotTimelines.validTerminals">[docs]</a><span class="k">def</span> <span class="nf">validTerminals</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Returns a list with the valid Gnuplot terminals&quot;&quot;&quot;</span>
+    <span class="n">terms</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x11&quot;</span><span class="p">,</span><span class="s2">&quot;wxt&quot;</span><span class="p">,</span><span class="s2">&quot;caca&quot;</span><span class="p">,</span><span class="s2">&quot;dumb&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">uname</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;Darwin&quot;</span><span class="p">:</span>
+        <span class="n">terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;aqua&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">terms</span></div>
+
+<div class="viewcode-block" id="GnuplotTimelines"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GnuplotTimelines.html#PyFoam.Basics.GnuplotTimelines.GnuplotTimelines">[docs]</a><span class="k">class</span> <span class="nc">GnuplotTimelines</span><span class="p">(</span><span class="n">GeneralPlotTimelines</span><span class="p">,</span><span class="n">Gnuplot</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class opens a gnuplot window and plots a timelines-collection in it&quot;&quot;&quot;</span>
+
+    <span class="n">terminalNr</span><span class="o">=</span><span class="mi">1</span>
+
+<div class="viewcode-block" id="GnuplotTimelines.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GnuplotTimelines.html#PyFoam.Basics.GnuplotTimelines.GnuplotTimelines.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">timelines</span><span class="p">,</span>
+                 <span class="n">custom</span><span class="p">,</span>
+                 <span class="n">terminal</span><span class="o">=</span><span class="s2">&quot;x11&quot;</span><span class="p">,</span>
+                 <span class="n">showWindow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">registry</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param timelines: The timelines object</span>
+<span class="sd">        :type timelines: TimeLineCollection</span>
+<span class="sd">        :param custom: A CustomplotInfo-object. Values in this object usually override the</span>
+<span class="sd">        other options. If the object has an attribute named gnuplotCommands</span>
+<span class="sd">        (which is assumed to be a string list) then these strings are executed during</span>
+<span class="sd">        initialization of the plot (the purpose of this is to set non-standard stuff)</span>
+<span class="sd">        :param terminal: terminal implementation to use</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">GeneralPlotTimelines</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">timelines</span><span class="p">,</span><span class="n">custom</span><span class="p">,</span><span class="n">showWindow</span><span class="o">=</span><span class="n">showWindow</span><span class="p">,</span><span class="n">registry</span><span class="o">=</span><span class="n">registry</span><span class="p">)</span>
+        <span class="n">Gnuplot</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">persist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">persist</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">itemlist</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">start</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
+            <span class="n">rng</span><span class="o">=</span><span class="s2">&quot;[&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">start</span><span class="p">:</span>
+                <span class="n">rng</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+            <span class="n">rng</span><span class="o">+=</span><span class="s2">&quot;:&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
+                <span class="n">rng</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
+            <span class="n">rng</span><span class="o">+=</span><span class="s2">&quot;]&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s2">&quot;xrange &quot;</span><span class="o">+</span><span class="n">rng</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alternate</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s2">&quot;y2tics&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">logscale</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s2">&quot;logscale y&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">ylabel</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s1">&#39;ylabel &quot;&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">ylabel</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">xlabel</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s1">&#39;xlabel &quot;&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">xlabel</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">y2label</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s1">&#39;y2label  &quot;&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">y2label</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="n">raiseit</span><span class="o">=</span><span class="bp">False</span>
+        <span class="n">enhanced</span><span class="o">=</span><span class="bp">False</span>
+        <span class="n">x11addition</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;raiseit&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">):</span>
+            <span class="n">raiseit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">raiseit</span>
+        <span class="k">if</span> <span class="n">raiseit</span><span class="p">:</span>
+            <span class="n">x11addition</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;raise&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x11addition</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;noraise&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;enhanced&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">):</span>
+            <span class="n">enhanced</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">enhanced</span>
+        <span class="k">if</span> <span class="n">enhanced</span><span class="p">:</span>
+            <span class="n">x11addition</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;enhanced&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x11addition</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;noenhanced&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">showWindow</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s2">&quot;terminal &quot;</span><span class="o">+</span><span class="n">terminal</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x11addition</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">uname</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;Darwin&quot;</span><span class="p">:</span>
+                <span class="n">GnuplotTimelines</span><span class="o">.</span><span class="n">terminalNr</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s2">&quot;terminal dumb&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">with_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">with_</span>
+
+        <span class="bp">self</span><span class="p">(</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Plotting&quot;</span><span class="p">,</span><span class="s2">&quot;gnuplotCommands&quot;</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">custom</span><span class="o">.</span><span class="n">gnuplotCommands</span><span class="p">:</span>
+                <span class="bp">self</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">redo</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GnuplotTimelines.buildData"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GnuplotTimelines.html#PyFoam.Basics.GnuplotTimelines.GnuplotTimelines.buildData">[docs]</a>    <span class="k">def</span> <span class="nf">buildData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">times</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">lastValid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build the implementation specific data</span>
+<span class="sd">        :param times: The vector of times for which data exists</span>
+<span class="sd">        :param name: the name under which the data is stored in the timeline</span>
+<span class="sd">        :param title: the title under which this will be displayed&quot;&quot;&quot;</span>
+
+        <span class="n">tm</span><span class="o">=</span><span class="n">times</span>
+        <span class="n">dt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">getValues</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tm</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">lastValid</span><span class="p">:</span>
+            <span class="n">tm</span><span class="o">=</span><span class="n">tm</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">it</span><span class="o">=</span><span class="n">Data</span><span class="p">(</span><span class="n">tm</span><span class="p">,</span><span class="n">dt</span><span class="p">,</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span><span class="n">with_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">with_</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">testAlternate</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+                <span class="n">it</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="s2">&quot;x1y2&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">itemlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">it</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GnuplotTimelines.preparePlot"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GnuplotTimelines.html#PyFoam.Basics.GnuplotTimelines.GnuplotTimelines.preparePlot">[docs]</a>    <span class="k">def</span> <span class="nf">preparePlot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prepare the plotting window&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">itemlist</span><span class="o">=</span><span class="p">[]</span></div>
+
+<div class="viewcode-block" id="GnuplotTimelines.doReplot"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GnuplotTimelines.html#PyFoam.Basics.GnuplotTimelines.GnuplotTimelines.doReplot">[docs]</a>    <span class="k">def</span> <span class="nf">doReplot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Replot the whole data&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">replot</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GnuplotTimelines.actualSetTitle"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GnuplotTimelines.html#PyFoam.Basics.GnuplotTimelines.GnuplotTimelines.actualSetTitle">[docs]</a>    <span class="k">def</span> <span class="nf">actualSetTitle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the title&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GnuplotTimelines.setYLabel"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GnuplotTimelines.html#PyFoam.Basics.GnuplotTimelines.GnuplotTimelines.setYLabel">[docs]</a>    <span class="k">def</span> <span class="nf">setYLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the label on the first Y-Axis&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s1">&#39;ylabel &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">title</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GnuplotTimelines.setYLabel2"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GnuplotTimelines.html#PyFoam.Basics.GnuplotTimelines.GnuplotTimelines.setYLabel2">[docs]</a>    <span class="k">def</span> <span class="nf">setYLabel2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the label on the second Y-Axis&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s1">&#39;y2label &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">title</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GnuplotTimelines.internalHardcopy"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GnuplotTimelines.html#PyFoam.Basics.GnuplotTimelines.GnuplotTimelines.internalHardcopy">[docs]</a>    <span class="k">def</span> <span class="nf">internalHardcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">terminal</span><span class="p">,</span><span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Emulate the regular hardcopy command&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">,</span><span class="n">filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">(</span><span class="s2">&quot;set terminal &quot;</span><span class="o">+</span><span class="n">terminal</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+        <span class="c1"># reset the terminal to its `default&#39; setting:</span>
+        <span class="bp">self</span><span class="p">(</span><span class="s1">&#39;set terminal </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">gp</span><span class="o">.</span><span class="n">GnuplotOpts</span><span class="o">.</span><span class="n">default_term</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_string</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GnuplotTimelines.doHardcopy"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GnuplotTimelines.html#PyFoam.Basics.GnuplotTimelines.GnuplotTimelines.doHardcopy">[docs]</a>    <span class="k">def</span> <span class="nf">doHardcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span><span class="n">form</span><span class="p">,</span><span class="n">termOpts</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the contents of the plot to disk</span>
+<span class="sd">        :param filename: Name of the file without type extension</span>
+<span class="sd">        :param form: String describing the format&quot;&quot;&quot;</span>
+
+        <span class="c1"># print &quot;Hardcopy&quot;,filename,form,termOpts</span>
+
+        <span class="k">if</span> <span class="n">termOpts</span><span class="o">!=</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">termOpts</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="n">termOpts</span>
+
+        <span class="k">if</span> <span class="n">form</span><span class="o">==</span><span class="s2">&quot;png&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">internalHardcopy</span><span class="p">(</span><span class="n">terminal</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="o">+</span><span class="n">termOpts</span><span class="p">,</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="o">+</span><span class="s2">&quot;.png&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">form</span><span class="o">==</span><span class="s2">&quot;pdf&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">internalHardcopy</span><span class="p">(</span><span class="n">terminal</span><span class="o">=</span><span class="s2">&quot;pdf&quot;</span><span class="o">+</span><span class="n">termOpts</span><span class="p">,</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="o">+</span><span class="s2">&quot;.pdf&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">form</span><span class="o">==</span><span class="s2">&quot;svg&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">internalHardcopy</span><span class="p">(</span><span class="n">terminal</span><span class="o">=</span><span class="s2">&quot;svg&quot;</span><span class="o">+</span><span class="n">termOpts</span><span class="p">,</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="o">+</span><span class="s2">&quot;.svg&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">form</span><span class="o">==</span><span class="s2">&quot;postscript&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">internalHardcopy</span><span class="p">(</span><span class="n">terminal</span><span class="o">=</span><span class="s2">&quot;postscript&quot;</span><span class="o">+</span><span class="n">termOpts</span><span class="p">,</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="o">+</span><span class="s2">&quot;.ps&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">form</span><span class="o">==</span><span class="s2">&quot;eps&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">internalHardcopy</span><span class="p">(</span><span class="n">terminal</span><span class="o">=</span><span class="s2">&quot;postscript eps&quot;</span><span class="o">+</span><span class="n">termOpts</span><span class="p">,</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="o">+</span><span class="s2">&quot;.eps&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Hardcopy format&quot;</span><span class="p">,</span><span class="n">form</span><span class="p">,</span><span class="s2">&quot;unknown. Falling back to postscript&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hardcopy</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="o">+</span><span class="s2">&quot;.ps&quot;</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

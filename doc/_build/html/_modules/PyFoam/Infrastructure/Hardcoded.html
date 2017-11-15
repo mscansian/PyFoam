@@ -1,0 +1,279 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Infrastructure.Hardcoded &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Infrastructure.Hardcoded</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Infrastructure.Hardcoded</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Hardcoded values&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">makedirs</span><span class="p">,</span><span class="n">environ</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">PY3</span>
+
+<span class="n">_pyFoamDirName</span><span class="o">=</span><span class="s2">&quot;pyFoam&quot;</span>
+
+<span class="n">_pyFoamConfigName</span><span class="o">=</span><span class="s2">&quot;pyfoamrc&quot;</span>
+
+<span class="n">pyFoamSiteVar</span><span class="o">=</span><span class="s2">&quot;PYFOAM_SITE_DIR&quot;</span>
+
+<div class="viewcode-block" id="globalDirectory"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Hardcoded.html#PyFoam.Infrastructure.Hardcoded.globalDirectory">[docs]</a><span class="k">def</span> <span class="nf">globalDirectory</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: the global directory&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;/etc&quot;</span><span class="p">,</span><span class="n">_pyFoamDirName</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="globalConfigFile"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Hardcoded.html#PyFoam.Infrastructure.Hardcoded.globalConfigFile">[docs]</a><span class="k">def</span> <span class="nf">globalConfigFile</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: The name of the global configuration File&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">globalDirectory</span><span class="p">(),</span><span class="n">_pyFoamConfigName</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="globalConfigDir"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Hardcoded.html#PyFoam.Infrastructure.Hardcoded.globalConfigDir">[docs]</a><span class="k">def</span> <span class="nf">globalConfigDir</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: The name of the global configuration directory where .cfg-files can be placed&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">globalConfigFile</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;.d&quot;</span></div>
+
+<div class="viewcode-block" id="siteDirectory"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Hardcoded.html#PyFoam.Infrastructure.Hardcoded.siteDirectory">[docs]</a><span class="k">def</span> <span class="nf">siteDirectory</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: the site directory&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pyFoamSiteVar</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="n">pyFoamSiteVar</span><span class="p">],</span><span class="s2">&quot;etc&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="siteConfigFile"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Hardcoded.html#PyFoam.Infrastructure.Hardcoded.siteConfigFile">[docs]</a><span class="k">def</span> <span class="nf">siteConfigFile</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: The name of the site configuration File&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pyFoamSiteVar</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">siteDirectory</span><span class="p">(),</span><span class="n">_pyFoamConfigName</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="siteConfigDir"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Hardcoded.html#PyFoam.Infrastructure.Hardcoded.siteConfigDir">[docs]</a><span class="k">def</span> <span class="nf">siteConfigDir</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: The name of the site configuration directory where .cfg-files can be placed&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pyFoamSiteVar</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">siteConfigFile</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;.d&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="userDirectory"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Hardcoded.html#PyFoam.Infrastructure.Hardcoded.userDirectory">[docs]</a><span class="k">def</span> <span class="nf">userDirectory</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: the user directory&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">,</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">_pyFoamDirName</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="userConfigFile"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Hardcoded.html#PyFoam.Infrastructure.Hardcoded.userConfigFile">[docs]</a><span class="k">def</span> <span class="nf">userConfigFile</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: The name of the user configuration File&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">userDirectory</span><span class="p">(),</span><span class="n">_pyFoamConfigName</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="userConfigDir"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Hardcoded.html#PyFoam.Infrastructure.Hardcoded.userConfigDir">[docs]</a><span class="k">def</span> <span class="nf">userConfigDir</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: The name of the user configuration directory where .cfg-files can be placed&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">userConfigFile</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;.d&quot;</span></div>
+
+<div class="viewcode-block" id="userName"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Hardcoded.html#PyFoam.Infrastructure.Hardcoded.userName">[docs]</a><span class="k">def</span> <span class="nf">userName</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;:return: name of the current user&quot;&quot;&quot;</span>
+    <span class="n">user</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;USER&quot;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+        <span class="n">user</span><span class="o">=</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;USER&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">user</span></div>
+
+<div class="viewcode-block" id="logDirectory"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Hardcoded.html#PyFoam.Infrastructure.Hardcoded.logDirectory">[docs]</a><span class="k">def</span> <span class="nf">logDirectory</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Path to the log directory that this user may write to.</span>
+<span class="sd">    /var/log/pyFoam for root, ~/.pyFoam/log for all others</span>
+<span class="sd">    :return: path to the log directory.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">userName</span><span class="p">()</span><span class="o">==</span><span class="s2">&quot;root&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;/var/log&quot;</span><span class="p">,</span><span class="s2">&quot;pyFoam&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">userDirectory</span><span class="p">(),</span><span class="s2">&quot;log&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="assertDirectory"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Hardcoded.html#PyFoam.Infrastructure.Hardcoded.assertDirectory">[docs]</a><span class="k">def</span> <span class="nf">assertDirectory</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Makes sure that the directory exists</span>
+<span class="sd">    :param name: the directory&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+            <span class="n">perm</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="s2">&quot;0o755&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">perm</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="s2">&quot;0755&quot;</span><span class="p">)</span>
+
+        <span class="n">makedirs</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="n">perm</span><span class="p">)</span></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

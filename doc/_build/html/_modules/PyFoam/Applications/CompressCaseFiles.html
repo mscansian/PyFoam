@@ -1,0 +1,440 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.CompressCaseFiles &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.CompressCaseFiles</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.CompressCaseFiles</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application-class that implements pyFoamCompressCaseFiles.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">listdir</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">PY3</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.Utilities</span> <span class="kn">import</span> <span class="n">humanReadableSize</span>
+
+<span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+    <span class="nb">long</span><span class="o">=</span><span class="nb">int</span>
+
+<div class="viewcode-block" id="CompressCaseFiles"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CompressCaseFiles.html#PyFoam.Applications.CompressCaseFiles.CompressCaseFiles">[docs]</a><span class="k">class</span> <span class="nc">CompressCaseFiles</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="CompressCaseFiles.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CompressCaseFiles.html#PyFoam.Applications.CompressCaseFiles.CompressCaseFiles.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Gets a number of directories. If these are OpenFOAM-cases then it goes through them</span>
+<span class="s2">and checks for large uncompressed files and gnuzips them</span>
+<span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [&lt;directories&gt;]&quot;</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                   <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CompressCaseFiles.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CompressCaseFiles.html#PyFoam.Applications.CompressCaseFiles.CompressCaseFiles.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">compress</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                             <span class="s2">&quot;Compression&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;Define what will be compressed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">compress</span><span class="p">)</span>
+
+        <span class="n">compress</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--recursive&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;recursive&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use the specified directories as a starting point and recursively search for cases&quot;</span><span class="p">)</span>
+
+        <span class="n">compress</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--big-size&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                            <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;bigSize&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="mi">4095</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Files with less bytes than this will not be compressed. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+
+        <span class="n">compress</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--compressed-extensions&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;extensions&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gz&quot;</span><span class="p">,</span><span class="s2">&quot;zip&quot;</span><span class="p">,</span><span class="s2">&quot;tgz&quot;</span><span class="p">],</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;File extensions for which we assume that they are already compressed. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+
+        <span class="n">compress</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--logfiles&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;logfile&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Compress files in the case directory that end with .logfile (Assuming that these are logfiles generated by PyFoam)&quot;</span><span class="p">)</span>
+
+        <span class="n">feedback</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                             <span class="s2">&quot;Feedback&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;What should be printed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">feedback</span><span class="p">)</span>
+        <span class="n">feedback</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--verbose&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print names of the directories processed. Use multiple times for higher verbosity&quot;</span><span class="p">)</span>
+        <span class="n">feedback</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-statistics&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;statistics&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not print a summary in the end&quot;</span><span class="p">)</span>
+        <span class="n">feedback</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--silent&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;silent&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Switch off all output except warnings&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CompressCaseFiles.compressFile"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CompressCaseFiles.html#PyFoam.Applications.CompressCaseFiles.CompressCaseFiles.compressFile">[docs]</a>    <span class="k">def</span> <span class="nf">compressFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Compressing&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">)</span>
+        <span class="n">zippedName</span><span class="o">=</span><span class="n">fName</span><span class="o">+</span><span class="s2">&quot;.gz&quot;</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">zippedName</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Zipped file&quot;</span><span class="p">,</span><span class="n">zippedName</span><span class="p">,</span><span class="s2">&quot;already existing for&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">oldSize</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">oldSize</span><span class="o">&lt;</span><span class="bp">self</span><span class="o">.</span><span class="n">bigSize</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;   Skipping because it is too small&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nrSkipped</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">return</span>
+
+        <span class="c1"># use gzip because that way the responsibility of removing the old file is with a &#39;tried and testd&#39; program</span>
+        <span class="n">ret</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s2">&quot;gzip&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">ret</span><span class="o">!=</span><span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">zippedName</span><span class="p">)</span> <span class="ow">or</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fName</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem compressing file&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nrProblems</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">return</span>
+        <span class="n">newSize</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">zippedName</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">newSize</span><span class="o">&gt;</span><span class="n">oldSize</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Compression of&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot;increased the filesize. Old:&quot;</span><span class="p">,</span>
+                         <span class="n">humanReadableSize</span><span class="p">(</span><span class="n">oldSize</span><span class="p">),</span><span class="s2">&quot;New:&quot;</span><span class="p">,</span><span class="n">humanReadableSize</span><span class="p">(</span><span class="n">newSize</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;   Old size:&quot;</span><span class="p">,</span><span class="n">humanReadableSize</span><span class="p">(</span><span class="n">oldSize</span><span class="p">),</span><span class="s2">&quot;New size:&quot;</span><span class="p">,</span><span class="n">humanReadableSize</span><span class="p">(</span><span class="n">newSize</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">nrFiles</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prevSize</span><span class="o">+=</span><span class="n">oldSize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nowSize</span><span class="o">+=</span><span class="n">newSize</span></div>
+
+<div class="viewcode-block" id="CompressCaseFiles.compressDirectory"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CompressCaseFiles.html#PyFoam.Applications.CompressCaseFiles.CompressCaseFiles.compressDirectory">[docs]</a>    <span class="k">def</span> <span class="nf">compressDirectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dirName</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot; Checking&quot;</span><span class="p">,</span><span class="n">dirName</span><span class="p">,</span><span class="s2">&quot;for compressible files&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">listdir</span><span class="p">(</span><span class="n">dirName</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirName</span><span class="p">,</span><span class="n">f</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">compressDirectory</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirName</span><span class="p">,</span><span class="n">f</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">name</span><span class="p">,</span><span class="n">ext</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">extensions</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">compressFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirName</span><span class="p">,</span><span class="n">f</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">nrCompressed</span><span class="o">+=</span><span class="mi">1</span></div>
+
+<div class="viewcode-block" id="CompressCaseFiles.compressCase"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CompressCaseFiles.html#PyFoam.Applications.CompressCaseFiles.CompressCaseFiles.compressCase">[docs]</a>    <span class="k">def</span> <span class="nf">compressCase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dirName</span><span class="p">,</span><span class="n">warn</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dirName</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Directory&quot;</span><span class="p">,</span><span class="n">dirName</span><span class="p">,</span><span class="s2">&quot;does not exist&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="n">dirName</span><span class="p">,</span>
+                            <span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="n">paraviewLink</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                            <span class="n">parallel</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                            <span class="n">tolerant</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">warn</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Directory&quot;</span><span class="p">,</span><span class="n">dirName</span><span class="p">,</span><span class="s2">&quot;is not an OpenFOAM-case&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">nrDir</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="n">oldNr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nrFiles</span>
+        <span class="n">oldUnc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prevSize</span>
+        <span class="n">oldCon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nowSize</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Processing case&quot;</span><span class="p">,</span><span class="n">dirName</span><span class="p">)</span>
+
+        <span class="c1"># compress meshes</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">glob</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirName</span><span class="p">,</span><span class="s2">&quot;*&quot;</span><span class="p">,</span><span class="s2">&quot;polyMesh&quot;</span><span class="p">))</span><span class="o">+</span><span class="n">glob</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirName</span><span class="p">,</span><span class="s2">&quot;*&quot;</span><span class="p">,</span><span class="s2">&quot;*&quot;</span><span class="p">,</span><span class="s2">&quot;polyMesh&quot;</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">compressDirectory</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+        <span class="c1"># compress times</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compressDirectory</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c1"># compress logfiles if requested</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">logfile</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirName</span><span class="p">,</span><span class="s2">&quot;*.logfile&quot;</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">compressFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirName</span><span class="p">,</span><span class="n">f</span><span class="p">))</span>
+
+        <span class="c1"># processor direcories</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">procDirs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compressDirectory</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirName</span><span class="p">,</span><span class="n">p</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrFiles</span><span class="o">&gt;</span><span class="n">oldNr</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  -&gt; &quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nrFiles</span><span class="o">-</span><span class="n">oldNr</span><span class="p">,</span><span class="s2">&quot;files compressed.&quot;</span><span class="p">,</span>
+                   <span class="n">humanReadableSize</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">prevSize</span><span class="o">-</span><span class="n">oldUnc</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nowSize</span><span class="o">-</span><span class="n">oldCon</span><span class="p">)),</span><span class="s2">&quot;gained&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CompressCaseFiles.recursiveCompress"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CompressCaseFiles.html#PyFoam.Applications.CompressCaseFiles.CompressCaseFiles.recursiveCompress">[docs]</a>    <span class="k">def</span> <span class="nf">recursiveCompress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dirName</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Recursively checking&quot;</span><span class="p">,</span><span class="n">dirName</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dirName</span><span class="p">):</span>
+            <span class="n">s</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="n">dirName</span><span class="p">,</span><span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">paraviewLink</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">parallel</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">compressCase</span><span class="p">(</span><span class="n">dirName</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                    <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem processing&quot;</span><span class="p">,</span><span class="n">dirName</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">listdir</span><span class="p">(</span><span class="n">dirName</span><span class="p">):</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirName</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">recursiveCompress</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem processing&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CompressCaseFiles.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CompressCaseFiles.html#PyFoam.Applications.CompressCaseFiles.CompressCaseFiles.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dirs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bigSize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">bigSize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">e</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">extensions</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">statistics</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="c1"># for the statistics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nrDir</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nrCompressed</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nrFiles</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prevSize</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nowSize</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nrSkipped</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nrProblems</span><span class="o">=</span><span class="mi">0</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span>
+                <span class="n">p</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">recursive</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">recursiveCompress</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">compressCase</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">warn</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Rudely interrupted by Control-C&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">statistics</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">()</span>
+            <span class="n">print_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nrDir</span><span class="p">,</span><span class="s2">&quot;case directories processed&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrFiles</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;No files to compress found&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nrFiles</span><span class="p">,</span><span class="s2">&quot;files processed&quot;</span><span class="p">)</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Reduced total size from&quot;</span><span class="p">,</span><span class="n">humanReadableSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prevSize</span><span class="p">),</span>
+                       <span class="s2">&quot;to&quot;</span><span class="p">,</span><span class="n">humanReadableSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nowSize</span><span class="p">),</span>
+                       <span class="s2">&quot;. This is&quot;</span><span class="p">,(</span><span class="mf">100.</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nowSize</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">prevSize</span><span class="p">,</span><span class="s2">&quot;percent of the original&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrSkipped</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Skipped&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nrSkipped</span><span class="p">,</span><span class="s2">&quot;files because they were smaller than&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">bigSize</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrCompressed</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Skipped&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nrCompressed</span><span class="p">,</span><span class="s2">&quot;files because they are already compressed&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrProblems</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Problems during the compression of&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nrProblems</span><span class="p">,</span><span class="s2">&quot;files&quot;</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

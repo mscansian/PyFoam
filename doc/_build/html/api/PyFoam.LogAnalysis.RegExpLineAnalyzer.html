@@ -1,0 +1,367 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.LogAnalysis.RegExpLineAnalyzer module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.LogAnalysis package" href="PyFoam.LogAnalysis.html"/>
+        <link rel="next" title="PyFoam.LogAnalysis.SimpleLineAnalyzer module" href="PyFoam.LogAnalysis.SimpleLineAnalyzer.html"/>
+        <link rel="prev" title="PyFoam.LogAnalysis.PhaseChangerLineAnalyzer module" href="PyFoam.LogAnalysis.PhaseChangerLineAnalyzer.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a> &raquo;</li>
+      
+    <li>PyFoam.LogAnalysis.RegExpLineAnalyzer module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.LogAnalysis.RegExpLineAnalyzer.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.LogAnalysis.RegExpLineAnalyzer">
+<span id="pyfoam-loganalysis-regexplineanalyzer-module"></span><h1>PyFoam.LogAnalysis.RegExpLineAnalyzer module<a class="headerlink" href="#module-PyFoam.LogAnalysis.RegExpLineAnalyzer" title="Permalink to this headline">¶</a></h1>
+<p>Analyzes lines with regular expressions</p>
+<dl class="class">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer">
+<em class="property">class </em><code class="descclassname">PyFoam.LogAnalysis.RegExpLineAnalyzer.</code><code class="descname">RegExpLineAnalyzer</code><span class="sig-paren">(</span><em>name</em>, <em>exp</em>, <em>idNr=None</em>, <em>titles=[]</em>, <em>doTimelines=False</em>, <em>doFiles=True</em>, <em>accumulation=None</em>, <em>progressTemplate=None</em>, <em>singleFile=False</em>, <em>startTime=None</em>, <em>endTime=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpLineAnalyzer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="PyFoam.LogAnalysis.GeneralLineAnalyzer.html#PyFoam.LogAnalysis.GeneralLineAnalyzer.GeneralLineAnalyzer" title="PyFoam.LogAnalysis.GeneralLineAnalyzer.GeneralLineAnalyzer"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.LogAnalysis.GeneralLineAnalyzer.GeneralLineAnalyzer</span></code></a></p>
+<p>Parses lines for an arbitrary regular expression</p>
+<p>Only one data-set is stored per time-step</p>
+<p>One pattern group of the RegExp can be used as a unique
+identifier, so that more than one data-sets can be stored per
+time-step</p>
+<p>The string %f% in the regular expression is replaced with the
+regular expression for a floating point number</p>
+<dl class="method">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>exp</em>, <em>idNr=None</em>, <em>titles=[]</em>, <em>doTimelines=False</em>, <em>doFiles=True</em>, <em>accumulation=None</em>, <em>progressTemplate=None</em>, <em>singleFile=False</em>, <em>startTime=None</em>, <em>endTime=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpLineAnalyzer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; name of the expression (needed for output</li>
+<li><strong>exp</strong> &#8211; the regular expression, %f% will be replaced with the</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>regular expression for a float
+:param idNr: number of the pattern group that is used as an identifier
+:param titles: titles of the columns
+:param accumulation: How multiple values should be accumulated</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.LogAnalysis.RegExpLineAnalyzer'</em><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.addToFiles">
+<code class="descname">addToFiles</code><span class="sig-paren">(</span><em>match</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpLineAnalyzer.addToFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.addToFiles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.addToTimelines">
+<code class="descname">addToTimelines</code><span class="sig-paren">(</span><em>match</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpLineAnalyzer.addToTimelines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.addToTimelines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.filterIdFromData">
+<code class="descname">filterIdFromData</code><span class="sig-paren">(</span><em>fdata</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpLineAnalyzer.filterIdFromData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.filterIdFromData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.floatRegExp">
+<code class="descname">floatRegExp</code><em class="property"> = '[-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?'</em><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.floatRegExp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.getData">
+<code class="descname">getData</code><span class="sig-paren">(</span><em>time=None</em>, <em>ID=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpLineAnalyzer.getData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.getData" title="Permalink to this definition">¶</a></dt>
+<dd><p>get a data value at a specific time for a specific ID</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.getIDs">
+<code class="descname">getIDs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpLineAnalyzer.getIDs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.getIDs" title="Permalink to this definition">¶</a></dt>
+<dd><p>get a list of the available IDs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.getLast">
+<code class="descname">getLast</code><span class="sig-paren">(</span><em>ID=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpLineAnalyzer.getLast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.getLast" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the last time for the identifier ID</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.getTimes">
+<code class="descname">getTimes</code><span class="sig-paren">(</span><em>ID=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpLineAnalyzer.getTimes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.getTimes" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the available time for the identifier ID</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.makeID">
+<code class="descname">makeID</code><span class="sig-paren">(</span><em>match</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpLineAnalyzer.makeID"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.makeID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.startAnalysis">
+<code class="descname">startAnalysis</code><span class="sig-paren">(</span><em>match</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpLineAnalyzer.startAnalysis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.startAnalysis" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.stringToMatch">
+<code class="descname">stringToMatch</code><span class="sig-paren">(</span><em>line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpLineAnalyzer.stringToMatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.stringToMatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns string to match. To be overriden for multi-line expressions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.sub">
+<code class="descname">sub</code><span class="sig-paren">(</span><em>ID</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpLineAnalyzer.sub"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer.sub" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the data set for the identifier ID</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpTimeLineLineAnalyzer">
+<em class="property">class </em><code class="descclassname">PyFoam.LogAnalysis.RegExpLineAnalyzer.</code><code class="descname">RegExpTimeLineLineAnalyzer</code><span class="sig-paren">(</span><em>name</em>, <em>exp</em>, <em>titles=[]</em>, <em>startTime=None</em>, <em>endTime=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpTimeLineLineAnalyzer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpTimeLineLineAnalyzer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer" title="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpLineAnalyzer</span></code></a></p>
+<p>Class that stores results as timelines, too</p>
+<dl class="method">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpTimeLineLineAnalyzer.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>exp</em>, <em>titles=[]</em>, <em>startTime=None</em>, <em>endTime=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/LogAnalysis/RegExpLineAnalyzer.html#RegExpTimeLineLineAnalyzer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpTimeLineLineAnalyzer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; name of the expression (needed for output</li>
+<li><strong>exp</strong> &#8211; the regular expression, %f% will be replaced with the</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>regular expression for a float
+:param titles: titles of the columns</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpTimeLineLineAnalyzer.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.LogAnalysis.RegExpLineAnalyzer'</em><a class="headerlink" href="#PyFoam.LogAnalysis.RegExpLineAnalyzer.RegExpTimeLineLineAnalyzer.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.LogAnalysis.SimpleLineAnalyzer.html" class="btn btn-neutral float-right" title="PyFoam.LogAnalysis.SimpleLineAnalyzer module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.LogAnalysis.PhaseChangerLineAnalyzer.html" class="btn btn-neutral" title="PyFoam.LogAnalysis.PhaseChangerLineAnalyzer module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

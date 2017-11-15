@@ -1,0 +1,494 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.PyFoamApplication module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.Applications package" href="PyFoam.Applications.html"/>
+        <link rel="next" title="PyFoam.Applications.PyFoamApplicationQt4 module" href="PyFoam.Applications.PyFoamApplicationQt4.html"/>
+        <link rel="prev" title="PyFoam.Applications.PrintData2DStatistics module" href="PyFoam.Applications.PrintData2DStatistics.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.Applications.html">PyFoam.Applications package</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.PyFoamApplication module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.Applications.PyFoamApplication.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.Applications.PyFoamApplication">
+<span id="pyfoam-applications-pyfoamapplication-module"></span><h1>PyFoam.Applications.PyFoamApplication module<a class="headerlink" href="#module-PyFoam.Applications.PyFoamApplication" title="Permalink to this headline">¶</a></h1>
+<p>Base class for pyFoam-applications</p>
+<p>Classes can also be called with a command-line string</p>
+<dl class="class">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.PyFoamApplication.</code><code class="descname">PyFoamApplication</code><span class="sig-paren">(</span><em>args=None</em>, <em>description=None</em>, <em>epilog=None</em>, <em>examples=None</em>, <em>usage=None</em>, <em>interspersed=False</em>, <em>nr=None</em>, <em>changeVersion=True</em>, <em>exactNr=True</em>, <em>subcommands=None</em>, <em>inputApp=None</em>, <em>localConfigurationFile=None</em>, <em>findLocalConfigurationFile=None</em>, <em>**kwArgs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>This class is the base for all pyFoam-utilities</p>
+<dl class="attribute">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'depreciationWarning': &lt;function PyFoamApplication.depreciationWarning&gt;, 'errorPrint': &lt;function PyFoamApplication.errorPrint&gt;, 'silent': &lt;function PyFoamApplication.silent&gt;, 'error': &lt;function PyFoamApplication.error&gt;, '__module__': 'PyFoam.Applications.PyFoamApplication', 'ensureGeneralOptions': &lt;function PyFoamApplication.ensureGeneralOptions&gt;, 'setData': &lt;function PyFoamApplication.setData&gt;, 'iDict': &lt;class 'PyFoam.Applications.PyFoamApplication.PyFoamApplication.iDict'&gt;, '__init__': &lt;function PyFoamApplication.__init__&gt;, '__weakref__': &lt;attribute '__weakref__' of 'PyFoamApplication' objects&gt;, 'localConfigInArgs': &lt;function PyFoamApplication.localConfigInArgs&gt;, 'iterkeys': &lt;function PyFoamApplication.iterkeys&gt;, 'addToCaseLog': &lt;function PyFoamApplication.addToCaseLog&gt;, 'run': &lt;function PyFoamApplication.run&gt;, 'localConfigFromCasename': &lt;function PyFoamApplication.localConfigFromCasename&gt;, '__doc__': 'This class is the base for all pyFoam-utilities', '__dict__': &lt;attribute '__dict__' of 'PyFoamApplication' objects&gt;, 'warning': &lt;function PyFoamApplication.warning&gt;, 'localConfigInArgsFile': &lt;function PyFoamApplication.localConfigInArgsFile&gt;, 'localConfigInCWD': &lt;function PyFoamApplication.localConfigInCWD&gt;, 'iteritems': &lt;function PyFoamApplication.iteritems&gt;, 'checkCase': &lt;function PyFoamApplication.checkCase&gt;, 'getData': &lt;function PyFoamApplication.getData&gt;, '__getattr__': &lt;function PyFoamApplication.__getattr__&gt;, '__setitem__': &lt;function PyFoamApplication.__setitem__&gt;, '__iter__': &lt;function PyFoamApplication.__iter__&gt;, 'addOptions': &lt;function PyFoamApplication.addOptions&gt;, '__getitem__': &lt;function PyFoamApplication.__getitem__&gt;, 'addLocalConfig': &lt;function PyFoamApplication.addLocalConfig&gt;})</em><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.__getattr__">
+<code class="descname">__getattr__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.__getattr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.__getattr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get application data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>args=None</em>, <em>description=None</em>, <em>epilog=None</em>, <em>examples=None</em>, <em>usage=None</em>, <em>interspersed=False</em>, <em>nr=None</em>, <em>changeVersion=True</em>, <em>exactNr=True</em>, <em>subcommands=None</em>, <em>inputApp=None</em>, <em>localConfigurationFile=None</em>, <em>findLocalConfigurationFile=None</em>, <em>**kwArgs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>description</strong> &#8211; description of the command</li>
+<li><strong>epilog</strong> &#8211; text to be printed after the options-help</li>
+<li><strong>examples</strong> &#8211; usage examples to be printed after the epilog</li>
+<li><strong>usage</strong> &#8211; Usage</li>
+<li><strong>interspersed</strong> &#8211; Is the command line allowed to be interspersed (options after the arguments)</li>
+<li><strong>args</strong> &#8211; Command line arguments when using the Application as a &#8216;class&#8217; from a script</li>
+<li><strong>nr</strong> &#8211; Number of required arguments</li>
+<li><strong>changeVersion</strong> &#8211; May this application change the version of OF used?</li>
+<li><strong>exactNr</strong> &#8211; Must not have more than the required number of arguments</li>
+<li><strong>subcommands</strong> &#8211; parse and use subcommands from the command line. Either True or a list with subcommands</li>
+<li><strong>inputApp</strong> &#8211; Application with input data. Used to allow a &#8216;pipe-like&#8217; behaviour if the class is used from a Script</li>
+<li><strong>localConfigurationFile</strong> &#8211; Use this file (or list of files) as a local configuration</li>
+<li><strong>findLocalConfigurationFile</strong> &#8211; Method to find a configuration file BEFORE the actual parameters are parsed</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.__iter__">
+<code class="descname">__iter__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.__iter__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate over the application data</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.PyFoamApplication'</em><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.__setitem__">
+<code class="descname">__setitem__</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.__setitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set data. Only if key does not exist (data can only be set once)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.addLocalConfig">
+<code class="descname">addLocalConfig</code><span class="sig-paren">(</span><em>directory=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.addLocalConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.addLocalConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a local directory (assuming it is found)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.addOptions">
+<code class="descname">addOptions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.addOptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.addOptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add options to the parser</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.addToCaseLog">
+<code class="descname">addToCaseLog</code><span class="sig-paren">(</span><em>name</em>, <em>*text</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.addToCaseLog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.addToCaseLog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add information about the application that was run to the case-log</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.checkCase">
+<code class="descname">checkCase</code><span class="sig-paren">(</span><em>name</em>, <em>fatal=True</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.checkCase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.checkCase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether this is a valid OpenFOAM-case
+:param name: the directory-bame that is supposed to be the case
+:param fatal: If this is not a case then the application ends
+:param verbose: If this is not a case no warning is issued</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.depreciationWarning">
+<code class="descname">depreciationWarning</code><span class="sig-paren">(</span><em>reason</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.depreciationWarning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.depreciationWarning" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.ensureGeneralOptions">
+<code class="descname">ensureGeneralOptions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.ensureGeneralOptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.ensureGeneralOptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.error">
+<code class="descname">error</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raise a error exception. How it will be handled is a different story
+:param args: Arguments to the exception</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.errorPrint">
+<code class="descname">errorPrint</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.errorPrint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.errorPrint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints an error message and exits
+:param args: Arguments that are to be printed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.getData">
+<code class="descname">getData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.getData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.getData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the application data</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.iDict">
+<em class="property">class </em><code class="descname">iDict</code><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.iDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.iDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">dict</span></code></p>
+<p>This class is a quick and dirty wrapper to use a dictionary like a struct</p>
+<dl class="attribute">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.iDict.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__weakref__': &lt;attribute '__weakref__' of 'iDict' objects&gt;, '__getattr__': &lt;function PyFoamApplication.iDict.__getattr__&gt;, '__module__': 'PyFoam.Applications.PyFoamApplication', '__dict__': &lt;attribute '__dict__' of 'iDict' objects&gt;, '__doc__': 'This class is a quick and dirty wrapper to use a dictionary like a struct'})</em><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.iDict.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.iDict.__getattr__">
+<code class="descname">__getattr__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.iDict.__getattr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.iDict.__getattr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.iDict.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.PyFoamApplication'</em><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.iDict.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.iDict.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.iDict.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.iteritems">
+<code class="descclassname">PyFoamApplication.</code><code class="descname">iteritems</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.iteritems"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.iteritems" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.iterkeys">
+<code class="descclassname">PyFoamApplication.</code><code class="descname">iterkeys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.iterkeys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.iterkeys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.localConfigFromCasename">
+<code class="descclassname">PyFoamApplication.</code><code class="descname">localConfigFromCasename</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.localConfigFromCasename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.localConfigFromCasename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Look for the local configuration assuming that the first argument
+after &#8216;-case&#8217; is the case directory</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.localConfigInArgs">
+<code class="descclassname">PyFoamApplication.</code><code class="descname">localConfigInArgs</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.localConfigInArgs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.localConfigInArgs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assume that the first argument that is no option and a directory
+can have a local configuration</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.localConfigInArgsFile">
+<code class="descclassname">PyFoamApplication.</code><code class="descname">localConfigInArgsFile</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.localConfigInArgsFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.localConfigInArgsFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assume that the first argument that is no option and a file
+can has a local configuration in the same directory</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.localConfigInCWD">
+<code class="descclassname">PyFoamApplication.</code><code class="descname">localConfigInCWD</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.localConfigInCWD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.localConfigInCWD" title="Permalink to this definition">¶</a></dt>
+<dd><p>find the local configuration in the current directory</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.run">
+<code class="descclassname">PyFoamApplication.</code><code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the real application</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.setData">
+<code class="descclassname">PyFoamApplication.</code><code class="descname">setData</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.setData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.setData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the application data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> &#8211; dictionary whose entries will be added to the</td>
+</tr>
+</tbody>
+</table>
+<p>application data (possibly overwriting old entries of the same name)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.silent">
+<code class="descclassname">PyFoamApplication.</code><code class="descname">silent</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.silent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.silent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Don&#8217;t print a warning message
+:param args: Arguments that are to be printed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplication.warning">
+<code class="descclassname">PyFoamApplication.</code><code class="descname">warning</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplication.warning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplication.warning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints a warning message
+:param args: Arguments that are to be printed</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplicationException">
+<em class="property">exception </em><code class="descclassname">PyFoam.Applications.PyFoamApplication.</code><code class="descname">PyFoamApplicationException</code><span class="sig-paren">(</span><em>app</em>, <em>*text</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplicationException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplicationException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="PyFoam.Error.html#PyFoam.Error.FatalErrorPyFoamException" title="PyFoam.Error.FatalErrorPyFoamException"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Error.FatalErrorPyFoamException</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplicationException.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>app</em>, <em>*text</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplicationException.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplicationException.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplicationException.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.PyFoamApplication'</em><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplicationException.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PyFoamApplication.PyFoamApplicationException.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#PyFoamApplicationException.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.PyFoamApplicationException.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Applications.PyFoamApplication.pyFoamExceptionHook">
+<code class="descclassname">PyFoam.Applications.PyFoamApplication.</code><code class="descname">pyFoamExceptionHook</code><span class="sig-paren">(</span><em>type</em>, <em>value</em>, <em>tb</em>, <em>debugOnSyntaxError=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#pyFoamExceptionHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.pyFoamExceptionHook" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Applications.PyFoamApplication.pyFoamSIG1HandlerPrintStack">
+<code class="descclassname">PyFoam.Applications.PyFoamApplication.</code><code class="descname">pyFoamSIG1HandlerPrintStack</code><span class="sig-paren">(</span><em>nr</em>, <em>frame</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PyFoamApplication.html#pyFoamSIG1HandlerPrintStack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PyFoamApplication.pyFoamSIG1HandlerPrintStack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.Applications.PyFoamApplicationQt4.html" class="btn btn-neutral float-right" title="PyFoam.Applications.PyFoamApplicationQt4 module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.Applications.PrintData2DStatistics.html" class="btn btn-neutral" title="PyFoam.Applications.PrintData2DStatistics module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

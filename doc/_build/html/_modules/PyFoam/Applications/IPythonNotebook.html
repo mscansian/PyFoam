@@ -1,0 +1,689 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.IPythonNotebook &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.IPythonNotebook</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.IPythonNotebook</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application-class that implements pyFoamIPythonNotebook.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+<span class="kn">from</span> <span class="nn">PyFoam.IPythonHelpers.Notebook</span> <span class="kn">import</span> <span class="n">Notebook</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.FoamOptionParser</span> <span class="kn">import</span> <span class="n">Subcommand</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">u</span>
+
+<div class="viewcode-block" id="IPythonNotebook"><a class="viewcode-back" href="../../../api/PyFoam.Applications.IPythonNotebook.html#PyFoam.Applications.IPythonNotebook.IPythonNotebook">[docs]</a><span class="k">class</span> <span class="nc">IPythonNotebook</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="IPythonNotebook.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.IPythonNotebook.html#PyFoam.Applications.IPythonNotebook.IPythonNotebook.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">This utility creates and manipulates IPython-Notebooks that are related to</span>
+<span class="s2">OpenFOAM-cases. The Notebooks are only used as a start for the own evaluations of the user</span>
+<span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog COMMAND [&lt;arguments&gt;]&quot;</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">subcommands</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IPythonNotebook.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.IPythonNotebook.html#PyFoam.Applications.IPythonNotebook.IPythonNotebook.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Building the subcommands</span>
+        <span class="n">createCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;create&#39;</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Create a new IPython-notebook for a case&quot;</span><span class="p">,</span>
+                             <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;new&quot;</span><span class="p">,</span><span class="s2">&quot;mk&quot;</span><span class="p">,),</span>
+                             <span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                             <span class="n">exactNr</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span><span class="n">createCmd</span><span class="p">,</span>
+                                  <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog COMMAND &lt;caseDirectory&gt;&quot;</span><span class="p">)</span>
+
+        <span class="n">copyCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;copy&#39;</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Gets an existing notebook and rewrites it to fit a new case (this assumes that the original notebook was built with this utility)&quot;</span><span class="p">,</span>
+                            <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;cp&quot;</span><span class="p">,),</span>
+                            <span class="n">nr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                            <span class="n">exactNr</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span><span class="n">copyCmd</span><span class="p">,</span>
+                                  <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog COMMAND &lt;originalNotebook&gt; &lt;caseDirectory&gt;&quot;</span><span class="p">)</span>
+
+        <span class="n">infoCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;info&#39;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Check whether an IPython-Notebook is created by this Utility and print info&quot;</span><span class="p">,</span>
+                           <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;report&quot;</span><span class="p">,),</span>
+                           <span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                           <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span><span class="n">infoCmd</span><span class="p">,</span>
+                                  <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog COMMAND &lt;notebookFile&gt; [&lt;more notebook files&gt;]&quot;</span><span class="p">)</span>
+
+        <span class="n">cleanCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;clean&#39;</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Remove unneeded cells from the notebook&quot;</span><span class="p">,</span>
+                            <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;purge&quot;</span><span class="p">,),</span>
+                            <span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                            <span class="n">exactNr</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span><span class="n">cleanCmd</span><span class="p">,</span>
+                                  <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog COMMAND &lt;notebookFile&gt;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Add option groups to parsers</span>
+        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="p">[</span><span class="n">copyCmd</span><span class="p">,</span><span class="n">createCmd</span><span class="p">]:</span>
+            <span class="n">outOpts</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                                <span class="s2">&quot;Write Options&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;Where the Notebook should be created&quot;</span><span class="p">)</span>
+            <span class="n">outOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--force-write&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;forceWrite&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Force writing if the file already exists&quot;</span><span class="p">)</span>
+            <span class="n">outOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--destination-file&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;destinationFile&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Write to this filename. If unset the notebook is written to the case it is created for as &lt;casename&gt;.ipynb. If the destination is directory the file is created in this directory as &lt;casename&gt;.ipynb. Otherwise the fie is created according to specification&quot;</span><span class="p">)</span>
+            <span class="n">outOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--relative-path&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;absolutePath&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Keep the relative path to the directory as specified by the user. Otherwise the path is rewritten as an absolute path&quot;</span><span class="p">)</span>
+            <span class="n">outOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--case-variable-name&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;caseVariable&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="s2">&quot;case&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Name of the variable representing the case in the notebook. Defaut: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">outOpts</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="p">[</span><span class="n">cleanCmd</span><span class="p">]:</span>
+            <span class="n">cleanOpts</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                                    <span class="s2">&quot;Clean Options&quot;</span><span class="p">,</span>
+                                    <span class="s2">&quot;What should be cleaned&quot;</span><span class="p">)</span>
+            <span class="n">cleanOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--keep-selector&quot;</span><span class="p">,</span>
+                                 <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                                 <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cleanSelector&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Keep the data selectors&quot;</span><span class="p">)</span>
+            <span class="n">cleanOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--keep-developer&quot;</span><span class="p">,</span>
+                                 <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                                 <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cleanDeveloper&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Clean out the developer stuff&quot;</span><span class="p">)</span>
+            <span class="n">cleanOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--clean-comments&quot;</span><span class="p">,</span>
+                                 <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                 <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cleanComment&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Clean out the comments created by this utility&quot;</span><span class="p">)</span>
+            <span class="n">cleanOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--clean-headings&quot;</span><span class="p">,</span>
+                                 <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                 <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cleanHeading&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Clean out the headings created by this utility&quot;</span><span class="p">)</span>
+            <span class="n">cleanOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--clean-report&quot;</span><span class="p">,</span>
+                                 <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                 <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cleanReport&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Clean out the case report created by this utility&quot;</span><span class="p">)</span>
+            <span class="n">cleanOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--clean-info&quot;</span><span class="p">,</span>
+                                 <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                 <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cleanInfo&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Clean out information statements&quot;</span><span class="p">)</span>
+            <span class="n">cleanOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--clean-output&quot;</span><span class="p">,</span>
+                                 <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                 <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cleanOutput&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Strip out the output cells (results)&quot;</span><span class="p">)</span>
+            <span class="n">cleanOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--clean-custom-tag&quot;</span><span class="p">,</span>
+                                 <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                                 <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;customTags&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Clean cells tagged with this custom tag. Can be specified more than once&quot;</span><span class="p">)</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">cleanOpts</span><span class="p">)</span>
+
+            <span class="n">outOpts</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                                <span class="s2">&quot;Write Options&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;How the cleaned notebook should be written&quot;</span><span class="p">)</span>
+            <span class="n">outOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--overwrite&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;overwrite&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Overwrite the old notebook&quot;</span><span class="p">)</span>
+            <span class="n">outOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--outfile&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outfile&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Write to a new notebook here&quot;</span><span class="p">)</span>
+            <span class="n">outOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--force&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;force&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If the outfile already exists overwrite it&quot;</span><span class="p">)</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">outOpts</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="p">[</span><span class="n">createCmd</span><span class="p">]:</span>
+            <span class="n">contentOpts</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                                    <span class="s2">&quot;Content Options&quot;</span><span class="p">,</span>
+                                    <span class="s2">&quot;What should be added to the notebook&quot;</span><span class="p">)</span>
+            <span class="n">contentOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-case-report&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;caseReport&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not give a general overview of the case&quot;</span><span class="p">)</span>
+            <span class="n">contentOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-additional-imports&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;additional&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not import packages that make the notebook neater&quot;</span><span class="p">)</span>
+            <span class="n">contentOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--long-boundary-conditions&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;longBCs&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Long boundary conditions&quot;</span><span class="p">)</span>
+            <span class="n">contentOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-parallel-report&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;parallelReport&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not report about parallelization&quot;</span><span class="p">)</span>
+            <span class="n">contentOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-postprocessing&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;postprocessing&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not report about available postprocessing data&quot;</span><span class="p">)</span>
+            <span class="n">contentOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-data-selectors&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;selectors&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not add data selectors for the available postprocessing data&quot;</span><span class="p">)</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">contentOpts</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IPythonNotebook.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.IPythonNotebook.html#PyFoam.Applications.IPythonNotebook.IPythonNotebook.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;create&quot;</span><span class="p">,</span><span class="s2">&quot;copy&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;create&quot;</span><span class="p">:</span>
+                <span class="n">dest</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dest</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">sol</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span>
+                                  <span class="n">paraviewLink</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                  <span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+            <span class="n">fName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;.ipynb&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">destinationFile</span><span class="p">:</span>
+                <span class="n">fName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">destinationFile</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">fName</span><span class="p">):</span>
+                    <span class="n">fName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fName</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;.ipynb&quot;</span><span class="p">:</span>
+                    <span class="n">fName</span><span class="o">+=</span><span class="s2">&quot;.ipynb&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">absolutePath</span><span class="p">:</span>
+                 <span class="n">usedDest</span><span class="o">=</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">else</span><span class="p">:</span>
+                 <span class="n">usedDest</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                       <span class="n">start</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
+                                                          <span class="n">fName</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fName</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">forceWrite</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;File&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot;already existing&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Overwriting&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">)</span>
+            <span class="n">nb</span><span class="o">=</span><span class="n">Notebook</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="n">nb</span><span class="o">.</span><span class="n">pyFoamMetaData</span><span class="p">()[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;Created by &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">get_prog_name</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;create&quot;</span><span class="p">:</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addHeading</span><span class="p">(</span><span class="s2">&quot;Imports and administrative stuff&quot;</span><span class="p">,</span>
+                              <span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;heading&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">developerMode</span><span class="p">:</span>
+                     <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;This part only needed by developers (reload imports)&quot;</span><span class="p">,</span>
+                                    <span class="n">classes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;comment&quot;</span><span class="p">,</span><span class="s2">&quot;developer&quot;</span><span class="p">))</span>
+                     <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%lo</span><span class="s2">ad_ext autoreload&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;developer&quot;</span><span class="p">)</span>
+                     <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;%autoreload 2&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;developer&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;Make sure that plots are inlined&quot;</span><span class="p">,</span>
+                               <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;comment&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;%matplotlib inline&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">additional</span><span class="p">:</span>
+                    <span class="n">nb</span><span class="o">.</span><span class="n">addHeading</span><span class="p">(</span><span class="s2">&quot;Additional imports for convenience&quot;</span><span class="p">,</span>
+                                  <span class="n">level</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;heading&quot;</span><span class="p">,</span><span class="s2">&quot;additional&quot;</span><span class="p">))</span>
+                    <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;Allow panning and zooming in plots. Slower than regular plotting so for big data you might want to use `mpld3.disable_notebook()` and erase this cell.&quot;</span><span class="p">,</span>
+                                   <span class="n">classes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;comment&quot;</span><span class="p">,</span><span class="s2">&quot;additional&quot;</span><span class="p">))</span>
+                    <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span>
+<span class="sd">&quot;&quot;&quot;try:</span>
+<span class="sd">    import mpld3</span>
+<span class="sd">    mpld3.enable_notebook()</span>
+<span class="sd">except ImportError:</span>
+<span class="sd">    print &#39;No mpld3-library. No interactive plots&#39;&quot;&quot;&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;additional&quot;</span><span class="p">)</span>
+                    <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span>
+<span class="sd">&quot;&quot;&quot;Uncomment this code to change the size of the plots&quot;&quot;&quot;</span><span class="p">)</span>
+                    <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span>
+<span class="sd">&quot;&quot;&quot;# import matplotlib.pylab as pylab</span>
+<span class="sd"># pylab.rcParams[&quot;figure.figsize&quot;]=(12,8)&quot;&quot;&quot;</span><span class="p">)</span>
+                    <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span>
+<span class="sd">&quot;&quot;&quot;Wrapper with additional functionality to the regular Pandas-`DataFrame`:</span>
+
+<span class="sd">* `addData()` for adding columns from other data sets (with resampling</span>
+<span class="sd">* `integrals()` and `weightedAverage()`. Also extended `descripe()` that returns this data</span>
+
+<span class="sd">Most Pandas-operations (like slicing) will return a Pandas-`DataFrame`. By enclosing this in `DataFrame(...)` you can &#39;add&#39; this functionality to your data. PyFoam operations return this extended  `DataFrame` automatically&quot;&quot;&quot;</span><span class="p">,</span>
+                                   <span class="n">classes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;comment&quot;</span><span class="p">,</span><span class="s2">&quot;additional&quot;</span><span class="p">))</span>
+                    <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;from PyFoam.Wrappers.Pandas import PyFoamDataFrame as DataFrame&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;additional&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addHeading</span><span class="p">(</span><span class="s2">&quot;Data storage&quot;</span><span class="p">,</span>
+                              <span class="n">level</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;heading&quot;</span><span class="p">))</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;This is the support for permanently storing data into the notebook&quot;</span><span class="p">,</span>
+                               <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;comment&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;from PyFoam.IPythonHelpers import storage&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;Due to technical problems the next line has to be executed &#39;by hand&#39; (it will not work poperly if called from `Run All` or similar). When reopening the page the JavaScript-error is normal (it will go away once the cell is executed). Reading can take some time and the next command will appear to &#39;hang&#39;&quot;</span><span class="p">,</span>
+                               <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;comment&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;store=storage()&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;The next line switches on the behaviour that items specified with `store(name,func)` will be stored permanently in the notebook. Uncomment if you want this behaviour&quot;</span><span class="p">,</span>
+                               <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;comment&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;# store.autowriteOn()&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;The next line switches off the default behaviour that for items specified with `store(name,func)` if `name` is already specified in the permant storage this value is used and `func` is ignored&quot;</span><span class="p">,</span>
+                               <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;comment&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;# store.autoreadOff()&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addHeading</span><span class="p">(</span><span class="s2">&quot;Case data&quot;</span><span class="p">,</span>
+                              <span class="n">level</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;heading&quot;</span><span class="p">))</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;This class makes it easy to access case data. Use tab-completion for available methods&quot;</span><span class="p">,</span>
+                               <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;comment&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;from PyFoam.IPythonHelpers.Case import Case&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addHeading</span><span class="p">(</span><span class="s2">&quot;The Case&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;heading&quot;</span><span class="p">)</span>
+                <span class="n">v</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">caseVariable</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=Case(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">usedDest</span><span class="p">),</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;case&quot;</span><span class="p">,</span>
+                           <span class="n">pyFoam</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;caseVar&quot;</span><span class="p">:</span><span class="n">v</span><span class="p">,</span><span class="s2">&quot;usedDirectory&quot;</span><span class="p">:</span><span class="n">usedDest</span><span class="p">,</span>
+                                   <span class="s2">&quot;casePath&quot;</span><span class="p">:</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">})</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">caseReport</span><span class="p">:</span>
+                     <span class="n">nb</span><span class="o">.</span><span class="n">addHeading</span><span class="p">(</span><span class="s2">&quot;Case Report&quot;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                   <span class="n">classes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;report&quot;</span><span class="p">,</span><span class="s2">&quot;heading&quot;</span><span class="p">))</span>
+                     <span class="n">regions</span><span class="o">=</span><span class="nb">sorted</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">getRegions</span><span class="p">(</span><span class="n">defaultRegion</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+                     <span class="n">namedRegions</span><span class="o">=</span><span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">regions</span> <span class="k">if</span> <span class="n">r</span><span class="o">!=</span><span class="bp">None</span><span class="p">]</span>
+                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">namedRegions</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;Contains named regions *&quot;</span><span class="o">+</span>
+                                         <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">namedRegions</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
+                                         <span class="n">classes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="s2">&quot;report&quot;</span><span class="p">))</span>
+                     <span class="k">if</span> <span class="n">sol</span><span class="o">.</span><span class="n">procNr</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;Case seems to be decomposed to &quot;</span><span class="o">+</span>
+                                         <span class="nb">str</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">procNr</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; processors&quot;</span><span class="p">,</span>
+                                         <span class="n">classes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="s2">&quot;report&quot;</span><span class="p">))</span>
+                     <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">regions</span><span class="p">:</span>
+                          <span class="k">if</span> <span class="n">region</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                               <span class="n">level</span><span class="o">=</span><span class="mi">3</span>
+                               <span class="n">regionStr</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+                          <span class="k">else</span><span class="p">:</span>
+                               <span class="n">nb</span><span class="o">.</span><span class="n">addHeading</span><span class="p">(</span><span class="s2">&quot;Region &quot;</span><span class="o">+</span><span class="n">region</span><span class="p">,</span>
+                                             <span class="n">level</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;heading&quot;</span><span class="p">,</span><span class="s2">&quot;report&quot;</span><span class="p">))</span>
+                               <span class="n">level</span><span class="o">=</span><span class="mi">4</span>
+                               <span class="n">regionStr</span><span class="o">=</span><span class="s2">&quot;region=&#39;</span><span class="si">%s</span><span class="s2">&#39;,&quot;</span> <span class="o">%</span> <span class="n">region</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.size(</span><span class="si">%s</span><span class="s2">level=</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">regionStr</span><span class="p">,</span><span class="n">level</span><span class="p">),</span>
+                                     <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;report&quot;</span><span class="p">)</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.boundaryConditions(</span><span class="si">%s</span><span class="s2">level=</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">regionStr</span><span class="p">,</span><span class="n">level</span><span class="p">),</span>
+                                     <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;report&quot;</span><span class="p">)</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.dimensions(</span><span class="si">%s</span><span class="s2">level=</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">regionStr</span><span class="p">,</span><span class="n">level</span><span class="p">),</span>
+                                     <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;report&quot;</span><span class="p">)</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.internalField(</span><span class="si">%s</span><span class="s2">level=</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">regionStr</span><span class="p">,</span><span class="n">level</span><span class="p">),</span>
+                                     <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;report&quot;</span><span class="p">)</span>
+                          <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">longBCs</span><span class="p">:</span>
+                               <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.longBoundaryConditions(</span><span class="si">%s</span><span class="s2">level=</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">regionStr</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">level</span><span class="p">),</span>
+                                          <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;report&quot;</span><span class="p">)</span>
+                          <span class="k">if</span> <span class="n">sol</span><span class="o">.</span><span class="n">procNr</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">parallelReport</span><span class="p">:</span>
+                               <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.decomposition(</span><span class="si">%s</span><span class="s2">level=</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">regionStr</span><span class="p">,</span><span class="n">level</span><span class="p">),</span>
+                                          <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;report&quot;</span><span class="p">)</span>
+                               <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.processorMatrix(</span><span class="si">%s</span><span class="s2">level=</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">regionStr</span><span class="p">,</span><span class="n">level</span><span class="p">),</span>
+                                          <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;report&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">postprocessing</span><span class="p">:</span>
+                     <span class="n">nb</span><span class="o">.</span><span class="n">addHeading</span><span class="p">(</span><span class="s2">&quot;Postprocessing data&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;heading&quot;</span><span class="p">)</span>
+                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">timelines</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;Timelines&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.sol.timelines&quot;</span> <span class="o">%</span> <span class="n">v</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;Samples&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.sol.samples&quot;</span> <span class="o">%</span> <span class="n">v</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">surfaces</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;Surfaces&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.sol.surfaces&quot;</span> <span class="o">%</span> <span class="n">v</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">distributions</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;Distributions&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.sol.distributions&quot;</span> <span class="o">%</span> <span class="n">v</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">pickledData</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;Pickled data files&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.sol.pickledData&quot;</span> <span class="o">%</span> <span class="n">v</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">pickledPlots</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;Pickled plot files&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+                          <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.sol.pickledPlots&quot;</span> <span class="o">%</span> <span class="n">v</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">selectors</span><span class="p">:</span>
+                          <span class="n">sel</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;timeline&quot;</span><span class="p">,</span><span class="n">sol</span><span class="o">.</span><span class="n">timelines</span><span class="p">),</span>
+                               <span class="p">(</span><span class="s2">&quot;sample&quot;</span><span class="p">,</span><span class="n">sol</span><span class="o">.</span><span class="n">samples</span><span class="p">),</span>
+                               <span class="p">(</span><span class="s2">&quot;distribution&quot;</span><span class="p">,</span><span class="n">sol</span><span class="o">.</span><span class="n">distributions</span><span class="p">)]</span>
+                          <span class="k">for</span> <span class="n">desc</span><span class="p">,</span><span class="n">items</span> <span class="ow">in</span> <span class="n">sel</span><span class="p">:</span>
+                               <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                                    <span class="n">nb</span><span class="o">.</span><span class="n">addHeading</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="o">+</span>
+                                                  <span class="s2">&quot; selectors&quot;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                                  <span class="n">classes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;heading&quot;</span><span class="p">,</span><span class="s2">&quot;selector&quot;</span><span class="p">))</span>
+                                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+                                         <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">Selector(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span>
+                                                    <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">desc</span><span class="p">,</span><span class="n">i</span><span class="p">),</span>
+                                                    <span class="n">classes</span><span class="o">=</span><span class="s2">&quot;selector&quot;</span><span class="p">)</span>
+                          <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">pickledPlots</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">pickledData</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                              <span class="n">nb</span><span class="o">.</span><span class="n">addHeading</span><span class="p">(</span><span class="s2">&quot;Data selectors&quot;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                            <span class="n">classes</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;heading&quot;</span><span class="p">,</span><span class="s2">&quot;selector&quot;</span><span class="p">))</span>
+                              <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">pickledPlots</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                                  <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.pickledPlotSelector()&quot;</span> <span class="o">%</span> <span class="n">v</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;selector&quot;</span><span class="p">)</span>
+                              <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">pickledData</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                                  <span class="n">nb</span><span class="o">.</span><span class="n">addCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.pickledDataSelector()&quot;</span> <span class="o">%</span> <span class="n">v</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;selector&quot;</span><span class="p">)</span>
+
+                <span class="n">nb</span><span class="o">.</span><span class="n">addHeading</span><span class="p">(</span><span class="s2">&quot;User evaluations&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;heading&quot;</span><span class="p">)</span>
+                <span class="n">nb</span><span class="o">.</span><span class="n">addMarkdown</span><span class="p">(</span><span class="s2">&quot;Now add your own stuff&quot;</span><span class="p">,</span><span class="n">classes</span><span class="o">=</span><span class="s2">&quot;comment&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;copy&quot;</span><span class="p">:</span>
+                <span class="n">src</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">nb</span><span class="o">=</span><span class="n">Notebook</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+                <span class="n">cnt</span><span class="o">=</span><span class="mi">0</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">nb</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">isClass</span><span class="p">(</span><span class="s2">&quot;case&quot;</span><span class="p">):</span>
+                        <span class="n">cnt</span><span class="o">+=</span><span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">cnt</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="s2">&quot;has more than one &#39;case&#39;-cell&quot;</span><span class="p">)</span>
+                        <span class="n">py</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">meta</span><span class="p">()[</span><span class="n">u</span><span class="p">(</span><span class="s2">&quot;pyFoam&quot;</span><span class="p">)]</span>
+                        <span class="n">used</span><span class="o">=</span><span class="n">py</span><span class="p">[</span><span class="s2">&quot;usedDirectory&quot;</span><span class="p">]</span>
+                        <span class="nb">input</span><span class="o">=</span><span class="p">[]</span>
+                        <span class="n">changed</span><span class="o">=</span><span class="bp">False</span>
+                        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]:</span>
+                            <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">used</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                                <span class="nb">input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">used</span><span class="p">,</span><span class="n">usedDest</span><span class="p">))</span>
+                                <span class="n">changed</span><span class="o">=</span><span class="bp">True</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="nb">input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">changed</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">used</span><span class="p">,</span><span class="s2">&quot;not found&quot;</span><span class="p">)</span>
+                        <span class="n">py</span><span class="p">[</span><span class="s2">&quot;usedDirectory&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">usedDest</span>
+                        <span class="n">py</span><span class="p">[</span><span class="s2">&quot;casePath&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span>
+                        <span class="n">c</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span><span class="o">=</span><span class="nb">input</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unimplemented:&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="p">)</span>
+            <span class="n">nb</span><span class="o">.</span><span class="n">writeToFile</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;info&quot;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">():</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+                <span class="n">nb</span><span class="o">=</span><span class="n">Notebook</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+                <span class="n">meta</span><span class="o">=</span><span class="n">nb</span><span class="o">.</span><span class="n">pyFoamMetaData</span><span class="p">()</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">origin</span><span class="o">=</span><span class="n">meta</span><span class="p">[</span><span class="s2">&quot;createdBy&quot;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">created</span><span class="o">=</span><span class="n">meta</span><span class="p">[</span><span class="s2">&quot;createdTime&quot;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">created</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">created</span><span class="o">=</span><span class="n">meta</span><span class="p">[</span><span class="s2">&quot;createdTime&quot;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">created</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">modified</span><span class="o">=</span><span class="n">meta</span><span class="p">[</span><span class="s2">&quot;modificationTime&quot;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">modified</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Created by&quot;</span><span class="p">,</span><span class="n">origin</span><span class="p">,</span><span class="s2">&quot;at&quot;</span><span class="p">,</span><span class="n">created</span><span class="p">,</span>
+                       <span class="s2">&quot;modified&quot;</span><span class="p">,</span><span class="n">modified</span><span class="p">)</span>
+                <span class="n">classes</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">cases</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">nrOutput</span><span class="o">=</span><span class="mi">0</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">nb</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;outputs&quot;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">&quot;outputs&quot;</span><span class="p">])</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                            <span class="n">nrOutput</span><span class="o">+=</span><span class="mi">1</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">py</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">meta</span><span class="p">()[</span><span class="n">u</span><span class="p">(</span><span class="s2">&quot;pyFoam&quot;</span><span class="p">)]</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">cl</span><span class="o">=</span><span class="n">py</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cl</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">classes</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">+=</span><span class="mi">1</span>
+                            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                                <span class="n">classes</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                    <span class="k">if</span> <span class="s2">&quot;caseVar&quot;</span> <span class="ow">in</span> <span class="n">py</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">cases</span><span class="p">[</span><span class="n">py</span><span class="p">[</span><span class="s2">&quot;caseVar&quot;</span><span class="p">]]</span><span class="o">=</span><span class="n">py</span><span class="p">[</span><span class="s2">&quot;casePath&quot;</span><span class="p">]</span>
+                        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                            <span class="k">pass</span>
+                <span class="n">print_</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nb</span><span class="p">),</span><span class="s2">&quot;cells. Classes:&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">k</span><span class="o">+</span><span class="s2">&quot;:&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">classes</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">classes</span><span class="o">.</span><span class="n">keys</span><span class="p">())]))</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Cells with output:&quot;</span><span class="p">,</span><span class="n">nrOutput</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Case-Variables:&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cases</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  &quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">cases</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+                <span class="n">print_</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;clean&quot;</span><span class="p">:</span>
+            <span class="n">nb</span><span class="o">=</span><span class="n">Notebook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">overwrite</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outfile</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Either specify --overwrite or --outfile&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">overwrite</span> <span class="ow">and</span>  <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outfile</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Only specify --overwrite or --outfile&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outfile</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outfile</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">force</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;File&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outfile</span><span class="p">,</span><span class="s2">&quot;exists&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Overwriting&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outfile</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outfile</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;.ipynb&quot;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Appending &#39;.ipynb&#39; to&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outfile</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outfile</span><span class="o">+=</span><span class="s2">&quot;.ipynb&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">overwrite</span><span class="p">:</span>
+                <span class="n">toFile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">toFile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outfile</span>
+
+            <span class="n">removeClasses</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">customTags</span><span class="p">[:]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cleanSelector</span><span class="p">:</span>
+                <span class="n">removeClasses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;selector&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cleanDeveloper</span><span class="p">:</span>
+                <span class="n">removeClasses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;developer&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cleanHeading</span><span class="p">:</span>
+                <span class="n">removeClasses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;heading&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cleanComment</span><span class="p">:</span>
+                <span class="n">removeClasses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;comment&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cleanReport</span><span class="p">:</span>
+                <span class="n">removeClasses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;report&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cleanInfo</span><span class="p">:</span>
+                <span class="n">removeClasses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;info&quot;</span><span class="p">)</span>
+
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Cleaning cells tagged with: &quot;</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">removeClasses</span><span class="p">)))</span>
+
+            <span class="n">nb</span><span class="o">.</span><span class="n">reset</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">nb</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">isClass</span><span class="p">(</span><span class="n">removeClasses</span><span class="p">)])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cleanOutput</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Removing output&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">nb</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;outputs&quot;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+                        <span class="n">c</span><span class="p">[</span><span class="s2">&quot;outputs&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">[]</span>
+
+            <span class="n">nb</span><span class="o">.</span><span class="n">writeToFile</span><span class="p">(</span><span class="n">toFile</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unimplemented command&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

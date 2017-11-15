@@ -1,0 +1,390 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.ThirdParty.Gnuplot.funcutils &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../../PyFoam.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.ThirdParty.Gnuplot.funcutils</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.ThirdParty.Gnuplot.funcutils</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env python</span>
+
+<span class="c1"># $Id: funcutils.py 297 2007-03-30 11:25:28Z mhagger $</span>
+
+<span class="c1"># Copyright (C) 1998-2003 Michael Haggerty &lt;mhagger@alum.mit.edu&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># This file is licensed under the GNU Lesser General Public License</span>
+<span class="c1"># (LGPL).  See LICENSE.txt for details.</span>
+
+<span class="sd">&quot;&quot;&quot;funcutils.py -- Subroutines that tabulate a function&#39;s values.</span>
+
+<span class="sd">Convenience functions that evaluate a python function on a grid of</span>
+<span class="sd">points and tabulate the output to be used with Gnuplot.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># assume this is pypy and retry</span>
+    <span class="kn">import</span> <span class="nn">numpypy</span>
+    <span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Gnuplot</span><span class="p">,</span> <span class="n">utils</span><span class="p">,</span> <span class="n">PlotItems</span>
+
+
+<div class="viewcode-block" id="tabulate_function"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.funcutils.html#PyFoam.ThirdParty.Gnuplot.funcutils.tabulate_function">[docs]</a><span class="k">def</span> <span class="nf">tabulate_function</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ufunc</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Evaluate and tabulate a function on a 1- or 2-D grid of points.</span>
+
+<span class="sd">    f should be a function taking one or two floating-point</span>
+<span class="sd">    parameters.</span>
+
+<span class="sd">    If f takes one parameter, then xvals should be a 1-D array and</span>
+<span class="sd">    yvals should be None.  The return value is a numpy array</span>
+<span class="sd">    &#39;[f(x[0]), f(x[1]), ..., f(x[-1])]&#39;.</span>
+
+<span class="sd">    If f takes two parameters, then &#39;xvals&#39; and &#39;yvals&#39; should each be</span>
+<span class="sd">    1-D arrays listing the values of x and y at which &#39;f&#39; should be</span>
+<span class="sd">    tabulated.  The return value is a matrix M where &#39;M[i,j] =</span>
+<span class="sd">    f(xvals[i],yvals[j])&#39;, which can for example be used in the</span>
+<span class="sd">    &#39;GridData&#39; constructor.</span>
+
+<span class="sd">    If &#39;ufunc=0&#39;, then &#39;f&#39; is evaluated at each point using a Python</span>
+<span class="sd">    loop.  This can be slow if the number of points is large.  If</span>
+<span class="sd">    speed is an issue, you should write &#39;f&#39; in terms of numpy ufuncs</span>
+<span class="sd">    and use the &#39;ufunc=1&#39; feature described next.</span>
+
+<span class="sd">    If called with &#39;ufunc=1&#39;, then &#39;f&#39; should be a function that is</span>
+<span class="sd">    composed entirely of ufuncs (i.e., a function that can operate</span>
+<span class="sd">    element-by-element on whole matrices).  It will be passed the</span>
+<span class="sd">    xvals and yvals as rectangular matrices.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">yvals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c1"># f is a function of only one variable:</span>
+        <span class="n">xvals</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ufunc</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">xvals</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">dtype</span> <span class="o">=</span> <span class="n">xvals</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="n">dtype</span> <span class="o">=</span> <span class="n">xvals</span><span class="o">.</span><span class="n">typecode</span><span class="p">()</span>
+
+            <span class="n">m</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">xvals</span><span class="p">),),</span> <span class="n">dtype</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xvals</span><span class="p">)):</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">xvals</span><span class="p">[</span><span class="n">xi</span><span class="p">]</span>
+                <span class="n">m</span><span class="p">[</span><span class="n">xi</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">m</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># f is a function of two variables:</span>
+        <span class="n">xvals</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+        <span class="n">yvals</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">yvals</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ufunc</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="n">xvals</span><span class="p">[:,</span><span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">yvals</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,:])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c1"># choose a result dtype based on what &#39;+&#39; would return</span>
+                <span class="c1"># (yecch!):</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">dtype</span> <span class="o">=</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">xvals</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">)</span> <span class="o">+</span>
+                             <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">yvals</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span><span class="p">))</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="n">dtype</span> <span class="o">=</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">xvals</span><span class="o">.</span><span class="n">typecode</span><span class="p">())</span> <span class="o">+</span>
+                             <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">xvals</span><span class="o">.</span><span class="n">typecode</span><span class="p">()))</span><span class="o">.</span><span class="n">typecode</span><span class="p">()</span>
+
+            <span class="n">m</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">xvals</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">yvals</span><span class="p">)),</span> <span class="n">dtype</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xvals</span><span class="p">)):</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">xvals</span><span class="p">[</span><span class="n">xi</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">yi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">yvals</span><span class="p">)):</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">yvals</span><span class="p">[</span><span class="n">yi</span><span class="p">]</span>
+                    <span class="n">m</span><span class="p">[</span><span class="n">xi</span><span class="p">,</span><span class="n">yi</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">m</span></div>
+
+
+<span class="c1"># For backwards compatibility:</span>
+<span class="n">grid_function</span> <span class="o">=</span> <span class="n">tabulate_function</span>
+
+
+<div class="viewcode-block" id="compute_Data"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.funcutils.html#PyFoam.ThirdParty.Gnuplot.funcutils.compute_Data">[docs]</a><span class="k">def</span> <span class="nf">compute_Data</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ufunc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">keyw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Evaluate a function of 1 variable and store the results in a Data.</span>
+
+<span class="sd">    Computes a function f of one variable on a set of specified points</span>
+<span class="sd">    using &#39;tabulate_function&#39;, then store the results into a &#39;Data&#39; so</span>
+<span class="sd">    that it can be plotted.  After calculation, the data are written</span>
+<span class="sd">    to a file; no copy is kept in memory.  Note that this is quite</span>
+<span class="sd">    different than &#39;Func&#39; (which tells gnuplot to evaluate the</span>
+<span class="sd">    function).</span>
+
+<span class="sd">    Arguments:</span>
+
+<span class="sd">        &#39;xvals&#39; -- a 1-d array with dimension &#39;numx&#39;</span>
+
+<span class="sd">        &#39;f&#39; -- the function to plot--a callable object for which</span>
+<span class="sd">            f(x) returns a number.</span>
+
+<span class="sd">        &#39;ufunc=&lt;bool&gt;&#39; -- evaluate &#39;f&#39; as a ufunc?</span>
+
+<span class="sd">    Other keyword arguments are passed through to the Data</span>
+<span class="sd">    constructor.</span>
+
+<span class="sd">    &#39;f&#39; should be a callable object taking one argument.  &#39;f(x)&#39; will</span>
+<span class="sd">    be computed at all values in xvals.</span>
+
+<span class="sd">    If called with &#39;ufunc=1&#39;, then &#39;f&#39; should be a function that is</span>
+<span class="sd">    composed entirely of ufuncs, and it will be passed the &#39;xvals&#39; and</span>
+<span class="sd">    &#39;yvals&#39; as rectangular matrices.</span>
+
+<span class="sd">    Thus if you have a function &#39;f&#39;, a vector &#39;xvals&#39;, and a Gnuplot</span>
+<span class="sd">    instance called &#39;g&#39;, you can plot the function by typing</span>
+<span class="sd">    &#39;g.splot(compute_Data(xvals, f))&#39;.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">xvals</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">float_array</span><span class="p">(</span><span class="n">xvals</span><span class="p">)</span>
+
+    <span class="c1"># evaluate function:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">tabulate_function</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">xvals</span><span class="p">,</span> <span class="n">ufunc</span><span class="o">=</span><span class="n">ufunc</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">PlotItems</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">keyw</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="compute_GridData"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.funcutils.html#PyFoam.ThirdParty.Gnuplot.funcutils.compute_GridData">[docs]</a><span class="k">def</span> <span class="nf">compute_GridData</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ufunc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">keyw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Evaluate a function of 2 variables and store the results in a GridData.</span>
+
+<span class="sd">    Computes a function &#39;f&#39; of two variables on a rectangular grid</span>
+<span class="sd">    using &#39;tabulate_function&#39;, then store the results into a</span>
+<span class="sd">    &#39;GridData&#39; so that it can be plotted.  After calculation the data</span>
+<span class="sd">    are written to a file; no copy is kept in memory.  Note that this</span>
+<span class="sd">    is quite different than &#39;Func&#39; (which tells gnuplot to evaluate</span>
+<span class="sd">    the function).</span>
+
+<span class="sd">    Arguments:</span>
+
+<span class="sd">        &#39;xvals&#39; -- a 1-d array with dimension &#39;numx&#39;</span>
+
+<span class="sd">        &#39;yvals&#39; -- a 1-d array with dimension &#39;numy&#39;</span>
+
+<span class="sd">        &#39;f&#39; -- the function to plot--a callable object for which</span>
+<span class="sd">            &#39;f(x,y)&#39; returns a number.</span>
+
+<span class="sd">        &#39;ufunc=&lt;bool&gt;&#39; -- evaluate &#39;f&#39; as a ufunc?</span>
+
+<span class="sd">     Other keyword arguments are passed to the &#39;GridData&#39; constructor.</span>
+
+<span class="sd">    &#39;f&#39; should be a callable object taking two arguments.</span>
+<span class="sd">    &#39;f(x,y)&#39; will be computed at all grid points obtained by</span>
+<span class="sd">    combining elements from &#39;xvals&#39; and &#39;yvals&#39;.</span>
+
+<span class="sd">    If called with &#39;ufunc=1&#39;, then &#39;f&#39; should be a function that is</span>
+<span class="sd">    composed entirely of ufuncs, and it will be passed the &#39;xvals&#39; and</span>
+<span class="sd">    &#39;yvals&#39; as rectangular matrices.</span>
+
+<span class="sd">    Thus if you have a function &#39;f&#39; and two vectors &#39;xvals&#39; and</span>
+<span class="sd">    &#39;yvals&#39; and a Gnuplot instance called &#39;g&#39;, you can plot the</span>
+<span class="sd">    function by typing &#39;g.splot(compute_GridData(f, xvals, yvals))&#39;.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">xvals</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">float_array</span><span class="p">(</span><span class="n">xvals</span><span class="p">)</span>
+    <span class="n">yvals</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">float_array</span><span class="p">(</span><span class="n">yvals</span><span class="p">)</span>
+
+    <span class="c1"># evaluate function:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">tabulate_function</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">ufunc</span><span class="o">=</span><span class="n">ufunc</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">PlotItems</span><span class="o">.</span><span class="n">GridData</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="o">**</span><span class="n">keyw</span><span class="p">)</span></div>
+
+
+<span class="c1"># For backwards compatibility:</span>
+<div class="viewcode-block" id="GridFunc"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.funcutils.html#PyFoam.ThirdParty.Gnuplot.funcutils.GridFunc">[docs]</a><span class="k">def</span> <span class="nf">GridFunc</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="o">**</span><span class="n">keyw</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">compute_GridData</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">yvals</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="o">**</span><span class="n">keyw</span><span class="p">)</span></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,1029 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.Comparator &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.Comparator</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.Comparator</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application class that implements pyFoamComparator</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">from</span> <span class="nn">xml.dom.minidom</span> <span class="kn">import</span> <span class="n">parse</span>
+<span class="kn">import</span> <span class="nn">xml.dom</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">environ</span><span class="p">,</span><span class="n">mkdir</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.Utilities</span> <span class="kn">import</span> <span class="n">execute</span><span class="p">,</span><span class="n">rmtree</span><span class="p">,</span><span class="n">copytree</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Execution.AnalyzedRunner</span> <span class="kn">import</span> <span class="n">AnalyzedRunner</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Execution.ConvergenceRunner</span> <span class="kn">import</span> <span class="n">ConvergenceRunner</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Execution.BasicRunner</span> <span class="kn">import</span> <span class="n">BasicRunner</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Execution.UtilityRunner</span> <span class="kn">import</span> <span class="n">UtilityRunner</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Execution.ParallelExecution</span> <span class="kn">import</span> <span class="n">LAMMachine</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span>
+<span class="kn">from</span> <span class="nn">PyFoam.LogAnalysis.BoundingLogAnalyzer</span> <span class="kn">import</span> <span class="n">BoundingLogAnalyzer</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.CSVCollection</span> <span class="kn">import</span> <span class="n">CSVCollection</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">changeFoamVersion</span><span class="p">,</span><span class="n">injectVariables</span>
+
+<span class="kn">from</span> <span class="nn">.Decomposer</span> <span class="kn">import</span> <span class="n">Decomposer</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">iteritems</span><span class="p">,</span><span class="n">exec_</span>
+
+<div class="viewcode-block" id="Comparator"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.Comparator">[docs]</a><span class="k">class</span> <span class="nc">Comparator</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="Comparator.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.Comparator.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Reads an XML-file that specifies a base case and a parameter-variation</span>
+<span class="s2">and executes all the variations of that case</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] &lt;xmlfile&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Comparator.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.Comparator.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">solver</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Solver&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;Controls the behaviour of the solver&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Results&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;What should be done with the solver results&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
+        <span class="n">behave</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Behaviour&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;What should be done and output&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">behave</span><span class="p">)</span>
+
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--test&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Only does the preparation steps but does not execute the actual solver an the end&quot;</span><span class="p">)</span>
+
+        <span class="n">result</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--removeOld&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;removeOld&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Remove the directories from an old run without asking&quot;</span><span class="p">)</span>
+
+        <span class="n">result</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--purge&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;purge&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Remove the case directories after evaluating&quot;</span><span class="p">)</span>
+
+        <span class="n">result</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-purge&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;nopurge&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t remove the case directories after evaluating&quot;</span><span class="p">)</span>
+
+        <span class="n">solver</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--steady&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;steady&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Only runs the solver until convergence&quot;</span><span class="p">)</span>
+
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--showDictionary&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;showDict&quot;</span>
+                          <span class="p">,</span><span class="n">help</span><span class="o">=</span><span class="s2">&quot;Shows the parameter-dictionary after the running of the solver&quot;</span><span class="p">)</span>
+
+        <span class="n">solver</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-server&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;server&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t start the process-control-server&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Comparator.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.Comparator.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">dom</span><span class="o">=</span><span class="n">parse</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+        <span class="n">doc</span><span class="o">=</span><span class="n">dom</span><span class="o">.</span><span class="n">documentElement</span>
+
+        <span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">tagName</span><span class="o">!=</span><span class="s1">&#39;comparator&#39;</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong root-element&quot;</span><span class="p">,</span><span class="n">doc</span><span class="o">.</span><span class="n">tagName</span><span class="p">,</span><span class="s2">&quot;Expected: &#39;comparator&#39;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">ComparatorData</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+
+        <span class="n">purge</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">hasAttribute</span><span class="p">(</span><span class="s1">&#39;purge&#39;</span><span class="p">):</span>
+            <span class="n">purge</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s1">&#39;purge&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">purge</span><span class="p">:</span>
+            <span class="n">purge</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">purge</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">nopurge</span><span class="p">:</span>
+            <span class="n">purge</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="n">steady</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">hasAttribute</span><span class="p">(</span><span class="s1">&#39;steady&#39;</span><span class="p">):</span>
+            <span class="n">steady</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s1">&#39;steady&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">steady</span><span class="p">:</span>
+            <span class="n">purge</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">steady</span>
+
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot; Parameters read OK &quot;</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">()</span>
+
+        <span class="n">aLog</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">id</span><span class="o">+</span><span class="s2">&quot;.overview&quot;</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">csv</span><span class="o">=</span><span class="n">CSVCollection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">id</span><span class="o">+</span><span class="s2">&quot;.csv&quot;</span><span class="p">)</span>
+
+        <span class="n">rDir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">id</span><span class="o">+</span><span class="s2">&quot;.results&quot;</span>
+        <span class="n">rmtree</span><span class="p">(</span><span class="n">rDir</span><span class="p">)</span>
+        <span class="n">mkdir</span><span class="p">(</span><span class="n">rDir</span><span class="p">)</span>
+
+        <span class="n">calculated</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%%</span><span class="s2">0</span><span class="si">%d</span><span class="s2">d&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)))</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)):</span>
+            <span class="n">runID</span><span class="o">=</span><span class="p">(</span><span class="n">format</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">runID</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">aLog</span><span class="p">)</span>
+            <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;ID&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">runID</span>
+
+            <span class="n">use</span><span class="p">,</span><span class="n">para</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">para</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">template</span>
+            <span class="n">para</span><span class="p">[</span><span class="s2">&quot;extension&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">extension</span>
+            <span class="n">para</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">id</span>
+
+            <span class="k">if</span> <span class="n">use</span><span class="p">:</span>
+                <span class="n">calculated</span><span class="o">+=</span><span class="mi">1</span>
+
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Executing Variation&quot;</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="s2">&quot;of&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">),</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">calculated</span><span class="o">!=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">,</span><span class="n">calculated</span><span class="p">,</span><span class="s2">&quot;actually calculated)&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">()</span>
+
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Parameters:&quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">para</span><span class="p">):</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=&#39;</span><span class="si">%s</span><span class="s2">&#39; &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">),</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span> <span class="ow">or</span> <span class="n">v</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">v</span><span class="o">=</span><span class="s2">&quot;&#39;&quot;</span><span class="o">+</span><span class="n">v</span><span class="o">+</span><span class="s2">&quot;&#39;&quot;</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">aLog</span><span class="p">)</span>
+                <span class="n">csv</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">v</span>
+
+            <span class="n">print_</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">use</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Skipping because not all conditions are satisfied&quot;</span><span class="p">)</span>
+                <span class="n">csv</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+                <span class="n">print_</span><span class="p">()</span>
+                <span class="k">continue</span>
+
+            <span class="n">cName</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.&quot;</span><span class="o">+</span><span class="n">format</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">cName</span><span class="o">+</span><span class="s2">&quot;.log&quot;</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+            <span class="n">para</span><span class="p">[</span><span class="s2">&quot;case&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">cName</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Case-directory:&quot;</span><span class="p">,</span><span class="n">cName</span><span class="p">)</span>
+            <span class="n">para</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rDir</span><span class="p">,</span><span class="n">runID</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Results directory:&quot;</span><span class="p">,</span><span class="n">para</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">])</span>
+            <span class="n">mkdir</span><span class="p">(</span><span class="n">para</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cName</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">removeOld</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;   Removing old case-directory&quot;</span><span class="p">)</span>
+                    <span class="n">rmtree</span><span class="p">(</span><span class="n">cName</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Case-directory&quot;</span><span class="p">,</span><span class="n">cName</span><span class="p">,</span><span class="s2">&quot;exists&quot;</span><span class="p">)</span>
+
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;   copying template&quot;</span><span class="p">)</span>
+            <span class="n">out</span><span class="o">=</span><span class="n">copytree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">template</span><span class="p">,</span><span class="n">cName</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;---- Copying&quot;</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
+
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;   preparing&quot;</span><span class="p">)</span>
+            <span class="n">ok</span><span class="p">,</span><span class="n">erg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">prep</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">ok</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">aLog</span><span class="p">)</span>
+            <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;prepare OK&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">ok</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">erg</span><span class="p">)):</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">erg</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">aLog</span><span class="p">)</span>
+                <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;Prepare </span><span class="si">%02d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">erg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="n">aLog</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">test</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;   Skipping execution&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;   running the solver&quot;</span><span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">steady</span><span class="p">:</span>
+                    <span class="n">runnerClass</span><span class="o">=</span><span class="n">ConvergenceRunner</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">runnerClass</span><span class="o">=</span><span class="n">AnalyzedRunner</span>
+
+                <span class="n">run</span><span class="o">=</span><span class="n">runnerClass</span><span class="p">(</span><span class="n">BoundingLogAnalyzer</span><span class="p">(</span><span class="n">doTimelines</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">progress</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+                                <span class="n">argv</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">solver</span><span class="p">,</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="n">cName</span><span class="p">],</span>
+                                <span class="n">silent</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                <span class="n">lam</span><span class="o">=</span><span class="n">Command</span><span class="o">.</span><span class="n">parallel</span><span class="p">,</span>
+                                <span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">server</span><span class="p">)</span>
+
+                <span class="n">run</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                <span class="n">ok</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">runOK</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">ok</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;   executed OK&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;   fatal error&quot;</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">aName</span> <span class="ow">in</span> <span class="n">run</span><span class="o">.</span><span class="n">listAnalyzers</span><span class="p">():</span>
+                    <span class="n">a</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="n">aName</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="s1">&#39;titles&#39;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="n">tit</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">getValueNames</span><span class="p">():</span>
+                            <span class="n">t</span><span class="p">,</span><span class="n">v</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">getTimeline</span><span class="p">(</span><span class="n">tit</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                                <span class="n">para</span><span class="p">[</span><span class="s2">&quot;result_&quot;</span><span class="o">+</span><span class="n">aName</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">tit</span><span class="p">]</span><span class="o">=</span><span class="n">v</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="n">print_</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">runOK</span><span class="p">(),</span><span class="n">run</span><span class="o">.</span><span class="n">lastTime</span><span class="p">(),</span><span class="n">run</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">wallTime</span><span class="p">(),</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">aLog</span><span class="p">)</span>
+                <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;Run OK&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">runOK</span><span class="p">()</span>
+                <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;End Time&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">lastTime</span><span class="p">()</span>
+                <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;Wall Time&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">wallTime</span><span class="p">()</span>
+                <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;Wall Time (Foam)&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">totalClockTime</span><span class="p">()</span>
+                <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;CPU Time&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">totalCpuTime</span><span class="p">()</span>
+                <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;Wall Time First Step&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">firstClockTime</span><span class="p">()</span>
+                <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;CPU Time First Step&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">firstCpuTime</span><span class="p">()</span>
+
+                <span class="n">para</span><span class="p">[</span><span class="s2">&quot;endTime&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">lastTime</span><span class="p">()</span>
+                <span class="n">para</span><span class="p">[</span><span class="s2">&quot;runlog&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">logFile</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">showDict</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="n">para</span><span class="p">)</span>
+
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;   evaluating results&quot;</span><span class="p">)</span>
+
+                <span class="n">ok</span><span class="p">,</span><span class="n">erg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">post</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">Command</span><span class="o">.</span><span class="n">parallel</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Stoping LAM&quot;</span><span class="p">)</span>
+                    <span class="n">Command</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+                    <span class="n">Command</span><span class="o">.</span><span class="n">parallel</span><span class="o">=</span><span class="bp">None</span>
+
+                <span class="k">if</span> <span class="n">ok</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Evaluation OK&quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Evaluation failed&quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">erg</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">erg</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+                <span class="n">print_</span><span class="p">()</span>
+
+                <span class="n">print_</span><span class="p">(</span><span class="n">ok</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">aLog</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">erg</span><span class="p">)):</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="n">erg</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">aLog</span><span class="p">)</span>
+                    <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;Post </span><span class="si">%02d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">erg</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">purge</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;   removing the case-directory&quot;</span><span class="p">)</span>
+                <span class="n">out</span><span class="o">=</span><span class="n">rmtree</span><span class="p">(</span><span class="n">cName</span><span class="p">)</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;---- Removing&quot;</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
+
+            <span class="n">log</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">print_</span><span class="p">()</span>
+            <span class="n">print_</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
+            <span class="n">aLog</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="n">csv</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+
+        <span class="n">aLog</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
+
+<div class="viewcode-block" id="ComparatorData"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.ComparatorData">[docs]</a><span class="k">class</span> <span class="nc">ComparatorData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; The object that holds the actual data&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ComparatorData.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.ComparatorData.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">doc</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param doc: the parsed XML-data from which the object is constructed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">doc</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No name for &#39;comparator&#39; given&quot;</span><span class="p">)</span>
+
+        <span class="n">base</span><span class="o">=</span><span class="n">doc</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;base&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">base</span><span class="o">.</span><span class="n">length</span><span class="o">!=</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;One &#39;base&#39;-element needed. Found&quot;</span><span class="p">,</span><span class="n">base</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__parseBase</span><span class="p">(</span><span class="n">base</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vList</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;variation&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Variation</span><span class="p">(</span><span class="n">v</span><span class="p">))</span></div>
+
+    <span class="k">def</span> <span class="nf">__parseBase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">e</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param e: The &#39;base&#39;-element&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No template is given&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="p">):</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Template&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="p">,</span><span class="s2">&quot;does not exist&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">hasAttribute</span><span class="p">(</span><span class="s1">&#39;extension&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">extension</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s1">&#39;extension&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="o">+=</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">extension</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">extension</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;solver&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No solver is given&quot;</span><span class="p">)</span>
+        <span class="n">prep</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;preparation&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">prep</span><span class="o">.</span><span class="n">length</span><span class="o">!=</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;One &#39;preparation&#39;-element needed. Found&quot;</span><span class="p">,</span><span class="n">prep</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prep</span><span class="o">=</span><span class="n">PreparationChain</span><span class="p">(</span><span class="n">prep</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">post</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;evaluation&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">post</span><span class="o">.</span><span class="n">length</span><span class="o">!=</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;One &#39;evaluation&#39;-element needed. Found&quot;</span><span class="p">,</span><span class="n">post</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">post</span><span class="o">=</span><span class="n">EvaluationChain</span><span class="p">(</span><span class="n">post</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<div class="viewcode-block" id="ComparatorData.__len__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.ComparatorData.__len__">[docs]</a>    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:return: The total number of variations&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vList</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nr</span><span class="o">=</span><span class="mi">1</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vList</span><span class="p">:</span>
+                <span class="n">nr</span><span class="o">*=</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">nr</span></div>
+
+<div class="viewcode-block" id="ComparatorData.__getitem__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.ComparatorData.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">nr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param nr: Number of the variation</span>
+<span class="sd">        :return:  dictionary with the variation&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">nr</span><span class="o">&gt;=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Index&quot;</span><span class="p">,</span><span class="n">nr</span><span class="p">,</span><span class="s2">&quot;of variation out of bounds: [0,&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="s2">&quot;]&quot;</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">tmp</span><span class="o">=</span><span class="n">nr</span>
+        <span class="n">conditions</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vList</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">tmp</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">))</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">conditions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">condition</span><span class="p">)</span>
+
+            <span class="n">k</span><span class="p">,</span><span class="n">val</span><span class="o">=</span><span class="n">v</span><span class="p">[</span><span class="n">tmp</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)]</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">val</span>
+            <span class="n">tmp</span><span class="o">/=</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">tmp</span><span class="o">==</span><span class="mi">0</span>
+
+        <span class="n">use</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">:</span>
+            <span class="n">cond</span><span class="o">=</span><span class="n">replaceValues</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">result</span><span class="p">)</span>
+            <span class="n">use</span><span class="o">=</span><span class="n">use</span> <span class="ow">and</span> <span class="nb">eval</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">use</span><span class="p">,</span><span class="n">result</span></div></div>
+
+<div class="viewcode-block" id="CommandChain"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.CommandChain">[docs]</a><span class="k">class</span> <span class="nc">CommandChain</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for a number of commands&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CommandChain.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.CommandChain.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param c: XML-Subtree that represents the chain&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">childNodes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">nodeType</span><span class="o">!=</span><span class="n">xml</span><span class="o">.</span><span class="n">dom</span><span class="o">.</span><span class="n">Node</span><span class="o">.</span><span class="n">ELEMENT_NODE</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">e</span><span class="o">.</span><span class="n">tagName</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Tagname&quot;</span><span class="p">,</span><span class="n">e</span><span class="o">.</span><span class="n">tagName</span><span class="p">,</span><span class="s2">&quot;not in table of valid tags&quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">tagName</span><span class="p">](</span><span class="n">e</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="CommandChain.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.CommandChain.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Executes the chain</span>
+<span class="sd">        :param para:A dictionary with the parameters</span>
+<span class="sd">        :param log: Logfile to write to&quot;&quot;&quot;</span>
+
+        <span class="n">result</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">status</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">doIt</span><span class="p">(</span><span class="n">para</span><span class="p">):</span>
+                <span class="n">ok</span><span class="p">,</span><span class="n">erg</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ok</span><span class="p">,</span><span class="n">erg</span><span class="o">=</span><span class="bp">True</span><span class="p">,[]</span>
+
+            <span class="n">status</span><span class="o">=</span><span class="n">ok</span> <span class="ow">and</span> <span class="n">status</span>
+            <span class="k">if</span> <span class="n">erg</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">erg</span><span class="p">)</span><span class="o">==</span><span class="nb">list</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">+=</span><span class="n">erg</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">erg</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">status</span><span class="p">,</span><span class="n">result</span></div>
+
+<div class="viewcode-block" id="CommandChain.hasObjectOfType"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.CommandChain.hasObjectOfType">[docs]</a>    <span class="k">def</span> <span class="nf">hasObjectOfType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">typ</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Checks whether there is an object of a specific type&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">o</span><span class="p">)</span><span class="o">==</span><span class="n">typ</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="k">return</span> <span class="bp">False</span></div></div>
+
+<div class="viewcode-block" id="PreparationChain"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.PreparationChain">[docs]</a><span class="k">class</span> <span class="nc">PreparationChain</span><span class="p">(</span><span class="n">CommandChain</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Chain of Preparation commands&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="PreparationChain.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.PreparationChain.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;genericcommand&quot;</span><span class="p">:</span><span class="n">GenericCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;derived&quot;</span><span class="p">:</span><span class="n">DerivedCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;foamcommand&quot;</span><span class="p">:</span><span class="n">FoamCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;foamutility&quot;</span><span class="p">:</span><span class="n">FoamUtilityCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;initial&quot;</span><span class="p">:</span><span class="n">InitialCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;dictwrite&quot;</span><span class="p">:</span><span class="n">DictWriteCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;setdictionary&quot;</span><span class="p">:</span><span class="n">SetDictionaryCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;decompose&quot;</span><span class="p">:</span><span class="n">DecomposeCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;foamversion&quot;</span><span class="p">:</span><span class="n">FoamVersionCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;changeenvironment&quot;</span><span class="p">:</span><span class="n">ChangeEnvironmentCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;setenv&quot;</span><span class="p">:</span><span class="n">SetEnvironmentCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;boundary&quot;</span><span class="p">:</span><span class="n">BoundaryCommand</span><span class="p">}</span>
+        <span class="n">CommandChain</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="EvaluationChain"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.EvaluationChain">[docs]</a><span class="k">class</span> <span class="nc">EvaluationChain</span><span class="p">(</span><span class="n">CommandChain</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Chain of evaluation commands&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="EvaluationChain.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.EvaluationChain.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;genericcommand&quot;</span><span class="p">:</span><span class="n">GenericCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;derived&quot;</span><span class="p">:</span><span class="n">DerivedCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;foamutility&quot;</span><span class="p">:</span><span class="n">FoamUtilityCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;foamcommand&quot;</span><span class="p">:</span><span class="n">FoamCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;dictionary&quot;</span><span class="p">:</span><span class="n">DictionaryCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;reconstruct&quot;</span><span class="p">:</span><span class="n">ReconstructCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;lastresult&quot;</span><span class="p">:</span><span class="n">LastResultCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;changeenvironment&quot;</span><span class="p">:</span><span class="n">ChangeEnvironmentCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;setenv&quot;</span><span class="p">:</span><span class="n">SetEnvironmentCommand</span><span class="p">,</span>
+                    <span class="s2">&quot;copylog&quot;</span><span class="p">:</span><span class="n">CopyLogCommand</span><span class="p">}</span>
+        <span class="n">CommandChain</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="getNonEmpty"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.getNonEmpty">[docs]</a><span class="k">def</span> <span class="nf">getNonEmpty</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">result</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">result</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">default</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Missing attribute&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;in element&quot;</span><span class="p">,</span><span class="n">e</span><span class="o">.</span><span class="n">tagName</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">default</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="replaceValues"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.replaceValues">[docs]</a><span class="k">def</span> <span class="nf">replaceValues</span><span class="p">(</span><span class="n">orig</span><span class="p">,</span><span class="n">para</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Replaces all strings enclosed by $$ with the parameters</span>
+<span class="sd">    :param orig: the original string</span>
+<span class="sd">    :param para: dictionary with the parameters&quot;&quot;&quot;</span>
+
+    <span class="n">exp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;\$[^$]*\$&quot;</span><span class="p">)</span>
+    <span class="n">tmp</span><span class="o">=</span><span class="n">orig</span>
+
+    <span class="n">m</span><span class="o">=</span><span class="n">exp</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">m</span><span class="p">:</span>
+        <span class="n">a</span><span class="p">,</span><span class="n">e</span><span class="o">=</span><span class="n">m</span><span class="o">.</span><span class="n">span</span><span class="p">()</span>
+        <span class="n">pre</span><span class="o">=</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">a</span><span class="p">]</span>
+        <span class="n">post</span><span class="o">=</span><span class="n">tmp</span><span class="p">[</span><span class="n">e</span><span class="p">:]</span>
+        <span class="n">mid</span><span class="o">=</span><span class="n">tmp</span><span class="p">[</span><span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">e</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mid</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">para</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Key&quot;</span><span class="p">,</span><span class="n">mid</span><span class="p">,</span><span class="s2">&quot;not existing in keys&quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="n">para</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+        <span class="n">tmp</span><span class="o">=</span><span class="n">pre</span><span class="o">+</span><span class="n">para</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span><span class="o">+</span><span class="n">post</span>
+
+        <span class="n">m</span><span class="o">=</span><span class="n">exp</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tmp</span></div>
+
+<div class="viewcode-block" id="Command"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.Command">[docs]</a><span class="k">class</span> <span class="nc">Command</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="n">parallel</span><span class="o">=</span><span class="bp">None</span>
+
+    <span class="sd">&quot;&quot;&quot;Abstract base class of all commands&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Command.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.Command.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">c</span></div>
+
+<div class="viewcode-block" id="Command.doIt"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.Command.doIt">[docs]</a>    <span class="k">def</span> <span class="nf">doIt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">):</span>
+        <span class="n">cond</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="s2">&quot;condition&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;True&quot;</span><span class="p">)</span>
+        <span class="n">cond</span><span class="o">=</span><span class="n">replaceValues</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span><span class="n">para</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Command.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.Command.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">vals</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param vals: Dictionary with the keywords</span>
+<span class="sd">        :return: A boolean whether it completed successfully and a list with results (None if no results are generated)&quot;&quot;&quot;</span>
+        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Execute not implemented for&quot;</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div></div>
+
+<div class="viewcode-block" id="GenericCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.GenericCommand">[docs]</a><span class="k">class</span> <span class="nc">GenericCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Executes a shell command&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="GenericCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.GenericCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">firstChild</span><span class="o">.</span><span class="n">data</span></div>
+
+<div class="viewcode-block" id="GenericCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.GenericCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">cmd</span><span class="o">=</span><span class="n">replaceValues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">,</span><span class="n">para</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Executing &quot;</span><span class="p">,</span><span class="n">cmd</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">out</span><span class="o">=</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot; --&gt;&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">),</span><span class="s2">&quot;lines output&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;---- Command:&quot;</span><span class="p">,</span><span class="n">cmd</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span><span class="bp">None</span></div></div>
+
+<div class="viewcode-block" id="DerivedCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.DerivedCommand">[docs]</a><span class="k">class</span> <span class="nc">DerivedCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Derives an additional value&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DerivedCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.DerivedCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;expression&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DerivedCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.DerivedCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">tmp</span><span class="o">=</span><span class="n">replaceValues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expression</span><span class="p">,</span><span class="n">para</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">val</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">SyntaxError</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Syntax error in&quot;</span><span class="p">,</span><span class="n">tmp</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Setting&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;to&quot;</span><span class="p">,</span><span class="n">val</span><span class="p">)</span>
+        <span class="n">para</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span><span class="bp">None</span></div></div>
+
+<div class="viewcode-block" id="DictionaryCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.DictionaryCommand">[docs]</a><span class="k">class</span> <span class="nc">DictionaryCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns values from the chains dictionaries&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DictionaryCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.DictionaryCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;key&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DictionaryCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.DictionaryCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="ow">in</span> <span class="n">para</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span><span class="p">,</span><span class="n">para</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;-----&gt; &quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span><span class="s2">&quot;not in set of valid keys&quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="n">para</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="n">print_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span><span class="s2">&quot;not in set of valid keys of dictionary&quot;</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span><span class="bp">None</span></div></div>
+
+<div class="viewcode-block" id="SetDictionaryCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.SetDictionaryCommand">[docs]</a><span class="k">class</span> <span class="nc">SetDictionaryCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets value in the chains dictionaries&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="SetDictionaryCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.SetDictionaryCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;key&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;value&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SetDictionaryCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.SetDictionaryCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">para</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span><span class="bp">None</span></div></div>
+
+<div class="viewcode-block" id="FoamVersionCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.FoamVersionCommand">[docs]</a><span class="k">class</span> <span class="nc">FoamVersionCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Changes the used OpenFOAM-version&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FoamVersionCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.FoamVersionCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;version&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FoamVersionCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.FoamVersionCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Changing OpenFOAM-Version to&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+        <span class="n">changeFoamVersion</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span><span class="bp">None</span></div></div>
+
+<div class="viewcode-block" id="SetEnvironmentCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.SetEnvironmentCommand">[docs]</a><span class="k">class</span> <span class="nc">SetEnvironmentCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets an environment variable&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="SetEnvironmentCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.SetEnvironmentCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;variable&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;value&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SetEnvironmentCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.SetEnvironmentCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">val</span><span class="o">=</span><span class="n">replaceValues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">,</span><span class="n">para</span><span class="p">)</span>
+        <span class="n">var</span><span class="o">=</span><span class="n">replaceValues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="p">,</span><span class="n">para</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Setting variable&quot;</span><span class="p">,</span><span class="n">var</span><span class="p">,</span><span class="s2">&quot;to&quot;</span><span class="p">,</span><span class="n">val</span><span class="p">)</span>
+        <span class="n">environ</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">=</span><span class="n">val</span>
+
+        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span><span class="bp">None</span></div></div>
+
+<div class="viewcode-block" id="ChangeEnvironmentCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.ChangeEnvironmentCommand">[docs]</a><span class="k">class</span> <span class="nc">ChangeEnvironmentCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Changes Environment variables by executing a script-file&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ChangeEnvironmentCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.ChangeEnvironmentCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">script</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;scriptfile&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ChangeEnvironmentCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.ChangeEnvironmentCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">script</span><span class="o">=</span><span class="n">replaceValues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">script</span><span class="p">,</span><span class="n">para</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Changing environment variables by executing&quot;</span><span class="p">,</span><span class="n">script</span><span class="p">)</span>
+        <span class="n">injectVariables</span><span class="p">(</span><span class="n">script</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span><span class="bp">None</span></div></div>
+
+<div class="viewcode-block" id="DecomposeCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.DecomposeCommand">[docs]</a><span class="k">class</span> <span class="nc">DecomposeCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decomposes a case and generates the LAM&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DecomposeCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.DecomposeCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cpus</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;cpus&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hostfile</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;hostfile&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;options&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DecomposeCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.DecomposeCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">nr</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">replaceValues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpus</span><span class="p">,</span><span class="n">para</span><span class="p">))</span>
+        <span class="n">machines</span><span class="o">=</span><span class="n">replaceValues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hostfile</span><span class="p">,</span><span class="n">para</span><span class="p">)</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">replaceValues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">,</span><span class="n">para</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">nr</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Decomposing for&quot;</span><span class="p">,</span><span class="n">nr</span><span class="p">,</span><span class="s2">&quot;CPUs&quot;</span><span class="p">)</span>
+            <span class="n">Decomposer</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">para</span><span class="p">[</span><span class="s1">&#39;case&#39;</span><span class="p">],</span><span class="nb">str</span><span class="p">(</span><span class="n">nr</span><span class="p">)]</span><span class="o">+</span><span class="n">options</span><span class="o">.</span><span class="n">split</span><span class="p">()</span><span class="o">+</span><span class="p">[</span><span class="s2">&quot;--silent&quot;</span><span class="p">])</span>
+            <span class="n">Command</span><span class="o">.</span><span class="n">parallel</span><span class="o">=</span><span class="n">LAMMachine</span><span class="p">(</span><span class="n">nr</span><span class="o">=</span><span class="n">nr</span><span class="p">,</span><span class="n">machines</span><span class="o">=</span><span class="n">machines</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     No decomposition done&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span><span class="bp">None</span></div></div>
+
+<div class="viewcode-block" id="ReconstructCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.ReconstructCommand">[docs]</a><span class="k">class</span> <span class="nc">ReconstructCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Reconstructs a case and deleted the LAM&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ReconstructCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.ReconstructCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">onlyLatest</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">hasAttribute</span><span class="p">(</span><span class="s1">&#39;onlyLatest&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">onlyLatest</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s1">&#39;onlyLatest&#39;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ReconstructCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.ReconstructCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">Command</span><span class="o">.</span><span class="n">parallel</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Doing reconstruction&quot;</span><span class="p">)</span>
+            <span class="n">argv</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reconstructPar&quot;</span><span class="p">,</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="n">para</span><span class="p">[</span><span class="s1">&#39;case&#39;</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">onlyLatest</span><span class="p">:</span>
+                <span class="n">argv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-latestTime&quot;</span><span class="p">)</span>
+            <span class="n">run</span><span class="o">=</span><span class="n">BasicRunner</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="n">argv</span><span class="p">,</span><span class="n">silent</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">logname</span><span class="o">=</span><span class="s2">&quot;Reconstruction&quot;</span><span class="p">)</span>
+            <span class="n">run</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="n">Command</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     No reconstruction done&quot;</span><span class="p">)</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">parallel</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span><span class="bp">None</span></div></div>
+
+<div class="viewcode-block" id="FoamCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.FoamCommand">[docs]</a><span class="k">class</span> <span class="nc">FoamCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Executes a OpenFOAM-utility&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FoamCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.FoamCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">utility</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;utility&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;options&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FoamCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.FoamCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">argv</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">utility</span><span class="p">,</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="n">para</span><span class="p">[</span><span class="s1">&#39;case&#39;</span><span class="p">]]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Executing&quot;</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">argv</span><span class="p">),</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">run</span><span class="o">=</span><span class="n">BasicRunner</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span><span class="n">silent</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">lam</span><span class="o">=</span><span class="n">Command</span><span class="o">.</span><span class="n">parallel</span><span class="p">,</span><span class="n">logname</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">argv</span><span class="p">))</span>
+        <span class="n">run</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">run</span><span class="o">.</span><span class="n">runOK</span><span class="p">():</span>
+            <span class="n">print_</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;---&gt; there was a problem&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">run</span><span class="o">.</span><span class="n">runOK</span><span class="p">(),</span><span class="bp">None</span></div></div>
+
+<div class="viewcode-block" id="FoamUtilityCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.FoamUtilityCommand">[docs]</a><span class="k">class</span> <span class="nc">FoamUtilityCommand</span><span class="p">(</span><span class="n">FoamCommand</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Executes a OpenFOAM-utility and extracts information&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FoamUtilityCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.FoamUtilityCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">FoamCommand</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regexp</span><span class="o">=</span><span class="n">getNonEmpty</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;regexp&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FoamUtilityCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.FoamUtilityCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">argv</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">utility</span><span class="p">,</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="n">para</span><span class="p">[</span><span class="s1">&#39;case&#39;</span><span class="p">]]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Executing and analyzing&quot;</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">argv</span><span class="p">),</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">run</span><span class="o">=</span><span class="n">UtilityRunner</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span><span class="n">silent</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">lam</span><span class="o">=</span><span class="n">Command</span><span class="o">.</span><span class="n">parallel</span><span class="p">,</span><span class="n">logname</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">argv</span><span class="p">))</span>
+        <span class="n">run</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">regexp</span><span class="p">)</span>
+        <span class="n">run</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">analyzer</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;no data&quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">result</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">run</span><span class="o">.</span><span class="n">runOK</span><span class="p">():</span>
+            <span class="n">print_</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;---&gt; there was a problem&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">run</span><span class="o">.</span><span class="n">runOK</span><span class="p">(),</span><span class="n">result</span></div></div>
+
+<div class="viewcode-block" id="SetterCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.SetterCommand">[docs]</a><span class="k">class</span> <span class="nc">SetterCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Common class for commands that operate on dictionaries&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="SetterCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.SetterCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SetterCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.SetterCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">f</span><span class="o">=</span><span class="n">replaceValues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span><span class="n">para</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">=</span><span class="n">replaceValues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="n">para</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">=</span><span class="n">replaceValues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subexpression</span><span class="p">,</span><span class="n">para</span><span class="p">)</span>
+        <span class="n">k</span><span class="o">=</span><span class="n">replaceValues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span><span class="n">para</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dictFile</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">backup</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">val</span><span class="o">=</span><span class="n">dictFile</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Key: &quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;not existing in File&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem with file&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">exec_</span><span class="p">(</span><span class="s2">&quot;dictFile[k]&quot;</span><span class="o">+</span><span class="n">s</span><span class="o">+</span><span class="s2">&quot;=v&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem with subexpression:&quot;</span><span class="p">,</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="n">dictFile</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span><span class="bp">None</span></div></div>
+
+<div class="viewcode-block" id="FieldSetterCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.FieldSetterCommand">[docs]</a><span class="k">class</span> <span class="nc">FieldSetterCommand</span><span class="p">(</span><span class="n">SetterCommand</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Common class for commands that set values on fields&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FieldSetterCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.FieldSetterCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">SetterCommand</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">field</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;field&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;$case$&quot;</span><span class="p">,</span><span class="s2">&quot;0&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">field</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="InitialCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.InitialCommand">[docs]</a><span class="k">class</span> <span class="nc">InitialCommand</span><span class="p">(</span><span class="n">FieldSetterCommand</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets an initial condition&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="InitialCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.InitialCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">FieldSetterCommand</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;internalField&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subexpression</span><span class="o">=</span><span class="s2">&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="InitialCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.InitialCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Setting initial condition for&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">field</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">FieldSetterCommand</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="BoundaryCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.BoundaryCommand">[docs]</a><span class="k">class</span> <span class="nc">BoundaryCommand</span><span class="p">(</span><span class="n">FieldSetterCommand</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets a boundary condition&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BoundaryCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.BoundaryCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">FieldSetterCommand</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patch</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;patch&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;boundaryField&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subexpression</span><span class="o">=</span><span class="s2">&quot;[&#39;&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">patch</span><span class="o">+</span><span class="s2">&quot;&#39;]&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;element&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">=</span><span class="s2">&quot;value&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subexpression</span><span class="o">+=</span><span class="s2">&quot;[&#39;&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">+</span><span class="s2">&quot;&#39;]&quot;</span></div>
+
+<div class="viewcode-block" id="BoundaryCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.BoundaryCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Setting&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="p">,</span><span class="s2">&quot;on&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">patch</span><span class="p">,</span><span class="s2">&quot;for&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">field</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">FieldSetterCommand</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="DictWriteCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.DictWriteCommand">[docs]</a><span class="k">class</span> <span class="nc">DictWriteCommand</span><span class="p">(</span><span class="n">SetterCommand</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Writes a value to a dictionary&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DictWriteCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.DictWriteCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">SetterCommand</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;directory&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;dictionary&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;$case$&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subexpression</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;subexpression&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DictWriteCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.DictWriteCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Manipulating&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span><span class="s2">&quot;in&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SetterCommand</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="LastResultCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.LastResultCommand">[docs]</a><span class="k">class</span> <span class="nc">LastResultCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Copies the result of the last time-step to the resultsd directory&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="LastResultCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.LastResultCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LastResultCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.LastResultCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Copy last result&quot;</span><span class="p">)</span>
+        <span class="n">sol</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="n">para</span><span class="p">[</span><span class="s2">&quot;case&quot;</span><span class="p">],</span><span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="n">sol</span><span class="o">.</span><span class="n">addToClone</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">getLast</span><span class="p">())</span>
+        <span class="n">sol</span><span class="o">.</span><span class="n">cloneCase</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">para</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">],</span><span class="n">para</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span><span class="bp">None</span></div></div>
+
+<div class="viewcode-block" id="CopyLogCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.CopyLogCommand">[docs]</a><span class="k">class</span> <span class="nc">CopyLogCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Copies the log file to the results&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CopyLogCommand.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.CopyLogCommand.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">):</span>
+        <span class="n">Command</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">c</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CopyLogCommand.execute"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.CopyLogCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">para</span><span class="p">,</span><span class="n">log</span><span class="p">):</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;     Copy logfile&quot;</span><span class="p">)</span>
+        <span class="n">copyfile</span><span class="p">(</span><span class="n">para</span><span class="p">[</span><span class="s2">&quot;runlog&quot;</span><span class="p">],</span><span class="n">para</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span><span class="bp">None</span></div></div>
+
+<div class="viewcode-block" id="Variation"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.Variation">[docs]</a><span class="k">class</span> <span class="nc">Variation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represents one variation&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Variation.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.Variation.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">e</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param e: the XML-data from which it is created&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No name for &#39;variation&#39; given&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No key for &#39;variation&#39;&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot; given&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">condition</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s2">&quot;condition&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">condition</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">condition</span><span class="o">=</span><span class="s2">&quot;True&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">firstChild</span><span class="o">.</span><span class="n">data</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Variation.__str__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.Variation.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Variation &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot; varies &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="o">+</span><span class="s2">&quot; over &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Variation.__len__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.Variation.__len__">[docs]</a>    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:return: number of values&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Variation.__getitem__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.Comparator.html#PyFoam.Applications.Comparator.Variation.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

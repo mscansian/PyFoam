@@ -1,0 +1,921 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Infrastructure.FoamServer module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.Infrastructure package" href="PyFoam.Infrastructure.html"/>
+        <link rel="next" title="PyFoam.Infrastructure.Hardcoded module" href="PyFoam.Infrastructure.Hardcoded.html"/>
+        <link rel="prev" title="PyFoam.Infrastructure.FoamMetaServer module" href="PyFoam.Infrastructure.FoamMetaServer.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a> &raquo;</li>
+      
+    <li>PyFoam.Infrastructure.FoamServer module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.Infrastructure.FoamServer.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.Infrastructure.FoamServer">
+<span id="pyfoam-infrastructure-foamserver-module"></span><h1>PyFoam.Infrastructure.FoamServer module<a class="headerlink" href="#module-PyFoam.Infrastructure.FoamServer" title="Permalink to this headline">¶</a></h1>
+<p>A XMLRPC-Server that answeres about the current state of a Foam-Run</p>
+<dl class="class">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer">
+<em class="property">class </em><code class="descclassname">PyFoam.Infrastructure.FoamServer.</code><code class="descname">FoamAnswerer</code><span class="sig-paren">(</span><em>run=None</em>, <em>master=None</em>, <em>lines=100</em>, <em>foamserver=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>The class that handles the actual requests (only needed to hide the
+Thread-methods from the world</p>
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'foamVersion': &lt;function FoamAnswerer.foamVersion&gt;, '_readParameter': &lt;function FoamAnswerer._readParameter&gt;, 'listFiles': &lt;function FoamAnswerer.listFiles&gt;, 'lastLine': &lt;function FoamAnswerer.lastLine&gt;, 'lastLogLineSeen': &lt;function FoamAnswerer.lastLogLineSeen&gt;, 'time': &lt;function FoamAnswerer.time&gt;, 'controlDictUnmodified': &lt;function FoamAnswerer.controlDictUnmodified&gt;, 'startTime': &lt;function FoamAnswerer.startTime&gt;, 'elapsedTime': &lt;function FoamAnswerer.elapsedTime&gt;, 'writtenTimesteps': &lt;function FoamAnswerer.writtenTimesteps&gt;, 'procNr': &lt;function FoamAnswerer.procNr&gt;, 'runnerData': &lt;function FoamAnswerer.runnerData&gt;, 'isParallel': &lt;function FoamAnswerer.isParallel&gt;, '__dict__': &lt;attribute '__dict__' of 'FoamAnswerer' objects&gt;, 'usedArgv': &lt;function FoamAnswerer.usedArgv&gt;, '_kill': &lt;function FoamAnswerer._kill&gt;, 'jobId': &lt;function FoamAnswerer.jobId&gt;, 'writeDictionaryContents': &lt;function FoamAnswerer.writeDictionaryContents&gt;, 'getDictionaryContents': &lt;function FoamAnswerer.getDictionaryContents&gt;, '_insertLine': &lt;function FoamAnswerer._insertLine&gt;, 'pyFoamVersion': &lt;function FoamAnswerer.pyFoamVersion&gt;, 'scriptName': &lt;function FoamAnswerer.scriptName&gt;, 'mpi': &lt;function FoamAnswerer.mpi&gt;, 'uname': &lt;function FoamAnswerer.uname&gt;, 'commandLine': &lt;function FoamAnswerer.commandLine&gt;, 'getRemark': &lt;function FoamAnswerer.getRemark&gt;, 'nrWarnings': &lt;function FoamAnswerer.nrWarnings&gt;, 'ip': &lt;function FoamAnswerer.ip&gt;, 'getDictionaryText': &lt;function FoamAnswerer.getDictionaryText&gt;, 'pid': &lt;function FoamAnswerer.pid&gt;, 'configuration': &lt;function FoamAnswerer.configuration&gt;, '__module__': 'PyFoam.Infrastructure.FoamServer', 'lastTimeStepSeen': &lt;function FoamAnswerer.lastTimeStepSeen&gt;, 'argv': &lt;function FoamAnswerer.argv&gt;, '__init__': &lt;function FoamAnswerer.__init__&gt;, 'startTimestamp': &lt;function FoamAnswerer.startTimestamp&gt;, 'writeDictionaryText': &lt;function FoamAnswerer.writeDictionaryText&gt;, 'hostname': &lt;function FoamAnswerer.hostname&gt;, 'tail': &lt;function FoamAnswerer.tail&gt;, 'user': &lt;function FoamAnswerer.user&gt;, 'getEnviron': &lt;function FoamAnswerer.getEnviron&gt;, 'write': &lt;function FoamAnswerer.write&gt;, 'getPlots': &lt;function FoamAnswerer.getPlots&gt;, 'cwd': &lt;function FoamAnswerer.cwd&gt;, 'id': &lt;function FoamAnswerer.id&gt;, 'pathToSolution': &lt;function FoamAnswerer.pathToSolution&gt;, 'loadAvg': &lt;function FoamAnswerer.loadAvg&gt;, 'actualCommandLine': &lt;function FoamAnswerer.actualCommandLine&gt;, 'createTime': &lt;function FoamAnswerer.createTime&gt;, '__doc__': 'The class that handles the actual requests (only needed to hide the\n    Thread-methods from the world\n    ', 'endTime': &lt;function FoamAnswerer.endTime&gt;, 'getPlotData': &lt;function FoamAnswerer.getPlotData&gt;, 'isLiving': &lt;function FoamAnswerer.isLiving&gt;, 'stop': &lt;function FoamAnswerer.stop&gt;, 'isFoamServer': &lt;function FoamAnswerer.isFoamServer&gt;, 'setRemark': &lt;function FoamAnswerer.setRemark&gt;, '__weakref__': &lt;attribute '__weakref__' of 'FoamAnswerer' objects&gt;, 'solutionFiles': &lt;function FoamAnswerer.solutionFiles&gt;, 'deltaT': &lt;function FoamAnswerer.deltaT&gt;})</em><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>run=None</em>, <em>master=None</em>, <em>lines=100</em>, <em>foamserver=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>run</strong> &#8211; The thread that controls the run</li>
+<li><strong>master</strong> &#8211; The Runner-Object that controls everything</li>
+<li><strong>lines</strong> &#8211; the number of lines the server should remember</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Infrastructure.FoamServer'</em><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer._insertLine">
+<code class="descname">_insertLine</code><span class="sig-paren">(</span><em>line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer._insertLine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer._insertLine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inserts a new line, not to be called via XMLRPC</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer._kill">
+<code class="descname">_kill</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer._kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer._kill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interrupts the FOAM-process</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer._readParameter">
+<code class="descname">_readParameter</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer._readParameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer._readParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a parametr from the controlDict
+:param name: the parameter
+:return: The value</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.actualCommandLine">
+<code class="descname">actualCommandLine</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.actualCommandLine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.actualCommandLine" title="Permalink to this definition">¶</a></dt>
+<dd><p>The actual command line used</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.argv">
+<code class="descname">argv</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.argv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.argv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Argument vector with which the runner was called</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.commandLine">
+<code class="descname">commandLine</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.commandLine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.commandLine" title="Permalink to this definition">¶</a></dt>
+<dd><p>The command line</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.configuration">
+<code class="descname">configuration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.configuration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.configuration" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">all the configured parameters</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.controlDictUnmodified">
+<code class="descname">controlDictUnmodified</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.controlDictUnmodified"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.controlDictUnmodified" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether there is a pending change to the controlDict</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.createTime">
+<code class="descname">createTime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.createTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.createTime" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the time in the simulation for which the mesh was created</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.cwd">
+<code class="descname">cwd</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.cwd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.cwd" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the current working directory</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.deltaT">
+<code class="descname">deltaT</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.deltaT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.deltaT" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">parameter startTime from the controlDict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.elapsedTime">
+<code class="descname">elapsedTime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.elapsedTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.elapsedTime" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">time in seconds since the last line was output</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.endTime">
+<code class="descname">endTime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.endTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.endTime" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">parameter endTime from the controlDict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.foamVersion">
+<code class="descname">foamVersion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.foamVersion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.foamVersion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Version number of the Foam-Version</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.getDictionaryContents">
+<code class="descname">getDictionaryContents</code><span class="sig-paren">(</span><em>directory</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.getDictionaryContents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.getDictionaryContents" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>directory</strong> &#8211; Sub-directory of the case</li>
+<li><strong>name</strong> &#8211; name of the dictionary file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the contents of the file as a python data-structure</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.getDictionaryText">
+<code class="descname">getDictionaryText</code><span class="sig-paren">(</span><em>directory</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.getDictionaryText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.getDictionaryText" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>directory</strong> &#8211; Sub-directory of the case</li>
+<li><strong>name</strong> &#8211; name of the dictionary file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the contents of the file as a big string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.getEnviron">
+<code class="descname">getEnviron</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.getEnviron"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.getEnviron" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; name of an environment variable</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">value of the variable, empty string if non-existing</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.getPlotData">
+<code class="descname">getPlotData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.getPlotData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.getPlotData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all the data for the plots</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.getPlots">
+<code class="descname">getPlots</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.getPlots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.getPlots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all the information about the plots</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.getRemark">
+<code class="descname">getRemark</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.getRemark"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.getRemark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the user-defined remark for this job</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.hostname">
+<code class="descname">hostname</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.hostname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.hostname" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The name of the computer</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.id">
+<code class="descname">id</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.id" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an ID for this run: IP:port:startTimestamp</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.ip">
+<code class="descname">ip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.ip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.ip" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the ip of this machine</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.isFoamServer">
+<code class="descname">isFoamServer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.isFoamServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.isFoamServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a Foam-Server (True by default)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.isLiving">
+<code class="descname">isLiving</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.isLiving"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.isLiving" title="Permalink to this definition">¶</a></dt>
+<dd><p>The calculation still generates output and therefor seems to be living</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.isParallel">
+<code class="descname">isParallel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.isParallel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.isParallel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is it a parallel run?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.jobId">
+<code class="descname">jobId</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.jobId"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.jobId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the job-ID of the queuing-system. Empty if unset</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.lastLine">
+<code class="descname">lastLine</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.lastLine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.lastLine" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the last line that was output by the running FOAM-process</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.lastLogLineSeen">
+<code class="descname">lastLogLineSeen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.lastLogLineSeen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.lastLogLineSeen" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the time at which the last log-line was seen</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.lastTimeStepSeen">
+<code class="descname">lastTimeStepSeen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.lastTimeStepSeen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.lastTimeStepSeen" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the time at which the last log-line was seen</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.listFiles">
+<code class="descname">listFiles</code><span class="sig-paren">(</span><em>directory</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.listFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.listFiles" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>directory</strong> &#8211; Sub-directory of the case</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of the filenames (not directories) in that case</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.loadAvg">
+<code class="descname">loadAvg</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.loadAvg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.loadAvg" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a tuple with the average loads of the last 1, 5 and 15 minutes</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.mpi">
+<code class="descname">mpi</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.mpi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.mpi" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">name of the MPI-implementation</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.nrWarnings">
+<code class="descname">nrWarnings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.nrWarnings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.nrWarnings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of warnings the executable emitted</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.pathToSolution">
+<code class="descname">pathToSolution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.pathToSolution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.pathToSolution" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the path to the solution directory</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.pid">
+<code class="descname">pid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.pid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.pid" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the PID of the script</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.procNr">
+<code class="descname">procNr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.procNr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.procNr" title="Permalink to this definition">¶</a></dt>
+<dd><p>How many processors are used?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.pyFoamVersion">
+<code class="descname">pyFoamVersion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.pyFoamVersion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.pyFoamVersion" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Version number of the PyFoam</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.runnerData">
+<code class="descname">runnerData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.runnerData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.runnerData" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the data the runner collected so far</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.scriptName">
+<code class="descname">scriptName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.scriptName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.scriptName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the Python-Script that runs the show</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.setRemark">
+<code class="descname">setRemark</code><span class="sig-paren">(</span><em>remark</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.setRemark"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.setRemark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overwrite the user-defined remark
+:return: True if the remark was set previously</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.solutionFiles">
+<code class="descname">solutionFiles</code><span class="sig-paren">(</span><em>time</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.solutionFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.solutionFiles" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>time</strong> &#8211; name of the timestep</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of the solution files at that timestep</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.startTime">
+<code class="descname">startTime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.startTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.startTime" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">parameter startTime from the controlDict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.startTimestamp">
+<code class="descname">startTimestamp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.startTimestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.startTimestamp" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the unix-timestamp of the process start</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops the run gracefully (after writing the last time-step to disk)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.tail">
+<code class="descname">tail</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.tail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.tail" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the current last lines as a string</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.time">
+<code class="descname">time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.time" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the current time in the simulation</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.uname">
+<code class="descname">uname</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.uname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.uname" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the complete uname-information</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.usedArgv">
+<code class="descname">usedArgv</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.usedArgv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.usedArgv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Argument vector with which the runner started the run</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.user">
+<code class="descname">user</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.user" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the user that runs this script</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.write">
+<code class="descname">write</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes the program write the next time-step to disk and the continue</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.writeDictionaryContents">
+<code class="descname">writeDictionaryContents</code><span class="sig-paren">(</span><em>directory</em>, <em>name</em>, <em>contents</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.writeDictionaryContents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.writeDictionaryContents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the contents of a dictionary
+:param directory: Sub-directory of the case
+:param name: name of the dictionary file
+:param contents: Python-dictionary with the dictionary contents</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.writeDictionaryText">
+<code class="descname">writeDictionaryText</code><span class="sig-paren">(</span><em>directory</em>, <em>name</em>, <em>text</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.writeDictionaryText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.writeDictionaryText" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the contents of a dictionary
+:param directory: Sub-directory of the case
+:param name: name of the dictionary file
+:param text: String with the dictionary contents</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamAnswerer.writtenTimesteps">
+<code class="descname">writtenTimesteps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamAnswerer.writtenTimesteps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamAnswerer.writtenTimesteps" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of the timesteps on disc</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamServer">
+<em class="property">class </em><code class="descclassname">PyFoam.Infrastructure.FoamServer.</code><code class="descname">FoamServer</code><span class="sig-paren">(</span><em>run=None</em>, <em>master=None</em>, <em>lines=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">threading.Thread</span></code></p>
+<p>This is the class that serves the requests about the FOAM-Run</p>
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamServer.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>run=None</em>, <em>master=None</em>, <em>lines=100</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamServer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamServer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>run</strong> &#8211; The thread that controls the run</li>
+<li><strong>master</strong> &#8211; The Runner-Object that controls everything</li>
+<li><strong>lines</strong> &#8211; the number of lines the server should remember</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamServer.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Infrastructure.FoamServer'</em><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamServer.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamServer._insertLine">
+<code class="descname">_insertLine</code><span class="sig-paren">(</span><em>line</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamServer._insertLine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamServer._insertLine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inserts a new line, not to be called via XMLRPC</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamServer.deregister">
+<code class="descname">deregister</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamServer.deregister"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamServer.deregister" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tries to deregister with the Meta-Server</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamServer.info">
+<code class="descname">info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamServer.info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamServer.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the IP, the PID and the port of the server (as one tuple)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamServer.kill">
+<code class="descname">kill</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamServer.kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamServer.kill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interrupts the FOAM-process (and kills the server)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamServer.killServer">
+<code class="descname">killServer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamServer.killServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamServer.killServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kills the server process</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamServer.register">
+<code class="descname">register</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamServer.register"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamServer.register" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tries to register with the Meta-Server</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.FoamServer.FoamServer.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#FoamServer.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.FoamServer.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Infrastructure.FoamServer.findFreePort">
+<code class="descclassname">PyFoam.Infrastructure.FoamServer.</code><code class="descname">findFreePort</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/FoamServer.html#findFreePort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.findFreePort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds a free server port on this machine and returns it</p>
+<p>Valid server ports are in the range 18000 upward (the function tries to
+find the lowest possible port number</p>
+<p>ATTENTION: this part may introduce race conditions</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Infrastructure.FoamServer.random">
+<code class="descclassname">PyFoam.Infrastructure.FoamServer.</code><code class="descname">random</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &rarr; x in the interval [0, 1).<a class="headerlink" href="#PyFoam.Infrastructure.FoamServer.random" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.Infrastructure.Hardcoded.html" class="btn btn-neutral float-right" title="PyFoam.Infrastructure.Hardcoded module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.Infrastructure.FoamMetaServer.html" class="btn btn-neutral" title="PyFoam.Infrastructure.FoamMetaServer module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

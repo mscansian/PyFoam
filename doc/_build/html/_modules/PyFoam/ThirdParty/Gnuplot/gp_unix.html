@@ -1,0 +1,404 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.ThirdParty.Gnuplot.gp_unix &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../../PyFoam.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.ThirdParty.Gnuplot.gp_unix</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.ThirdParty.Gnuplot.gp_unix</h1><div class="highlight"><pre>
+<span></span><span class="c1"># $Id: gp_unix.py 292 2006-03-03 09:49:04Z mhagger $</span>
+
+<span class="c1"># Copyright (C) 1998-2003 Michael Haggerty &lt;mhagger@alum.mit.edu&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># This file is licensed under the GNU Lesser General Public License</span>
+<span class="c1"># (LGPL).  See LICENSE.txt for details.</span>
+
+<span class="sd">&quot;&quot;&quot;gp_unix -- an interface to gnuplot used for unix platforms.</span>
+
+<span class="sd">This file implements a low-level interface to a gnuplot program for a</span>
+<span class="sd">unix platform (actually it is used for any non-Windows, non-Mac</span>
+<span class="sd">system).  This file should be imported through gp.py, which in turn</span>
+<span class="sd">should be imported via &#39;import Gnuplot&#39; rather than these low-level</span>
+<span class="sd">interfaces.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># ############ Configuration variables: ################################</span>
+
+<div class="viewcode-block" id="GnuplotOpts"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.gp_unix.html#PyFoam.ThirdParty.Gnuplot.gp_unix.GnuplotOpts">[docs]</a><span class="k">class</span> <span class="nc">GnuplotOpts</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;The configuration options for gnuplot on generic platforms.</span>
+
+<span class="sd">    Store the options in a class to make them easy to import and</span>
+<span class="sd">    modify en masse.  If you want to modify the options from the</span>
+<span class="sd">    command line or within a running program, do something like the</span>
+<span class="sd">    following::</span>
+
+<span class="sd">        import Gnuplot</span>
+<span class="sd">        Gnuplot.GnuplotOpts.gnuplot_command = &#39;/bin/mygnuplot&#39;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Command to start up the gnuplot program.  If your version of</span>
+    <span class="c1"># gnuplot is run otherwise, specify the correct command here.  You</span>
+    <span class="c1"># could also specify a full path or append command-line options</span>
+    <span class="c1"># here if you wish.</span>
+    <span class="n">gnuplot_command</span> <span class="o">=</span> <span class="s1">&#39;gnuplot&#39;</span>
+
+    <span class="c1"># Recent versions of gnuplot (at least for Xwindows) allow a</span>
+    <span class="c1"># `-persist&#39; command-line option when starting up gnuplot.  When</span>
+    <span class="c1"># this option is specified, graph windows remain on the screen</span>
+    <span class="c1"># even after you quit gnuplot (type `q&#39; in the window to close</span>
+    <span class="c1"># it).  This can be handy but unfortunately it is not supported by</span>
+    <span class="c1"># older versions of gnuplot.  The following configuration variable</span>
+    <span class="c1"># specifies whether the user&#39;s version of gnuplot recognizes this</span>
+    <span class="c1"># option or not.  You can set this variable to 1 (supports</span>
+    <span class="c1"># -persist) or 0 (doesn&#39;t support) yourself; if you leave it with</span>
+    <span class="c1"># the value None then the first time you create a Gnuplot object</span>
+    <span class="c1"># it will try to detect automatically whether your version accepts</span>
+    <span class="c1"># this option.</span>
+    <span class="n">recognizes_persist</span> <span class="o">=</span> <span class="bp">None</span> <span class="c1"># test automatically on first use</span>
+
+    <span class="c1"># What should be the default if the persist option is not</span>
+    <span class="c1"># specified explicitly?</span>
+    <span class="n">prefer_persist</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Recent versions of gnuplot allow you to specify a `binary&#39;</span>
+    <span class="c1"># option to the splot command for grid data, which means that the</span>
+    <span class="c1"># data file is to be read in binary format.  This option saves</span>
+    <span class="c1"># substantial time writing and reading the file, and can also save</span>
+    <span class="c1"># substantial disk space and therefore it is the default for that</span>
+    <span class="c1"># type of plot.  But if you have an older version of gnuplot (or</span>
+    <span class="c1"># you prefer text format) you can disable the binary option in</span>
+    <span class="c1"># either of two ways: (a) set the following variable to 0; or (b)</span>
+    <span class="c1"># pass `binary=0&#39; to the GridData constructor.  (Note that the</span>
+    <span class="c1"># demo uses binary=0 to maximize portability.)</span>
+    <span class="n">recognizes_binary_splot</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># Data can be passed to gnuplot through a temporary file or as</span>
+    <span class="c1"># inline data (i.e., the filename is set to &#39;-&#39; and the data is</span>
+    <span class="c1"># entered into the gnuplot interpreter followed by &#39;e&#39;).  If</span>
+    <span class="c1"># prefer_inline_data is true, then use the inline method as</span>
+    <span class="c1"># default whenever it is supported.  This should be fast but will</span>
+    <span class="c1"># use more memory since currently the inline data is put into a</span>
+    <span class="c1"># big string when the PlotItem is created.</span>
+    <span class="n">prefer_inline_data</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Does Python implement the threading module and os.mkfifo on this</span>
+    <span class="c1"># operating system?  If so, the _FIFOFileItem class will be</span>
+    <span class="c1"># defined in PlotItem.py.</span>
+    <span class="n">support_fifo</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># Should FIFOs be used to send data to gnuplot by default?</span>
+    <span class="n">prefer_fifo_data</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># After a hardcopy is produced, we have to set the terminal type</span>
+    <span class="c1"># back to `on screen&#39; using gnuplot&#39;s `set terminal&#39; command.  The</span>
+    <span class="c1"># following is the usual setting for Xwindows.  If it is wrong,</span>
+    <span class="c1"># change the following line to select the terminal type you prefer</span>
+    <span class="c1"># to use for on-screen work.</span>
+    <span class="n">default_term</span> <span class="o">=</span> <span class="s1">&#39;x11&#39;</span>
+
+    <span class="c1"># Gnuplot can plot to a printer by using &quot;set output &#39;| ...&#39;&quot;</span>
+    <span class="c1"># where ... is the name of a program that sends its stdin to a</span>
+    <span class="c1"># printer, or by &quot;set output &#39;printer_device&#39;, where</span>
+    <span class="c1"># &#39;printer_device is the name of a file-like interface to the</span>
+    <span class="c1"># printer.  On my machine the appropriate program is `lpr&#39;, as set</span>
+    <span class="c1"># below.  On your computer it may be something different (like</span>
+    <span class="c1"># `lp&#39;); you can set that by changing the variable below.  You can</span>
+    <span class="c1"># also add options to the print command if needed.</span>
+    <span class="n">default_lpr</span> <span class="o">=</span> <span class="s1">&#39;| lpr&#39;</span>
+
+    <span class="c1"># Enhanced postscript is an option to the postscript terminal</span>
+    <span class="c1"># driver that requests enhanced treatment of strings (for example,</span>
+    <span class="c1"># font changes, superscripts, and subscripts).  Set to 1 to enable</span>
+    <span class="c1"># or 0 to disable.  If you have a version of gnuplot earlier than</span>
+    <span class="c1"># 3.7, you should set this to None (*not* 0!) so that the option</span>
+    <span class="c1"># is not used at all.</span>
+    <span class="n">prefer_enhanced_postscript</span> <span class="o">=</span> <span class="mi">1</span></div>
+
+<span class="c1"># ############ End of configuration options ############################</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">popen</span>
+
+
+<div class="viewcode-block" id="test_persist"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.gp_unix.html#PyFoam.ThirdParty.Gnuplot.gp_unix.test_persist">[docs]</a><span class="k">def</span> <span class="nf">test_persist</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Determine whether gnuplot recognizes the option &#39;-persist&#39;.</span>
+
+<span class="sd">    If the configuration variable &#39;recognizes_persist&#39; is set (i.e.,</span>
+<span class="sd">    to something other than &#39;None&#39;), return that value.  Otherwise,</span>
+<span class="sd">    try to determine whether the installed version of gnuplot</span>
+<span class="sd">    recognizes the -persist option.  (If it doesn&#39;t, it should emit an</span>
+<span class="sd">    error message with &#39;-persist&#39; in the first line.)  Then set</span>
+<span class="sd">    &#39;recognizes_persist&#39; accordingly for future reference.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">GnuplotOpts</span><span class="o">.</span><span class="n">recognizes_persist</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">string</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">popen</span><span class="p">(</span><span class="s1">&#39;echo | </span><span class="si">%s</span><span class="s1"> -persist 2&gt;&amp;1&#39;</span> <span class="o">%</span> <span class="n">GnuplotOpts</span><span class="o">.</span><span class="n">gnuplot_command</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">GnuplotOpts</span><span class="o">.</span><span class="n">recognizes_persist</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="ow">not</span> <span class="n">response</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;-persist&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">GnuplotOpts</span><span class="o">.</span><span class="n">recognizes_persist</span></div>
+
+
+<div class="viewcode-block" id="GnuplotProcess"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.gp_unix.html#PyFoam.ThirdParty.Gnuplot.gp_unix.GnuplotProcess">[docs]</a><span class="k">class</span> <span class="nc">GnuplotProcess</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Unsophisticated interface to a running gnuplot program.</span>
+
+<span class="sd">    This represents a running gnuplot program and the means to</span>
+<span class="sd">    communicate with it at a primitive level (i.e., pass it commands</span>
+<span class="sd">    or data).  When the object is destroyed, the gnuplot program exits</span>
+<span class="sd">    (unless the &#39;persist&#39; option was set).  The communication is</span>
+<span class="sd">    one-way; gnuplot&#39;s text output just goes to stdout with no attempt</span>
+<span class="sd">    to check it for error messages.</span>
+
+<span class="sd">    Members:</span>
+
+<span class="sd">        &#39;gnuplot&#39; -- the pipe to the gnuplot command.</span>
+
+<span class="sd">    Methods:</span>
+
+<span class="sd">        &#39;__init__&#39; -- start up the program.</span>
+
+<span class="sd">        &#39;__call__&#39; -- pass an arbitrary string to the gnuplot program,</span>
+<span class="sd">            followed by a newline.</span>
+
+<span class="sd">        &#39;write&#39; -- pass an arbitrary string to the gnuplot program.</span>
+
+<span class="sd">        &#39;flush&#39; -- cause pending output to be written immediately.</span>
+
+<span class="sd">        &#39;close&#39; -- close the connection to gnuplot.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="GnuplotProcess.__init__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.gp_unix.html#PyFoam.ThirdParty.Gnuplot.gp_unix.GnuplotProcess.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Start a gnuplot process.</span>
+
+<span class="sd">        Create a &#39;GnuplotProcess&#39; object.  This starts a gnuplot</span>
+<span class="sd">        program and prepares to write commands to it.</span>
+
+<span class="sd">        Keyword arguments:</span>
+
+<span class="sd">          &#39;persist=1&#39; -- start gnuplot with the &#39;-persist&#39; option,</span>
+<span class="sd">              (which leaves the plot window on the screen even after</span>
+<span class="sd">              the gnuplot program ends, and creates a new plot window</span>
+<span class="sd">              each time the terminal type is set to &#39;x11&#39;).  This</span>
+<span class="sd">              option is not available on older versions of gnuplot.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">persist</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">persist</span> <span class="o">=</span> <span class="n">GnuplotOpts</span><span class="o">.</span><span class="n">prefer_persist</span>
+        <span class="k">if</span> <span class="n">persist</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">test_persist</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;-persist does not seem to be supported &#39;</span>
+                                <span class="s1">&#39;by your version of gnuplot!&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span> <span class="o">=</span> <span class="n">popen</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> -persist&#39;</span> <span class="o">%</span> <span class="n">GnuplotOpts</span><span class="o">.</span><span class="n">gnuplot_command</span><span class="p">,</span>
+                                 <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span> <span class="o">=</span> <span class="n">popen</span><span class="p">(</span><span class="n">GnuplotOpts</span><span class="o">.</span><span class="n">gnuplot_command</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+
+        <span class="c1"># forward write and flush methods:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span><span class="o">.</span><span class="n">write</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flush</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span><span class="o">.</span><span class="n">flush</span></div>
+
+<div class="viewcode-block" id="GnuplotProcess.close"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.gp_unix.html#PyFoam.ThirdParty.Gnuplot.gp_unix.GnuplotProcess.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gnuplot</span> <span class="o">=</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="GnuplotProcess.__del__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.gp_unix.html#PyFoam.ThirdParty.Gnuplot.gp_unix.GnuplotProcess.__del__">[docs]</a>    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GnuplotProcess.__call__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.gp_unix.html#PyFoam.ThirdParty.Gnuplot.gp_unix.GnuplotProcess.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send a command string to gnuplot, followed by newline.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

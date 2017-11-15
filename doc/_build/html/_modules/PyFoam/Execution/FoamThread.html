@@ -1,0 +1,524 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Execution.FoamThread &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Execution.FoamThread</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Execution.FoamThread</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Thread wrappers for OpenFOAM&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span><span class="p">,</span><span class="n">Lock</span><span class="p">,</span><span class="n">Timer</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">warning</span><span class="p">,</span><span class="n">error</span>
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">config</span>
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">shellExecutionPrefix</span>
+
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">popen2</span> <span class="kn">import</span> <span class="n">Popen4</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">subprocess</span>
+
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span><span class="p">,</span><span class="n">sleep</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">resource</span> <span class="kn">import</span> <span class="n">getrusage</span><span class="p">,</span><span class="n">getpagesize</span><span class="p">,</span><span class="n">RUSAGE_CHILDREN</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.winhacks</span> <span class="kn">import</span> <span class="n">getrusage</span><span class="p">,</span><span class="n">getpagesize</span><span class="p">,</span><span class="n">RUSAGE_CHILDREN</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unable to import working getrusage,getpagesize,RUSAGE_CHILDREN functions.&quot;</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">kill</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">unlink</span>
+<span class="kn">from</span> <span class="nn">platform</span> <span class="kn">import</span> <span class="n">uname</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.LineReader</span> <span class="kn">import</span> <span class="n">LineReader</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Infrastructure.Logging</span> <span class="kn">import</span> <span class="n">foamLogger</span>
+
+<div class="viewcode-block" id="checkForStopFile"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.checkForStopFile">[docs]</a><span class="k">def</span> <span class="nf">checkForStopFile</span><span class="p">(</span><span class="n">thrd</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Checks for the file &#39;stop&#39; in the directory of the FoamRun. If</span>
+<span class="sd">    it exists it is removed and the run is stopped gracefully</span>
+
+<span class="sd">    If a file &#39;write&#39; is found then the next timestep is written</span>
+
+<span class="sd">    File &#39;stopWrite&#39; stops the run at the next write</span>
+
+<span class="sd">    &#39;kill&#39; stops without writing&quot;&quot;&quot;</span>
+
+    <span class="n">fName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">thrd</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="s2">&quot;stop&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fName</span><span class="p">):</span>
+        <span class="n">unlink</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+        <span class="n">thrd</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">stopGracefully</span><span class="p">()</span>
+        <span class="k">return</span>
+
+    <span class="n">fName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">thrd</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="s2">&quot;write&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fName</span><span class="p">):</span>
+        <span class="n">unlink</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+        <span class="n">thrd</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">writeResults</span><span class="p">()</span>
+
+    <span class="n">fName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">thrd</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="s2">&quot;stopWrite&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fName</span><span class="p">):</span>
+        <span class="n">unlink</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+        <span class="n">thrd</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">stopAtNextWrite</span><span class="p">()</span>
+
+    <span class="n">fName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">thrd</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="s2">&quot;kill&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fName</span><span class="p">):</span>
+        <span class="n">unlink</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+        <span class="n">thrd</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">stopWithoutWrite</span><span class="p">()</span>
+
+    <span class="n">thrd</span><span class="o">.</span><span class="n">timer2</span><span class="o">=</span><span class="n">Timer</span><span class="p">(</span><span class="n">thrd</span><span class="o">.</span><span class="n">timerTime</span><span class="p">,</span><span class="n">checkForStopFile</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">thrd</span><span class="p">])</span>
+    <span class="n">thrd</span><span class="o">.</span><span class="n">timer2</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="getLinuxMem"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.getLinuxMem">[docs]</a><span class="k">def</span> <span class="nf">getLinuxMem</span><span class="p">(</span><span class="n">thrd</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Reads the Memory usage of a thread on a linux-System</span>
+
+<span class="sd">    :param thrd: the thread object in question&quot;&quot;&quot;</span>
+
+    <span class="c1">#    print &quot;Timer called&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">thrd</span><span class="o">.</span><span class="n">isLinux</span> <span class="ow">or</span> <span class="n">thrd</span><span class="o">.</span><span class="n">threadPid</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">mem</span><span class="o">=</span><span class="mi">0</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/proc/</span><span class="si">%d</span><span class="s1">/status&#39;</span> <span class="o">%</span> <span class="n">thrd</span><span class="o">.</span><span class="n">threadPid</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="c1">#        f=open(&#39;/tmp/test%dstatus&#39; % thrd.threadPid,&#39;w&#39;)</span>
+        <span class="c1">#        f.write(v)</span>
+        <span class="c1">#        f.close()</span>
+
+        <span class="n">i</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;VmRSS&#39;</span><span class="p">)</span>
+        <span class="n">tmp</span><span class="o">=</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">3</span><span class="p">:</span>
+            <span class="n">mem</span><span class="o">=</span><span class="nb">long</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s1">&#39;kb&#39;</span><span class="p">:</span>
+                <span class="n">mem</span><span class="o">*=</span><span class="mi">1024</span>
+            <span class="k">elif</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s1">&#39;mb&#39;</span><span class="p">:</span>
+                <span class="n">mem</span><span class="o">*=</span><span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mem</span><span class="o">=-</span><span class="mi">1</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># compatible with 2.x and 3.x</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Getting LinuxMem:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+        <span class="n">mem</span><span class="o">=-</span><span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">mem</span><span class="o">&gt;</span><span class="n">thrd</span><span class="o">.</span><span class="n">linuxMaxMem</span><span class="p">:</span>
+        <span class="c1">#        print &quot;Setting Memory to: &quot;,mem</span>
+        <span class="n">thrd</span><span class="o">.</span><span class="n">linuxMaxMem</span><span class="o">=</span><span class="n">mem</span>
+
+    <span class="c1">#    print &quot;Restarting Timer&quot;</span>
+
+    <span class="n">thrd</span><span class="o">.</span><span class="n">timer</span><span class="o">=</span><span class="n">Timer</span><span class="p">(</span><span class="n">thrd</span><span class="o">.</span><span class="n">timerTime</span><span class="p">,</span><span class="n">getLinuxMem</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">thrd</span><span class="p">])</span>
+    <span class="n">thrd</span><span class="o">.</span><span class="n">timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FoamThread"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread">[docs]</a><span class="k">class</span> <span class="nc">FoamThread</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Thread running an OpenFOAM command</span>
+
+<span class="sd">    The output of the command can be accessed in a thread-safe manner,</span>
+<span class="sd">    line by line</span>
+
+<span class="sd">    Designed to be used by the BasicRunner-class&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FoamThread.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cmdline</span><span class="p">,</span><span class="n">runner</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param cmdline:cmdline - Command line of the OpenFOAM command</span>
+<span class="sd">        :param runner: the Runner-object that started this thread&quot;&quot;&quot;</span>
+        <span class="n">Thread</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cmdline</span><span class="o">=</span><span class="n">cmdline</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">=</span><span class="n">runner</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">=</span><span class="n">LineReader</span><span class="p">(</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;SolverOutput&quot;</span><span class="p">,</span><span class="s2">&quot;stripSpaces&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">isLinux</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isDarwin</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isWindows</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadPid</span><span class="o">=-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">who</span><span class="o">=</span><span class="n">RUSAGE_CHILDREN</span>
+
+        <span class="k">if</span> <span class="n">uname</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;Linux&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">isLinux</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">linuxMaxMem</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">uname</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;Darwin&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">isDarwin</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">uname</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;Windows&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">isWindows</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">resStart</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resEnd</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeStart</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeEnd</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">timerTime</span><span class="o">=</span><span class="mf">5.</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stateLock</span><span class="o">=</span><span class="n">Lock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">returncode</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineLock</span><span class="o">=</span><span class="n">Lock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stateLock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FoamThread.run"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;start the command&quot;&quot;&quot;</span>
+        <span class="c1"># print &quot;Starting &quot;,self.cmdline</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resStart</span><span class="o">=</span><span class="n">getrusage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">who</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeStart</span><span class="o">=</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">):</span>
+            <span class="n">run</span><span class="o">=</span><span class="n">Popen4</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmdline</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">fromchild</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">run</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">shellExecutionPrefix</span><span class="p">()</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">cmdline</span><span class="p">,</span>
+                                 <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                 <span class="n">bufsize</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                 <span class="n">stdin</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                                 <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                                 <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
+                                 <span class="n">close_fds</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">stdout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">=</span><span class="n">run</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadPid</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">pid</span>
+        <span class="n">foamLogger</span><span class="p">()</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Started with PID </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">threadPid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isLinux</span><span class="p">:</span>
+            <span class="c1">#            print &quot;Starting Timer&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timer</span><span class="o">=</span><span class="n">Timer</span><span class="p">(</span><span class="mf">0.1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">timerTime</span><span class="p">,</span><span class="n">getLinuxMem</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="c1">#            print &quot;Starting Timer&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer2</span><span class="o">=</span><span class="n">Timer</span><span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">timerTime</span><span class="p">,</span><span class="n">checkForStopFile</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer2</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">hasSomethingToSay</span><span class="o">=</span><span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stateLock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># print &quot;Waiting&quot;,time()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+            <span class="c1"># Python 2.3 on Mac OS X never seems to reach this point</span>
+            <span class="c1"># print &quot;After wait&quot;,time()</span>
+            <span class="c1"># print &quot;Status:&quot;,self.status</span>
+
+            <span class="c1"># to give a chance to read the remaining output</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasSomethingToSay</span><span class="p">:</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">):</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Unused output:&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># compatible with 2.x and 3.x</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Exeption caught:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stopTimer</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadPid</span><span class="o">=-</span><span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">resEnd</span><span class="o">=</span><span class="n">getrusage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">who</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeEnd</span><span class="o">=</span><span class="n">time</span><span class="p">()</span>
+        <span class="c1">#        print &quot;End:&quot;,self.timeEnd</span>
+        <span class="c1"># print &quot;Returned&quot;,self.status</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">getReturnCode</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FoamThread.getReturnCode"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.getReturnCode">[docs]</a>    <span class="k">def</span> <span class="nf">getReturnCode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">):</span>
+            <span class="c1"># Don&#39;t know how to get the returncode from a Popen4-object</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">returncode</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">returncode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">returncode</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">returncode</span></div>
+
+<div class="viewcode-block" id="FoamThread.stopTimer"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.stopTimer">[docs]</a>    <span class="k">def</span> <span class="nf">stopTimer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isLinux</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timer</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer2</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FoamThread.read"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;read another line from the output&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineLock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">line</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineLock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FoamThread.getLine"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.getLine">[docs]</a>    <span class="k">def</span> <span class="nf">getLine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;gets the last line from the output&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineLock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">line</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineLock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">val</span></div>
+
+<div class="viewcode-block" id="FoamThread.interrupt"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.interrupt">[docs]</a>    <span class="k">def</span> <span class="nf">interrupt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A keyboard-interrupt is reported&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">wasInterupted</span><span class="o">=</span><span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FoamThread.setState"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.setState">[docs]</a>    <span class="k">def</span> <span class="nf">setState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;sets the state of the thread (is there any more output)&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stateLock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hasSomethingToSay</span><span class="o">=</span><span class="n">state</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasSomethingToSay</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeStart</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">wasInterupted</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">threadPid</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Killing PID </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">threadPid</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="n">foamLogger</span><span class="p">()</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">kill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">threadPid</span><span class="p">,</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGKILL</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                    <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Process&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">threadPid</span><span class="p">,</span><span class="s2">&quot;was already dead&quot;</span><span class="p">)</span>
+
+        <span class="c1">#        print &quot;Set: &quot;,state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stateLock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FoamThread.check"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.check">[docs]</a>    <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:return: False if there is no more output of the command&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stateLock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="n">state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hasSomethingToSay</span>
+        <span class="c1">#        print &quot;Get: &quot;,state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stateLock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">state</span></div>
+
+<div class="viewcode-block" id="FoamThread.cpuTime"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.cpuTime">[docs]</a>    <span class="k">def</span> <span class="nf">cpuTime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:return: number of seconds CPU-Time used&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpuUserTime</span><span class="p">()</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">cpuSystemTime</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FoamThread.cpuUserTime"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.cpuUserTime">[docs]</a>    <span class="k">def</span> <span class="nf">cpuUserTime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:return: number of seconds CPU-Time used in user mode&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resEnd</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span> <span class="c1"># and self.isDarwin:</span>
+            <span class="c1"># Mac OS X needs this (Ubuntu too?)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">resEnd</span><span class="o">=</span><span class="n">getrusage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">who</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resStart</span><span class="o">==</span><span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">resEnd</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">resEnd</span><span class="o">.</span><span class="n">ru_utime</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">resStart</span><span class="o">.</span><span class="n">ru_utime</span></div>
+
+<div class="viewcode-block" id="FoamThread.cpuSystemTime"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.cpuSystemTime">[docs]</a>    <span class="k">def</span> <span class="nf">cpuSystemTime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:return: number of seconds CPU-Time used in system mode&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resEnd</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span> <span class="c1">#  and self.isDarwin:</span>
+            <span class="c1"># Mac OS X needs this (Ubuntu too?)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">resEnd</span><span class="o">=</span><span class="n">getrusage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">who</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resStart</span><span class="o">==</span><span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">resEnd</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">resEnd</span><span class="o">.</span><span class="n">ru_stime</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">resStart</span><span class="o">.</span><span class="n">ru_stime</span></div>
+
+<div class="viewcode-block" id="FoamThread.usedMemory"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.usedMemory">[docs]</a>    <span class="k">def</span> <span class="nf">usedMemory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:return: maximum resident set size in MegaByte&quot;&quot;&quot;</span>
+        <span class="n">scale</span><span class="o">=</span><span class="mf">1024.</span><span class="o">*</span><span class="mf">1024.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isLinux</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">linuxMaxMem</span><span class="o">/</span><span class="n">scale</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resStart</span><span class="o">==</span><span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">resEnd</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">getpagesize</span><span class="p">()</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resEnd</span><span class="o">.</span><span class="n">ru_maxrss</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">resStart</span><span class="o">.</span><span class="n">ru_maxrss</span><span class="p">)</span><span class="o">/</span><span class="n">scale</span></div>
+
+<div class="viewcode-block" id="FoamThread.wallTime"><a class="viewcode-back" href="../../../api/PyFoam.Execution.FoamThread.html#PyFoam.Execution.FoamThread.FoamThread.wallTime">[docs]</a>    <span class="k">def</span> <span class="nf">wallTime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:return: the wall-clock-time needed by the process&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeEnd</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span> <span class="c1">#  and self.isDarwin:</span>
+            <span class="c1"># Mac OS X needs this (Ubuntu too?)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timeEnd</span><span class="o">=</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeEnd</span><span class="o">=</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="c1">#        print &quot;Wall:&quot;,self.timeEnd,self.timeStart</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeStart</span><span class="o">==</span><span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeEnd</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeEnd</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">timeStart</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

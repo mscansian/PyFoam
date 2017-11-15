@@ -1,0 +1,281 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.BasicFile &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.BasicFile</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.BasicFile</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Basic file output&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BasicFile"><a class="viewcode-back" href="../../../api/PyFoam.Basics.BasicFile.html#PyFoam.Basics.BasicFile.BasicFile">[docs]</a><span class="k">class</span> <span class="nc">BasicFile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;File for data output</span>
+
+<span class="sd">    The format of the file is: one data-set per line</span>
+<span class="sd">    Values are separated by tabs</span>
+
+<span class="sd">    The file is created the first time it is written&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BasicFile.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.BasicFile.html#PyFoam.Basics.BasicFile.BasicFile.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;name - name of the file&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isOpen</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="o">=</span><span class="bp">False</span></div>
+
+<div class="viewcode-block" id="BasicFile.outputAtStart"><a class="viewcode-back" href="../../../api/PyFoam.Basics.BasicFile.html#PyFoam.Basics.BasicFile.BasicFile.outputAtStart">[docs]</a>    <span class="k">def</span> <span class="nf">outputAtStart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A hook for outputting stuff at the beginning of the file&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BasicFile.outputAtEnd"><a class="viewcode-back" href="../../../api/PyFoam.Basics.BasicFile.html#PyFoam.Basics.BasicFile.BasicFile.outputAtEnd">[docs]</a>    <span class="k">def</span> <span class="nf">outputAtEnd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A hook for outputting stuff at the end of the file&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BasicFile.outputAtLineEnd"><a class="viewcode-back" href="../../../api/PyFoam.Basics.BasicFile.html#PyFoam.Basics.BasicFile.BasicFile.outputAtLineEnd">[docs]</a>    <span class="k">def</span> <span class="nf">outputAtLineEnd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A hook for outputting stuff at the end of each line&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BasicFile.outputAtLineStart"><a class="viewcode-back" href="../../../api/PyFoam.Basics.BasicFile.html#PyFoam.Basics.BasicFile.BasicFile.outputAtLineStart">[docs]</a>    <span class="k">def</span> <span class="nf">outputAtLineStart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A hook for outputting stuff at the start of each line&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BasicFile.callAtOpen"><a class="viewcode-back" href="../../../api/PyFoam.Basics.BasicFile.html#PyFoam.Basics.BasicFile.BasicFile.callAtOpen">[docs]</a>    <span class="k">def</span> <span class="nf">callAtOpen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A hook that gets called when the file is opened&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BasicFile.callAtClose"><a class="viewcode-back" href="../../../api/PyFoam.Basics.BasicFile.html#PyFoam.Basics.BasicFile.BasicFile.callAtClose">[docs]</a>    <span class="k">def</span> <span class="nf">callAtClose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A hook that gets called when the file is closed&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BasicFile.getHandle"><a class="viewcode-back" href="../../../api/PyFoam.Basics.BasicFile.html#PyFoam.Basics.BasicFile.BasicFile.getHandle">[docs]</a>    <span class="k">def</span> <span class="nf">getHandle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;get the file-handle. File is created and opened if it</span>
+<span class="sd">        wasn&#39;t opened before&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isOpen</span><span class="p">:</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">:</span>
+                <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;a&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">mode</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">isOpen</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">outputAtStart</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">callAtOpen</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle</span></div>
+
+<div class="viewcode-block" id="BasicFile.writeLine"><a class="viewcode-back" href="../../../api/PyFoam.Basics.BasicFile.html#PyFoam.Basics.BasicFile.BasicFile.writeLine">[docs]</a>    <span class="k">def</span> <span class="nf">writeLine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;write a data set</span>
+
+<span class="sd">        data - a tuple with the data-set&quot;&quot;&quot;</span>
+        <span class="n">fh</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getHandle</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputAtLineStart</span><span class="p">()</span>
+        <span class="n">first</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">first</span><span class="p">:</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; </span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">first</span><span class="o">=</span><span class="bp">False</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputAtLineEnd</span><span class="p">()</span>
+        <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">fh</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BasicFile.close"><a class="viewcode-back" href="../../../api/PyFoam.Basics.BasicFile.html#PyFoam.Basics.BasicFile.BasicFile.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">temporary</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;close the file</span>
+<span class="sd">        :param temporary: only close the file temporary (to be appended on later)&quot;&quot;&quot;</span>
+        <span class="c1">#        print &quot;Closing file\n&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">callAtClose</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">temporary</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">outputAtEnd</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handle</span><span class="o">=</span><span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">isOpen</span><span class="o">=</span><span class="bp">False</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

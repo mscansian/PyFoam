@@ -1,0 +1,285 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.RunDictionary.LagrangianPatchData &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.RunDictionary.LagrangianPatchData</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.RunDictionary.LagrangianPatchData</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Read files written by the Lagrangian function object that writes patch incidents</span>
+<span class="sd">and transforms the data into a NumPy-array&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">BytesIO</span><span class="p">,</span><span class="n">b</span>
+<span class="kn">from</span> <span class="nn">.FileBasis</span> <span class="kn">import</span> <span class="n">CleanCharactersFile</span>
+<span class="kn">from</span> <span class="nn">.TimeDirectory</span> <span class="kn">import</span> <span class="n">TimeDirectory</span>
+<span class="kn">from</span> <span class="nn">.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+<div class="viewcode-block" id="globalId"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianPatchData.html#PyFoam.RunDictionary.LagrangianPatchData.globalId">[docs]</a><span class="k">def</span> <span class="nf">globalId</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span><span class="n">theId</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">proc</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span><span class="o">*</span><span class="mi">1000000000</span><span class="o">+</span><span class="n">theId</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LagrangianPatchData"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianPatchData.html#PyFoam.RunDictionary.LagrangianPatchData.LagrangianPatchData">[docs]</a><span class="k">class</span> <span class="nc">LagrangianPatchData</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Class to read lagrangian patch data and store it as a NumPy-array&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="LagrangianPatchData.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianPatchData.html#PyFoam.RunDictionary.LagrangianPatchData.LagrangianPatchData.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="p">):</span>
+        <span class="n">aPath</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+        <span class="n">pSep</span><span class="o">=</span><span class="n">aPath</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">pSep</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">pSep</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="o">=</span><span class="n">pSep</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cloudName</span><span class="o">=</span><span class="n">pSep</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+
+        <span class="n">f</span><span class="o">=</span><span class="n">CleanCharactersFile</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="n">charsToRemove</span><span class="o">=</span><span class="s2">&quot;()&quot;</span><span class="p">)</span>
+        <span class="n">r</span><span class="o">=</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">b</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">content</span><span class="p">))</span>
+        <span class="n">hLine</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># missing in some libraries</span>
+        <span class="k">if</span> <span class="n">hLine</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;cellI tetFaceI&quot;</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">hLine</span><span class="o">=</span><span class="n">hLine</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;cellI tetFaceI&quot;</span><span class="p">,</span><span class="s2">&quot;cellI faceI stepFraction tetFaceI&quot;</span><span class="p">)</span>
+
+        <span class="n">header</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">hLine</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]]</span>
+        <span class="n">spec</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">header</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;currentProc&quot;</span><span class="p">,</span><span class="s2">&quot;cellI&quot;</span><span class="p">,</span><span class="s2">&quot;faceI&quot;</span><span class="p">,</span><span class="s2">&quot;tetFaceI&quot;</span><span class="p">,</span><span class="s2">&quot;tetPtI&quot;</span><span class="p">,</span><span class="s2">&quot;origProc&quot;</span><span class="p">,</span><span class="s2">&quot;origId&quot;</span><span class="p">,</span><span class="s2">&quot;typeId&quot;</span><span class="p">]:</span>
+                <span class="n">spec</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;i8&quot;</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;active&quot;</span><span class="p">]:</span>
+                <span class="n">spec</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">spec</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">),</span><span class="s2">&quot;f8&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">recfromtxt</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">spec</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LagrangianPatchData.pandas"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianPatchData.html#PyFoam.RunDictionary.LagrangianPatchData.LagrangianPatchData.pandas">[docs]</a>    <span class="k">def</span> <span class="nf">pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return data as a pandas Data-frame&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+        <span class="n">df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">size</span><span class="p">))</span> <span class="c1"># index needed for single-line files</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;cloudName&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cloudName</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;patchName&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.post&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;writeTime&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;functionName&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">function</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;globalId&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">globalId</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">origProc</span><span class="p">,</span><span class="n">df</span><span class="o">.</span><span class="n">origId</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">df</span></div></div>
+
+<div class="viewcode-block" id="LagrangianPatchDataTime"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianPatchData.html#PyFoam.RunDictionary.LagrangianPatchData.LagrangianPatchDataTime">[docs]</a><span class="k">class</span> <span class="nc">LagrangianPatchDataTime</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read the lagrangian patch data from a whole timestep&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="LagrangianPatchDataTime.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianPatchData.html#PyFoam.RunDictionary.LagrangianPatchData.LagrangianPatchDataTime.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">timeDirName</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timeDirName</span><span class="p">,</span><span class="n">TimeDirectory</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">=</span><span class="n">timeDirName</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">d</span><span class="o">=</span><span class="n">timeDirName</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">timeDirName</span><span class="p">)</span>
+            <span class="n">d</span><span class="o">=</span><span class="n">TimeDirectory</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">),</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">=</span><span class="n">LagrangianPatchData</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">p</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Directory&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="s2">&quot;has no patch incident data&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LagrangianPatchDataTime.pandas"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianPatchData.html#PyFoam.RunDictionary.LagrangianPatchData.LagrangianPatchDataTime.pandas">[docs]</a>    <span class="k">def</span> <span class="nf">pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the whole data as one big pandas table&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">pandas</span><span class="p">()</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="LagrangianPatchDataAll"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianPatchData.html#PyFoam.RunDictionary.LagrangianPatchData.LagrangianPatchDataAll">[docs]</a><span class="k">class</span> <span class="nc">LagrangianPatchDataAll</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read the lagrangian patch data for a cloud for a whole cloud (all times)&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="LagrangianPatchDataAll.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianPatchData.html#PyFoam.RunDictionary.LagrangianPatchData.LagrangianPatchDataAll.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cloudDirName</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">cloudDirName</span><span class="p">)</span>
+        <span class="n">d</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">paraviewLink</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">baseName</span><span class="p">())]</span><span class="o">=</span><span class="n">LagrangianPatchDataTime</span><span class="p">(</span><span class="n">t</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LagrangianPatchDataAll.pandas"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianPatchData.html#PyFoam.RunDictionary.LagrangianPatchData.LagrangianPatchDataAll.pandas">[docs]</a>    <span class="k">def</span> <span class="nf">pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return one huge, ugly pandas table&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">pandas</span><span class="p">()</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

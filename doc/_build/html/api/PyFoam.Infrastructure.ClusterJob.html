@@ -1,0 +1,564 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Infrastructure.ClusterJob module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.Infrastructure package" href="PyFoam.Infrastructure.html"/>
+        <link rel="next" title="PyFoam.Infrastructure.Configuration module" href="PyFoam.Infrastructure.Configuration.html"/>
+        <link rel="prev" title="PyFoam.Infrastructure.CTestRun module" href="PyFoam.Infrastructure.CTestRun.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a> &raquo;</li>
+      
+    <li>PyFoam.Infrastructure.ClusterJob module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.Infrastructure.ClusterJob.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.Infrastructure.ClusterJob">
+<span id="pyfoam-infrastructure-clusterjob-module"></span><h1>PyFoam.Infrastructure.ClusterJob module<a class="headerlink" href="#module-PyFoam.Infrastructure.ClusterJob" title="Permalink to this headline">¶</a></h1>
+<p>Encapsulates all necessary things for a cluster-job, like setting
+up, running, restarting</p>
+<dl class="class">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob">
+<em class="property">class </em><code class="descclassname">PyFoam.Infrastructure.ClusterJob.</code><code class="descname">ClusterJob</code><span class="sig-paren">(</span><em>basename</em>, <em>arrayJob=False</em>, <em>hardRestart=False</em>, <em>autoParallel=True</em>, <em>doAutoReconstruct=None</em>, <em>foamVersion=None</em>, <em>compileOption=None</em>, <em>useFoamMPI=False</em>, <em>multiRegion=False</em>, <em>parameters={}</em>, <em>isDecomposed=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>All Cluster-jobs are to be derived from this base-class</p>
+<p>The actual jobs are implemented by overriding methods</p>
+<p>There is a number of variables in this class that are used to
+&#8216;communicate&#8217; information between the various stages</p>
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'autoReconstruct': &lt;function ClusterJob.autoReconstruct&gt;, 'postDecomposeSetup': &lt;function ClusterJob.postDecomposeSetup&gt;, 'message': &lt;function ClusterJob.message&gt;, '__module__': 'PyFoam.Infrastructure.ClusterJob', 'casedir': &lt;function ClusterJob.casedir&gt;, 'taskParameters': &lt;function ClusterJob.taskParameters&gt;, '__doc__': &quot; All Cluster-jobs are to be derived from this base-class\n\n    The actual jobs are implemented by overriding methods\n\n    There is a number of variables in this class that are used to\n    'communicate' information between the various stages&quot;, 'preReconstructCleanup': &lt;function ClusterJob.preReconstructCleanup&gt;, 'execute': &lt;function ClusterJob.execute&gt;, 'jobFile': &lt;function ClusterJob.jobFile&gt;, 'run': &lt;function ClusterJob.run&gt;, 'setState': &lt;function ClusterJob.setState&gt;, 'stopJob': &lt;function ClusterJob.stopJob&gt;, 'templateFile': &lt;function ClusterJob.templateFile&gt;, 'autoDecompose': &lt;function ClusterJob.autoDecompose&gt;, 'additionalParameters': &lt;function ClusterJob.additionalParameters&gt;, '__weakref__': &lt;attribute '__weakref__' of 'ClusterJob' objects&gt;, 'fullJobId': &lt;function ClusterJob.fullJobId&gt;, 'doIt': &lt;function ClusterJob.doIt&gt;, 'stopFile': &lt;function ClusterJob.stopFile&gt;, 'checkpointFile': &lt;function ClusterJob.checkpointFile&gt;, 'setup': &lt;function ClusterJob.setup&gt;, 'foamRun': &lt;function ClusterJob.foamRun&gt;, 'cleanup': &lt;function ClusterJob.cleanup&gt;, '__dict__': &lt;attribute '__dict__' of 'ClusterJob' objects&gt;, 'additionalReconstruct': &lt;function ClusterJob.additionalReconstruct&gt;, '__init__': &lt;function ClusterJob.__init__&gt;, 'casename': &lt;function ClusterJob.casename&gt;, 'writeCheckpoint': &lt;function ClusterJob.writeCheckpoint&gt;})</em><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>basename</em>, <em>arrayJob=False</em>, <em>hardRestart=False</em>, <em>autoParallel=True</em>, <em>doAutoReconstruct=None</em>, <em>foamVersion=None</em>, <em>compileOption=None</em>, <em>useFoamMPI=False</em>, <em>multiRegion=False</em>, <em>parameters={}</em>, <em>isDecomposed=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the Job
+:param basename: Basis name of the job
+:param arrayJob: this job is a parameter variation. The tasks
+are identified by their task-id
+:param hardRestart: treat the job as restarted
+:param autoParallel: Parallelization is handled by the base-class
+:param doAutoReconstruct: Automatically reconstruct the case if
+autoParalellel is set. If the value is None then it is looked up from
+the configuration
+:param foamVersion: The foam-Version that is to be used
+:param compileOption: Forces compile-option (usually &#8216;Opt&#8217; or &#8216;Debug&#8217;)
+:param useFoamMPI: Use the OpenMPI supplied with OpenFOAM
+:param multiRegion: This job consists of multiple regions
+:param parameters: Dictionary with parameters that are being passed to the Runner
+:param isDecomposed: Assume that the job is already decomposed</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Infrastructure.ClusterJob'</em><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.additionalParameters">
+<code class="descname">additionalParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.additionalParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.additionalParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Additional parameters
+:return: a dictionary with parameters for this task</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.additionalReconstruct">
+<code class="descname">additionalReconstruct</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.additionalReconstruct"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.additionalReconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Additional reconstruction of parallel runs (Stuff that the
+OpenFOAM-reconstructPar doesn&#8217;t do
+:param parameters: a dictionary with parameters</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.autoDecompose">
+<code class="descname">autoDecompose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.autoDecompose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.autoDecompose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Automatically decomposes the grid with a metis-algorithm</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.autoReconstruct">
+<code class="descname">autoReconstruct</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.autoReconstruct"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.autoReconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default reconstruction of a parallel run</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.casedir">
+<code class="descname">casedir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.casedir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.casedir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the actual directory of the case
+To be overridden if appropriate</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.casename">
+<code class="descname">casename</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.casename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.casename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns just the name of the case</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.checkpointFile">
+<code class="descname">checkpointFile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.checkpointFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.checkpointFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>The file that makes the job write a checkpoint</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.cleanup">
+<code class="descname">cleanup</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.cleanup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean up after a job
+:param parameters: a dictionary with parameters</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.doIt">
+<code class="descname">doIt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.doIt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.doIt" title="Permalink to this definition">¶</a></dt>
+<dd><p>The central logic. Runs the job, sets it up etc</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>cmd</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a shell command in the case directory. No checking done
+:param cmd: the command as a string</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.foamRun">
+<code class="descname">foamRun</code><span class="sig-paren">(</span><em>application</em>, <em>args=[]</em>, <em>foamArgs=[]</em>, <em>steady=False</em>, <em>multiRegion=True</em>, <em>progress=False</em>, <em>compress=False</em>, <em>noLog=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.foamRun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.foamRun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs a foam utility on the case.
+If it is a parallel job and the grid has
+already been decomposed (and not yet reconstructed) it is run in
+parallel
+:param application: the Foam-Application that is to be run
+:param foamArgs: A list if with the additional arguments for the
+Foam-Application
+:param compress: Compress the log-file
+:param args: A list with additional arguments for the Runner-object
+:param steady: Use the steady-runner
+:param multiRegion: Run this on multiple regions (if None: I don&#8217;t have an opinion on this)
+:param progress: Only output the time and nothing else
+:param noLog: Do not generate a logfile</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.fullJobId">
+<code class="descname">fullJobId</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.fullJobId"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.fullJobId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a string with the full job-ID</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.jobFile">
+<code class="descname">jobFile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.jobFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.jobFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>The file with the job information</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.message">
+<code class="descname">message</code><span class="sig-paren">(</span><em>*txt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.postDecomposeSetup">
+<code class="descname">postDecomposeSetup</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.postDecomposeSetup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.postDecomposeSetup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Additional setup, to be executed when the grid is already decomposed</p>
+<p>Usually for tasks that can be done on a decomposed grid</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>parameters</strong> &#8211; a dictionary with parameters</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.preReconstructCleanup">
+<code class="descname">preReconstructCleanup</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.preReconstructCleanup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.preReconstructCleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Additional cleanup, to be executed when the grid is still decomposed</p>
+<p>Usually for tasks that can be done on a decomposed grid</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>parameters</strong> &#8211; a dictionary with parameters</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the actual job. Usually the solver.
+:param parameters: a dictionary with parameters</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.setState">
+<code class="descname">setState</code><span class="sig-paren">(</span><em>txt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.setState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.setState" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.setup">
+<code class="descname">setup</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set up the job. Called in the beginning if the
+job has not been restarted</p>
+<p>Usual tasks include grid conversion/setup, mesh decomposition etc</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>parameters</strong> &#8211; a dictionary with parameters</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.stopFile">
+<code class="descname">stopFile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.stopFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.stopFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>The file that makes the job write a checkpoint and end</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.stopJob">
+<code class="descname">stopJob</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.stopJob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.stopJob" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.taskParameters">
+<code class="descname">taskParameters</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.taskParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.taskParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters for a specific task
+:param id: the id of the task
+:return: a dictionary with parameters for this task</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.templateFile">
+<code class="descname">templateFile</code><span class="sig-paren">(</span><em>fileName</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.templateFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.templateFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks for a template file and evaluates the template using
+the usual parameters
+:param fileName: the name of the file that will be
+constructed. The template file is the same plus the extension &#8216;.template&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.ClusterJob.writeCheckpoint">
+<code class="descname">writeCheckpoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#ClusterJob.writeCheckpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob.writeCheckpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Infrastructure.ClusterJob.PrepareCaseJob">
+<em class="property">class </em><code class="descclassname">PyFoam.Infrastructure.ClusterJob.</code><code class="descname">PrepareCaseJob</code><span class="sig-paren">(</span><em>basename</em>, <em>solver</em>, <em>parameterfile</em>, <em>arguments</em>, <em>parameters={}</em>, <em>noMeshCreate=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#PrepareCaseJob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.PrepareCaseJob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Infrastructure.ClusterJob.SolverJob" title="PyFoam.Infrastructure.ClusterJob.SolverJob"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Infrastructure.ClusterJob.SolverJob</span></code></a></p>
+<p>Assumes that the case is prepared to be set up with
+=pyFoamPrepareCase.py= and automatically sets it up with
+this. Needs one parameterfile to be specified and then a list of
+name/value-pairs</p>
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.PrepareCaseJob.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>basename</em>, <em>solver</em>, <em>parameterfile</em>, <em>arguments</em>, <em>parameters={}</em>, <em>noMeshCreate=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#PrepareCaseJob.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.PrepareCaseJob.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.ClusterJob.PrepareCaseJob.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Infrastructure.ClusterJob'</em><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.PrepareCaseJob.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.PrepareCaseJob.setup">
+<code class="descname">setup</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#PrepareCaseJob.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.PrepareCaseJob.setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Infrastructure.ClusterJob.SolverJob">
+<em class="property">class </em><code class="descclassname">PyFoam.Infrastructure.ClusterJob.</code><code class="descname">SolverJob</code><span class="sig-paren">(</span><em>basename</em>, <em>solver</em>, <em>template=None</em>, <em>cloneParameters=[]</em>, <em>arrayJob=False</em>, <em>hardRestart=False</em>, <em>autoParallel=True</em>, <em>doAutoReconstruct=None</em>, <em>foamVersion=None</em>, <em>compileOption=None</em>, <em>useFoamMPI=False</em>, <em>steady=False</em>, <em>multiRegion=False</em>, <em>parameters={}</em>, <em>progress=False</em>, <em>solverArgs=[]</em>, <em>solverProgress=False</em>, <em>solverNoLog=False</em>, <em>solverLogCompress=False</em>, <em>isDecomposed=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#SolverJob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.SolverJob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Infrastructure.ClusterJob.ClusterJob" title="PyFoam.Infrastructure.ClusterJob.ClusterJob"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Infrastructure.ClusterJob.ClusterJob</span></code></a></p>
+<p>A Cluster-Job that executes a solver. It implements the run-function.
+If a template-case is specified, the case is copied</p>
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.SolverJob.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>basename</em>, <em>solver</em>, <em>template=None</em>, <em>cloneParameters=[]</em>, <em>arrayJob=False</em>, <em>hardRestart=False</em>, <em>autoParallel=True</em>, <em>doAutoReconstruct=None</em>, <em>foamVersion=None</em>, <em>compileOption=None</em>, <em>useFoamMPI=False</em>, <em>steady=False</em>, <em>multiRegion=False</em>, <em>parameters={}</em>, <em>progress=False</em>, <em>solverArgs=[]</em>, <em>solverProgress=False</em>, <em>solverNoLog=False</em>, <em>solverLogCompress=False</em>, <em>isDecomposed=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#SolverJob.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.SolverJob.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>template</strong> &#8211; Name of the template-case. It is assumed that</td>
+</tr>
+</tbody>
+</table>
+<p>it resides in the same directory as the actual case
+:param cloneParameters: a list with additional parameters for the
+CloneCase-object that copies the template
+:param solverProgress: Only writes the current time of the solver</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.ClusterJob.SolverJob.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Infrastructure.ClusterJob'</em><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.SolverJob.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.SolverJob.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#SolverJob.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.SolverJob.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Infrastructure.ClusterJob.VariationCaseJob">
+<em class="property">class </em><code class="descclassname">PyFoam.Infrastructure.ClusterJob.</code><code class="descname">VariationCaseJob</code><span class="sig-paren">(</span><em>basename</em>, <em>parameterfile</em>, <em>variationfile</em>, <em>template=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#VariationCaseJob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.VariationCaseJob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Infrastructure.ClusterJob.SolverJob" title="PyFoam.Infrastructure.ClusterJob.SolverJob"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Infrastructure.ClusterJob.SolverJob</span></code></a></p>
+<p>Assumes that the case is prepared to be set up with
+=pyFoamRunParameterVariation.py= and automatically sets it up with
+this. Needs one parameterfile and a variation-file</p>
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.VariationCaseJob.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>basename</em>, <em>parameterfile</em>, <em>variationfile</em>, <em>template=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#VariationCaseJob.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.VariationCaseJob.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Infrastructure.ClusterJob.VariationCaseJob.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Infrastructure.ClusterJob'</em><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.VariationCaseJob.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.VariationCaseJob.setup">
+<code class="descname">setup</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#VariationCaseJob.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.VariationCaseJob.setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Infrastructure.ClusterJob.VariationCaseJob.taskParameters">
+<code class="descname">taskParameters</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#VariationCaseJob.taskParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.VariationCaseJob.taskParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Infrastructure.ClusterJob.checkForMessageFromAbove">
+<code class="descclassname">PyFoam.Infrastructure.ClusterJob.</code><code class="descname">checkForMessageFromAbove</code><span class="sig-paren">(</span><em>job</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Infrastructure/ClusterJob.html#checkForMessageFromAbove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Infrastructure.ClusterJob.checkForMessageFromAbove" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.Infrastructure.Configuration.html" class="btn btn-neutral float-right" title="PyFoam.Infrastructure.Configuration module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.Infrastructure.CTestRun.html" class="btn btn-neutral" title="PyFoam.Infrastructure.CTestRun module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

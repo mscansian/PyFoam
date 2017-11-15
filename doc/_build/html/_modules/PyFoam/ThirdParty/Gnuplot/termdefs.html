@@ -1,0 +1,674 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.ThirdParty.Gnuplot.termdefs &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../../PyFoam.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.ThirdParty.Gnuplot.termdefs</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.ThirdParty.Gnuplot.termdefs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># $Id: termdefs.py 302 2008-01-14 22:15:19Z bmcage $</span>
+
+<span class="c1"># Copyright (C) 2001-2003 Michael Haggerty &lt;mhagger@alum.mit.edu&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># This file is licensed under the GNU Lesser General Public License</span>
+<span class="c1"># (LGPL).  See LICENSE.txt for details.</span>
+
+<span class="sd">&quot;&quot;&quot;Terminal definition file.</span>
+
+<span class="sd">This module describes the options available to gnuplot&#39;s various</span>
+<span class="sd">terminals.  For the moment, it only supports a few terminals, but the</span>
+<span class="sd">infrastructure is here to add others as they are needed.</span>
+
+<span class="sd">Part of the trick is that the &#39;set terminal&#39; command takes myriad</span>
+<span class="sd">suboptions with various argument types, and order is sometimes</span>
+<span class="sd">significant.  The other part of the trick is that there are over 50</span>
+<span class="sd">terminal types, and each terminal has its own set of options.</span>
+
+<span class="sd">The strategy here is to define a general mechanism for turning Python</span>
+<span class="sd">keyword parameters into fragments of gnuplot command strings.  There</span>
+<span class="sd">are a number of classes derived from Arg that do this.  Some take</span>
+<span class="sd">string args, some boolean, etc.  Then the list of options that each</span>
+<span class="sd">terminal accepts is stored in the terminal_opts dictionary.</span>
+<span class="sd">Gnuplot.hardcopy(), in turn, uses this dictionary to interpret its</span>
+<span class="sd">keyword arguments and build the &#39;set terminal&#39; command.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">types</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">gp</span><span class="p">,</span> <span class="n">Errors</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">string_types</span>
+
+<div class="viewcode-block" id="Arg"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.Arg">[docs]</a><span class="k">class</span> <span class="nc">Arg</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Process terminal subargs and return a command fragment.</span>
+
+<span class="sd">    Pull one or more arguments from keyw and output a list of strings</span>
+<span class="sd">    that will be appended to the &#39;set terminal&#39; (separated by spaces).</span>
+<span class="sd">    Delete any used args from keyw.  If no relevant options are found,</span>
+<span class="sd">    return None.</span>
+
+<span class="sd">    This is a base class for the actual argument-processing classes.</span>
+<span class="sd">    Derived classes must define a __call__(self, keyw) method</span>
+<span class="sd">    returning a list of strings or None.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ArgOneParam"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.ArgOneParam">[docs]</a><span class="k">class</span> <span class="nc">ArgOneParam</span><span class="p">(</span><span class="n">Arg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Arg abstract base class specialized for exactly one parameter.</span>
+
+<span class="sd">    Members:</span>
+
+<span class="sd">        &#39;argname&#39; -- The name of the keyword argument used to pass</span>
+<span class="sd">            this argument to Python.</span>
+
+<span class="sd">        &#39;default&#39; -- The default value of the argument, used if no</span>
+<span class="sd">            keyword parameter is found.  If this is None, then no</span>
+<span class="sd">            default is assumed.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ArgOneParam.__init__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.ArgOneParam.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argname</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">argname</span> <span class="o">=</span> <span class="n">argname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">default</span></div>
+
+<div class="viewcode-block" id="ArgOneParam.get_option"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.ArgOneParam.get_option">[docs]</a>    <span class="k">def</span> <span class="nf">get_option</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the keyword argument corresponding to this Arg.</span>
+
+<span class="sd">        Look in keyw for the keyword argument needed by this Arg.  If</span>
+<span class="sd">        it is found, delete it from keyw and return it.  If it is not</span>
+<span class="sd">        found, return self.default.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">keyw</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">argname</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">keyw</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">argname</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">k</span></div></div>
+
+
+<div class="viewcode-block" id="KeywordArg"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.KeywordArg">[docs]</a><span class="k">class</span> <span class="nc">KeywordArg</span><span class="p">(</span><span class="n">ArgOneParam</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represent an argument that must be passed as a keyword to gnuplot.</span>
+
+<span class="sd">    Some gnuplot options take the form of single unquoted keywords</span>
+<span class="sd">    (possibly preceded by a fixed keyword).  We allow those to be</span>
+<span class="sd">    passed as strings &#39;option=&quot;keyword&quot;&#39;.  Check that the option</span>
+<span class="sd">    supplied is in the list of allowed options.</span>
+
+<span class="sd">    Members:</span>
+
+<span class="sd">        &#39;fixedword&#39; -- the fixed keyword that must precede the</span>
+<span class="sd">            variable keyword in the gnuplot command, or None if none</span>
+<span class="sd">            is required.</span>
+
+<span class="sd">        &#39;options&#39; -- a list of strings containing the legal</span>
+<span class="sd">            alternatives for this argument.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="KeywordArg.__init__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.KeywordArg.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argname</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">fixedword</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">ArgOneParam</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argname</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span> <span class="o">=</span> <span class="n">fixedword</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">options</span></div>
+
+<div class="viewcode-block" id="KeywordArg.__call__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.KeywordArg.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyw</span><span class="p">):</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="n">keyw</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">Errors</span><span class="o">.</span><span class="n">OptionError</span><span class="p">(</span>
+                <span class="s1">&#39;Illegal option </span><span class="si">%s</span><span class="s1">=&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">argname</span><span class="p">,</span> <span class="n">k</span><span class="p">,))</span></div></div>
+
+
+<div class="viewcode-block" id="StringArg"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.StringArg">[docs]</a><span class="k">class</span> <span class="nc">StringArg</span><span class="p">(</span><span class="n">ArgOneParam</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An option taking a quoted string argument.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="StringArg.__init__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.StringArg.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argname</span><span class="p">,</span> <span class="n">fixedword</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">ArgOneParam</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argname</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span> <span class="o">=</span> <span class="n">fixedword</span></div>
+
+<div class="viewcode-block" id="StringArg.__call__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.StringArg.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyw</span><span class="p">):</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="n">keyw</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">Errors</span><span class="o">.</span><span class="n">OptionError</span><span class="p">(</span>
+                <span class="s1">&#39;Option </span><span class="si">%s</span><span class="s1"> must be a string&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">argname</span><span class="p">,))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">retval</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">retval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span><span class="p">)</span>
+            <span class="n">retval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">k</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">retval</span></div></div>
+
+
+<div class="viewcode-block" id="BareStringArg"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.BareStringArg">[docs]</a><span class="k">class</span> <span class="nc">BareStringArg</span><span class="p">(</span><span class="n">ArgOneParam</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An arbitrary argument output without quotes.</span>
+
+<span class="sd">    The argument can be a string or anything with a str()</span>
+<span class="sd">    representation, or a tuple of such things.  Thus this can be used</span>
+<span class="sd">    for strings (which will be output without quotation marks),</span>
+<span class="sd">    integers, floating point arguments, or multiple arguments of the</span>
+<span class="sd">    above types (which will be output separated by spaces).  No</span>
+<span class="sd">    checking is done that the argument is sensible.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BareStringArg.__init__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.BareStringArg.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argname</span><span class="p">,</span> <span class="n">fixedword</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">ArgOneParam</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argname</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span> <span class="o">=</span> <span class="n">fixedword</span></div>
+
+<div class="viewcode-block" id="BareStringArg.__call__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.BareStringArg.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyw</span><span class="p">):</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="n">keyw</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">retval</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">retval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">k</span><span class="p">:</span>
+                    <span class="n">retval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">retval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">retval</span></div></div>
+
+
+<div class="viewcode-block" id="BooleanArg"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.BooleanArg">[docs]</a><span class="k">class</span> <span class="nc">BooleanArg</span><span class="p">(</span><span class="n">ArgOneParam</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An argument that takes a true/false value.</span>
+
+<span class="sd">    The argument should be 0 or 1.  The option is output to gnuplot as</span>
+<span class="sd">    &#39;trueval&#39; if the argument is true or &#39;falseval&#39; if the argument is</span>
+<span class="sd">    false.  Either one can be &#39;None&#39;, in which case nothing is output.</span>
+<span class="sd">    &#39;default&#39; should also be 0 or 1.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BooleanArg.__init__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.BooleanArg.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argname</span><span class="p">,</span> <span class="n">trueval</span><span class="p">,</span> <span class="n">falseval</span><span class="p">,</span>
+                 <span class="n">fixedword</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">ArgOneParam</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argname</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trueval</span> <span class="o">=</span> <span class="n">trueval</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">falseval</span> <span class="o">=</span> <span class="n">falseval</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span> <span class="o">=</span> <span class="n">fixedword</span></div>
+
+<div class="viewcode-block" id="BooleanArg.__call__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.BooleanArg.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyw</span><span class="p">):</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="n">keyw</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">retval</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">retval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">k</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trueval</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">falseval</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">retval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">retval</span></div></div>
+
+
+<div class="viewcode-block" id="MutuallyExclusiveArgs"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.MutuallyExclusiveArgs">[docs]</a><span class="k">class</span> <span class="nc">MutuallyExclusiveArgs</span><span class="p">(</span><span class="n">Arg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A group of args, of which either zero or one may be set, but not more.</span>
+
+<span class="sd">    Members:</span>
+
+<span class="sd">        subargs -- a list [(&#39;argname&#39;, arg), ...] of Arg instances.</span>
+<span class="sd">            &#39;argname&#39; is used to identify the corresponding arg in</span>
+<span class="sd">            error messages.  (The name of the corresponding keyword</span>
+<span class="sd">            args is determined internally by each arg.)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MutuallyExclusiveArgs.__init__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.MutuallyExclusiveArgs.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">subargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subargs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">subargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MutuallyExclusiveArgs.__call__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.MutuallyExclusiveArgs.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyw</span><span class="p">):</span>
+        <span class="n">foundargname</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">retval</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">argname</span><span class="p">,</span> <span class="n">arg</span><span class="p">,)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subargs</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="n">arg</span><span class="p">(</span><span class="n">keyw</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">foundargname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">Errors</span><span class="o">.</span><span class="n">OptionError</span><span class="p">(</span>
+                        <span class="s1">&#39;Arguments </span><span class="si">%s</span><span class="s1"> and </span><span class="si">%s</span><span class="s1"> cannot both be specified&#39;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">foundargname</span><span class="p">,</span> <span class="n">argname</span><span class="p">,)</span>
+                        <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">foundargname</span> <span class="o">=</span> <span class="n">argname</span>
+                    <span class="n">retval</span> <span class="o">=</span> <span class="n">cmd</span>
+        <span class="k">return</span> <span class="n">retval</span> <span class="c1"># might be None</span></div></div>
+
+
+<div class="viewcode-block" id="KeywordOrBooleanArg"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.KeywordOrBooleanArg">[docs]</a><span class="k">class</span> <span class="nc">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">Arg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Allow a keyword arg to be specified either as a keyword or a boolean.</span>
+
+<span class="sd">    This arg type is the most flexible way to allow keyword parameters</span>
+<span class="sd">    to be specified.  Say there is an option like &#39;fontsize&#39; that can</span>
+<span class="sd">    take the values &#39;small&#39; or &#39;large&#39;.  This could be represented as</span>
+
+<span class="sd">        &#39;KeywordOrBooleanArg(options=[&quot;small&quot;, &quot;large&quot;], argname=&quot;fontsize&quot;)&#39;</span>
+
+<span class="sd">    In that case, the fontsize could be specified in any of the</span>
+<span class="sd">    following ways:</span>
+
+<span class="sd">        &#39;g.hardcopy(..., fontsize=&quot;small&quot;, ...)&#39;</span>
+<span class="sd">        &#39;g.hardcopy(..., fontsize=&quot;large&quot;, ...)&#39;</span>
+<span class="sd">        &#39;g.hardcopy(..., small=1, ...)&#39;</span>
+<span class="sd">        &#39;g.hardcopy(..., large=1, ...)&#39;</span>
+
+<span class="sd">    If &#39;argname&#39; is set to be &#39;None&#39;, then the first two possibilities</span>
+<span class="sd">    are omitted.</span>
+
+<span class="sd">    In the special case that there are exactly two alternatives, one</span>
+<span class="sd">    can also use:</span>
+
+<span class="sd">        &#39;g.hardcopy(..., small=0, ...) # implies fontsize=&quot;large&quot;&#39;</span>
+<span class="sd">        &#39;g.hardcopy(..., large=0, ...) # implies fontsize=&quot;small&quot;&#39;</span>
+
+<span class="sd">    Obviously care must be taken to ensure that none of the implied</span>
+<span class="sd">    keyword parameter names conflict with one another or with any of</span>
+<span class="sd">    the other Args allowed by a function.</span>
+
+<span class="sd">    Members:</span>
+
+<span class="sd">        &#39;options&#39; -- a list of strings representing allowed keyword</span>
+<span class="sd">            values.  These options can be used as boolean values in</span>
+<span class="sd">            the style &#39;option=1&#39;.</span>
+
+<span class="sd">        &#39;argname&#39; -- the name of the argname for the &#39;arg=value&#39; style</span>
+<span class="sd">            of setting the argument.  If &#39;None&#39;, then this style is</span>
+<span class="sd">            not allowed.</span>
+
+<span class="sd">        &#39;fixedword&#39; -- a fixed keyword that must precede the option,</span>
+<span class="sd">            or &#39;None&#39;.</span>
+
+<span class="sd">        &#39;default&#39; -- the default option to set if nothing is set</span>
+<span class="sd">            explicitly, or None to leave nothing set in that case.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="KeywordOrBooleanArg.__init__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.KeywordOrBooleanArg.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">argname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fixedword</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">argname</span> <span class="o">=</span> <span class="n">argname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span> <span class="o">=</span> <span class="n">fixedword</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">,</span> \
+               <span class="s1">&#39;default must be a valid option&#39;</span></div>
+
+<div class="viewcode-block" id="KeywordOrBooleanArg.__call__"><a class="viewcode-back" href="../../../../api/PyFoam.ThirdParty.Gnuplot.termdefs.html#PyFoam.ThirdParty.Gnuplot.termdefs.KeywordOrBooleanArg.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyw</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">argname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">argname</span> <span class="ow">in</span> <span class="n">keyw</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">keyw</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">argname</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">keyw</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">argname</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">:</span>
+                <span class="c1"># Make sure it isn&#39;t contradicted by the corresponding boolean:</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keyw</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">keyw</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+                    <span class="k">raise</span> <span class="n">Errors</span><span class="o">.</span><span class="n">OptionError</span><span class="p">(</span>
+                        <span class="s1">&#39;Arguments </span><span class="si">%s</span><span class="s1"> and </span><span class="si">%s</span><span class="s1"> are contradictory&#39;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">argname</span><span class="p">,</span> <span class="n">k</span><span class="p">,)</span>
+                        <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Store the option into the boolean to be processed below:</span>
+                    <span class="n">keyw</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">Errors</span><span class="o">.</span><span class="n">OptionError</span><span class="p">(</span>
+                    <span class="s1">&#39;Illegal option </span><span class="si">%s</span><span class="s1">=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">argname</span><span class="p">,</span> <span class="n">k</span><span class="p">,))</span>
+
+        <span class="c1"># Now scan the booleans and make sure that at most one is set:</span>
+        <span class="n">option</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">)):</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keyw</span><span class="p">:</span>
+                <span class="n">newval</span> <span class="o">=</span> <span class="n">keyw</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="k">del</span> <span class="n">keyw</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">newval</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">option</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">Errors</span><span class="o">.</span><span class="n">OptionError</span><span class="p">(</span>
+                            <span class="s1">&#39;Arguments </span><span class="si">%s</span><span class="s1"> and </span><span class="si">%s</span><span class="s1"> cannot both be specified&#39;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="n">option</span><span class="p">,</span> <span class="n">k</span><span class="p">,)</span>
+                            <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">option</span> <span class="o">=</span> <span class="n">k</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># newval was false.  This is only legal if this</span>
+                    <span class="c1"># option only has two possible values:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">option</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="n">option</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">option</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span>
+        <span class="n">retval</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">retval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fixedword</span><span class="p">)</span>
+        <span class="n">retval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">option</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">retval</span></div></div>
+
+
+<span class="c1"># Now we define the allowed options for a few terminal types.  This</span>
+<span class="c1"># table is used by Gnuplot.hardcopy() to construct the necessary &#39;set</span>
+<span class="c1"># terminal&#39; command.</span>
+
+<span class="n">terminal_opts</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="n">terminal_opts</span><span class="p">[</span><span class="s1">&#39;postscript&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;landscape&#39;</span><span class="p">,</span> <span class="s1">&#39;portrait&#39;</span><span class="p">,</span> <span class="s1">&#39;eps&#39;</span><span class="p">,</span> <span class="s1">&#39;default&#39;</span><span class="p">],</span>
+        <span class="n">argname</span><span class="o">=</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;enhanced&#39;</span><span class="p">,</span> <span class="s1">&#39;noenhanced&#39;</span><span class="p">],</span>
+        <span class="c1"># This default should probably be computed from the *current*</span>
+        <span class="c1"># value of GnuplotOpts, not at import time. ###</span>
+        <span class="n">default</span><span class="o">=</span><span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">GnuplotOpts</span><span class="o">.</span><span class="n">prefer_enhanced_postscript</span>
+                 <span class="ow">and</span> <span class="s1">&#39;enhanced&#39;</span>
+                 <span class="ow">or</span> <span class="s1">&#39;noenhanced&#39;</span><span class="p">),</span>
+        <span class="p">),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;monochrome&#39;</span><span class="p">]),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;solid&#39;</span><span class="p">,</span> <span class="s1">&#39;dashed&#39;</span><span class="p">]),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;defaultplex&#39;</span><span class="p">,</span> <span class="s1">&#39;simplex&#39;</span><span class="p">,</span> <span class="s1">&#39;duplex&#39;</span><span class="p">],</span>
+        <span class="n">argname</span><span class="o">=</span><span class="s1">&#39;duplexing&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="n">StringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fontname&#39;</span><span class="p">),</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fontsize&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+<span class="n">terminal_opts</span><span class="p">[</span><span class="s1">&#39;pdf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;landscape&#39;</span><span class="p">,</span> <span class="s1">&#39;portrait&#39;</span><span class="p">,</span> <span class="s1">&#39;eps&#39;</span><span class="p">,</span> <span class="s1">&#39;default&#39;</span><span class="p">],</span>
+        <span class="n">argname</span><span class="o">=</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;monochrome&#39;</span><span class="p">]),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;solid&#39;</span><span class="p">,</span> <span class="s1">&#39;dashed&#39;</span><span class="p">]),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;defaultplex&#39;</span><span class="p">,</span> <span class="s1">&#39;simplex&#39;</span><span class="p">,</span> <span class="s1">&#39;duplex&#39;</span><span class="p">],</span>
+        <span class="n">argname</span><span class="o">=</span><span class="s1">&#39;duplexing&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="n">StringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fontname&#39;</span><span class="p">),</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fontsize&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+<span class="n">terminal_opts</span><span class="p">[</span><span class="s1">&#39;png&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;small&#39;</span><span class="p">,</span> <span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="s1">&#39;large&#39;</span><span class="p">],</span>
+        <span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fontsize&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;monochrome&#39;</span><span class="p">,</span> <span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">]),</span>
+    <span class="p">]</span>
+
+<span class="n">terminal_opts</span><span class="p">[</span><span class="s1">&#39;fig&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;monochrome&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">]),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;small&#39;</span><span class="p">,</span> <span class="s1">&#39;big&#39;</span><span class="p">]),</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;pointsmax&#39;</span><span class="p">,</span> <span class="n">fixedword</span><span class="o">=</span><span class="s1">&#39;pointsmax&#39;</span><span class="p">),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;landscape&#39;</span><span class="p">,</span> <span class="s1">&#39;portrait&#39;</span><span class="p">]),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;metric&#39;</span><span class="p">,</span> <span class="s1">&#39;inches&#39;</span><span class="p">]),</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fontsize&#39;</span><span class="p">),</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;size&#39;</span><span class="p">),</span> <span class="c1"># needs a tuple of two doubles</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;thickness&#39;</span><span class="p">),</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;depth&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+<span class="n">terminal_opts</span><span class="p">[</span><span class="s1">&#39;cgm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;landscape&#39;</span><span class="p">,</span> <span class="s1">&#39;portrait&#39;</span><span class="p">,</span> <span class="s1">&#39;default&#39;</span><span class="p">],</span>
+        <span class="n">argname</span><span class="o">=</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;monochrome&#39;</span><span class="p">]),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rotate&#39;</span><span class="p">,</span> <span class="s1">&#39;norotate&#39;</span><span class="p">]),</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="n">fixedword</span><span class="o">=</span><span class="s1">&#39;width&#39;</span><span class="p">),</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;linewidth&#39;</span><span class="p">,</span> <span class="n">fixedword</span><span class="o">=</span><span class="s1">&#39;linewidth&#39;</span><span class="p">),</span>
+    <span class="n">StringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;font&#39;</span><span class="p">),</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fontsize&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+<span class="n">terminal_opts</span><span class="p">[</span><span class="s1">&#39;pict&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;landscape&#39;</span><span class="p">,</span> <span class="s1">&#39;portrait&#39;</span><span class="p">,</span> <span class="s1">&#39;default&#39;</span><span class="p">],</span>
+        <span class="n">argname</span><span class="o">=</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;monochrome&#39;</span><span class="p">]),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dashes&#39;</span><span class="p">,</span> <span class="s1">&#39;nodashes&#39;</span><span class="p">]),</span>
+
+    <span class="c1"># default font, which must be a valid pict font:</span>
+    <span class="n">StringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fontname&#39;</span><span class="p">),</span>
+
+    <span class="c1"># default font size, in points:</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fontsize&#39;</span><span class="p">),</span>
+
+    <span class="c1"># width of plot in pixels:</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;width&#39;</span><span class="p">),</span>
+
+    <span class="c1"># height of plot in pixels:</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;height&#39;</span><span class="p">),</span>
+
+    <span class="p">]</span>
+
+<span class="n">terminal_opts</span><span class="p">[</span><span class="s1">&#39;mp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;colour&#39;</span><span class="p">,</span> <span class="s1">&#39;monochrome&#39;</span><span class="p">]),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;solid&#39;</span><span class="p">,</span> <span class="s1">&#39;dashed&#39;</span><span class="p">]),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;notex&#39;</span><span class="p">,</span> <span class="s1">&#39;tex&#39;</span><span class="p">,</span> <span class="s1">&#39;latex&#39;</span><span class="p">]),</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;magnification&#39;</span><span class="p">),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;psnfss&#39;</span><span class="p">,</span> <span class="s1">&#39;psnfss-version7&#39;</span><span class="p">,</span> <span class="s1">&#39;nopsnfss&#39;</span><span class="p">]),</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;prologues&#39;</span><span class="p">),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;a4paper&#39;</span><span class="p">]),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;amstex&#39;</span><span class="p">]),</span>
+    <span class="n">StringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fontname&#39;</span><span class="p">),</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fontsize&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+<span class="n">terminal_opts</span><span class="p">[</span><span class="s1">&#39;svg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="n">fixedword</span><span class="o">=</span><span class="s1">&#39;size&#39;</span><span class="p">),</span>  <span class="c1"># tuple of two doubles</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;fixed&#39;</span><span class="p">,</span> <span class="s1">&#39;dynamic&#39;</span><span class="p">]),</span>
+    <span class="n">StringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fname&#39;</span><span class="p">,</span> <span class="n">fixedword</span><span class="o">=</span><span class="s1">&#39;fname&#39;</span><span class="p">),</span>
+    <span class="n">BareStringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fsize&#39;</span><span class="p">,</span> <span class="n">fixedword</span><span class="o">=</span><span class="s1">&#39;fsize&#39;</span><span class="p">),</span>
+    <span class="n">KeywordOrBooleanArg</span><span class="p">(</span><span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;enhanced&#39;</span><span class="p">,</span> <span class="s1">&#39;noenhanced&#39;</span><span class="p">]),</span>
+    <span class="n">StringArg</span><span class="p">(</span><span class="n">argname</span><span class="o">=</span><span class="s1">&#39;fontfile&#39;</span><span class="p">,</span> <span class="n">fixedword</span><span class="o">=</span><span class="s1">&#39;fontfile&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

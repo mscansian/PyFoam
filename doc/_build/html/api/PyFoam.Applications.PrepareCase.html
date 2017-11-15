@@ -1,0 +1,363 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.PrepareCase module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.Applications package" href="PyFoam.Applications.html"/>
+        <link rel="next" title="PyFoam.Applications.PrintData2DStatistics module" href="PyFoam.Applications.PrintData2DStatistics.html"/>
+        <link rel="prev" title="PyFoam.Applications.PotentialRunner module" href="PyFoam.Applications.PotentialRunner.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.Applications.html">PyFoam.Applications package</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.PrepareCase module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.Applications.PrepareCase.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.Applications.PrepareCase">
+<span id="pyfoam-applications-preparecase-module"></span><h1>PyFoam.Applications.PrepareCase module<a class="headerlink" href="#module-PyFoam.Applications.PrepareCase" title="Permalink to this headline">¶</a></h1>
+<p>Application-class that implements pyFoamPrepareCase.py</p>
+<dl class="class">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.PrepareCase.</code><code class="descname">PrepareCase</code><span class="sig-paren">(</span><em>args=None</em>, <em>exactNr=True</em>, <em>interspersed=True</em>, <em>usage='%prog &lt;caseDirectory&gt;'</em>, <em>examples=None</em>, <em>nr=1</em>, <em>description=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication" title="PyFoam.Applications.PyFoamApplication.PyFoamApplication"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.PyFoamApplication.PyFoamApplication</span></code></a>, <a class="reference internal" href="PyFoam.Applications.CommonTemplateBehaviour.html#PyFoam.Applications.CommonTemplateBehaviour.CommonTemplateBehaviour" title="PyFoam.Applications.CommonTemplateBehaviour.CommonTemplateBehaviour"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.CommonTemplateBehaviour.CommonTemplateBehaviour</span></code></a>, <a class="reference internal" href="PyFoam.Applications.CommonTemplateFormat.html#PyFoam.Applications.CommonTemplateFormat.CommonTemplateFormat" title="PyFoam.Applications.CommonTemplateFormat.CommonTemplateFormat"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.CommonTemplateFormat.CommonTemplateFormat</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase._PrepareCase__strip">
+<code class="descname">_PrepareCase__strip</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase._PrepareCase__strip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Strip extra &#8221; from strings</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase._PrepareCase__writeToStateFile">
+<code class="descname">_PrepareCase__writeToStateFile</code><span class="sig-paren">(</span><em>sol</em>, <em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase._PrepareCase__writeToStateFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a message to a state file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>args=None</em>, <em>exactNr=True</em>, <em>interspersed=True</em>, <em>usage='%prog &lt;caseDirectory&gt;'</em>, <em>examples=None</em>, <em>nr=1</em>, <em>description=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.PrepareCase'</em><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.addDictValues">
+<code class="descname">addDictValues</code><span class="sig-paren">(</span><em>name</em>, <em>description</em>, <em>values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.addDictValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.addDictValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add values from a dictionary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.addOptions">
+<code class="descname">addOptions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.addOptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.addOptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.checkCorrectOptions">
+<code class="descname">checkCorrectOptions</code><span class="sig-paren">(</span><em>values</em>, <em>meta=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.checkCorrectOptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.checkCorrectOptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.cleanExtension">
+<code class="descname">cleanExtension</code><span class="sig-paren">(</span><em>startDir</em>, <em>ext</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.cleanExtension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.cleanExtension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Go recursivly through directories and remove all files that have a specific extension</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.copyOriginals">
+<code class="descname">copyOriginals</code><span class="sig-paren">(</span><em>startDir</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.copyOriginals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.copyOriginals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Go recursivly through directories and copy foo.org to foo</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.executeScript">
+<code class="descname">executeScript</code><span class="sig-paren">(</span><em>scriptName</em>, <em>workdir</em>, <em>echo</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.executeScript"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.executeScript" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a script and write a corresponding logfile</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.getDefaultValues">
+<code class="descname">getDefaultValues</code><span class="sig-paren">(</span><em>cName</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.getDefaultValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.getDefaultValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process the file with the default values - if present
+Returns a dictionary with the values and a dictionary with the meta-data
+about the parameters</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.info">
+<code class="descname">info</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information output</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.listdir">
+<code class="descname">listdir</code><span class="sig-paren">(</span><em>d</em>, <em>ext</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.listdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.listdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Private copy of listdir. Returns a list of pairs: first element is
+the real file-name. Second the name with the extensions stripped off or
+None if the file doesn&#8217;t match any extensions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.makeReport">
+<code class="descname">makeReport</code><span class="sig-paren">(</span><em>values</em>, <em>level=2</em>, <em>meta=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.makeReport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.makeReport" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.overloadDir">
+<code class="descname">overloadDir</code><span class="sig-paren">(</span><em>here</em>, <em>there</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.overloadDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.overloadDir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy files recursively. Overwrite local copies if they exist</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.parameterOutFile">
+<code class="descname">parameterOutFile</code><em class="property"> = 'PyFoamPrepareCaseParameters'</em><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.parameterOutFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.prepare">
+<code class="descname">prepare</code><span class="sig-paren">(</span><em>sol</em>, <em>cName=None</em>, <em>overrideParameters=None</em>, <em>numberOfProcessors=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.prepare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.prepare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do the actual preparing
+:param numberOfProcessors: If set this overrides the value set in the
+command line</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.processDefault">
+<code class="descname">processDefault</code><span class="sig-paren">(</span><em>raw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.processDefault"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.processDefault" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a dictionary and return a &#8216;flattened&#8217; dictionary with the
+values and a dictionary with the meta-data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.PrepareCase.PrepareCase.searchAndReplaceTemplates">
+<code class="descname">searchAndReplaceTemplates</code><span class="sig-paren">(</span><em>startDir</em>, <em>values</em>, <em>templateExt</em>, <em>ignoreDirectories=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#PrepareCase.searchAndReplaceTemplates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.PrepareCase.searchAndReplaceTemplates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Go through the directory recursively and replate foo.template with
+foo after inserting the values</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Applications.PrepareCase.buildFilenameExtension">
+<code class="descclassname">PyFoam.Applications.PrepareCase.</code><code class="descname">buildFilenameExtension</code><span class="sig-paren">(</span><em>paraList</em>, <em>valueStrings</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/PrepareCase.html#buildFilenameExtension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.PrepareCase.buildFilenameExtension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.Applications.PrintData2DStatistics.html" class="btn btn-neutral float-right" title="PyFoam.Applications.PrintData2DStatistics module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.Applications.PotentialRunner.html" class="btn btn-neutral" title="PyFoam.Applications.PotentialRunner module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

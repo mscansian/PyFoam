@@ -1,0 +1,412 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.RunDictionary.TimeDirectory &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.RunDictionary.TimeDirectory</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.RunDictionary.TimeDirectory</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Working with direcotries from a time-step&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionFile</span> <span class="kn">import</span> <span class="n">SolutionFile</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.FileBasis</span> <span class="kn">import</span> <span class="n">FileBasis</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.Utilities</span> <span class="kn">import</span> <span class="n">remove</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">listdir</span><span class="p">,</span><span class="n">stat</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">makedirs</span>
+<span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">ST_CTIME</span>
+<span class="kn">from</span> <span class="nn">fnmatch</span> <span class="kn">import</span> <span class="n">fnmatch</span>
+
+<div class="viewcode-block" id="TimeDirectory"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimeDirectory.html#PyFoam.RunDictionary.TimeDirectory.TimeDirectory">[docs]</a><span class="k">class</span> <span class="nc">TimeDirectory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represents a directory for a timestep&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TimeDirectory.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimeDirectory.html#PyFoam.RunDictionary.TimeDirectory.TimeDirectory.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">name</span><span class="p">,</span>
+                 <span class="n">time</span><span class="p">,</span>
+                 <span class="n">create</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">region</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">processor</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">tolerant</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">yieldParsedFiles</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param name: name of the case directory</span>
+<span class="sd">        :param time: time in the directory</span>
+<span class="sd">        :param create: Create the directory if it does not exist</span>
+<span class="sd">        :param tolerant: Do not fail if there are inconsistencies</span>
+<span class="sd">        :param region: The mesh region for multi-region cases</span>
+<span class="sd">        :param yieldParsedFiles: let the iterator return PasedParameterFile objects instead of SolutionFile&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yieldParsedFiles</span><span class="o">=</span><span class="n">yieldParsedFiles</span>
+        <span class="k">if</span> <span class="n">processor</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">processor</span><span class="p">)</span><span class="o">==</span><span class="nb">int</span><span class="p">:</span>
+                <span class="n">processor</span><span class="o">=</span><span class="s2">&quot;processor</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">processor</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">processor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">time</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">region</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">region</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+                <span class="n">error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;is not a directory&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">create</span><span class="p">:</span>
+            <span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;does not exist&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastReread</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tolerant</span><span class="o">=</span><span class="n">tolerant</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reread</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="TimeDirectory.baseName"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimeDirectory.html#PyFoam.RunDictionary.TimeDirectory.TimeDirectory.baseName">[docs]</a>    <span class="k">def</span> <span class="nf">baseName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The name of the directory&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimeDirectory.reread"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimeDirectory.html#PyFoam.RunDictionary.TimeDirectory.TimeDirectory.reread">[docs]</a>    <span class="k">def</span> <span class="nf">reread</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Scan the directory for files with valid names&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span> <span class="ow">and</span> <span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="n">ST_CTIME</span><span class="p">]</span><span class="o">&lt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">lastReread</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="n">ex</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;*~&quot;</span><span class="p">,</span><span class="s2">&quot;.svn&quot;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">matched</span><span class="o">=</span><span class="bp">False</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">fnmatch</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">e</span><span class="p">):</span>
+                    <span class="n">matched</span><span class="o">=</span><span class="bp">True</span>
+
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">f</span><span class="p">)):</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">matched</span><span class="p">:</span>
+                <span class="n">nm</span><span class="o">=</span><span class="n">f</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">3</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">nm</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span><span class="o">==</span><span class="s2">&quot;.gz&quot;</span><span class="p">:</span>
+                        <span class="n">nm</span><span class="o">=</span><span class="n">nm</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">nm</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tolerant</span><span class="p">:</span>
+                        <span class="n">error</span><span class="p">(</span><span class="n">nm</span><span class="p">,</span><span class="s2">&quot; already found, propably exists as zipped and unzipped&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">warning</span><span class="p">(</span><span class="n">nm</span><span class="p">,</span><span class="s2">&quot; already found, propably exists as zipped and unzipped&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastReread</span><span class="o">=</span><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="n">ST_CTIME</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TimeDirectory.getFiles"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimeDirectory.html#PyFoam.RunDictionary.TimeDirectory.TimeDirectory.getFiles">[docs]</a>    <span class="k">def</span> <span class="nf">getFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get a list of the solution files in that directory&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span></div>
+
+<div class="viewcode-block" id="TimeDirectory.__contains__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimeDirectory.html#PyFoam.RunDictionary.TimeDirectory.TimeDirectory.__contains__">[docs]</a>    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">item</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reread</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span></div>
+
+<div class="viewcode-block" id="TimeDirectory.__len__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimeDirectory.html#PyFoam.RunDictionary.TimeDirectory.TimeDirectory.__len__">[docs]</a>    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reread</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimeDirectory.__getitem__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimeDirectory.html#PyFoam.RunDictionary.TimeDirectory.TimeDirectory.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reread</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">!=</span><span class="nb">str</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">),</span><span class="s2">&quot;of&quot;</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="s2">&quot;is not &#39;str&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">SolutionFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">key</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="n">f</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+            <span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">f</span><span class="o">+</span><span class="s2">&quot;.gz&quot;</span><span class="p">):</span>
+            <span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="o">+</span><span class="s2">&quot;.gz&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem:&quot;</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="s2">&quot;(&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="s2">&quot;) is supposed to exists, but no file found&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TimeDirectory.__delitem__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimeDirectory.html#PyFoam.RunDictionary.TimeDirectory.TimeDirectory.__delitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reread</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__remove</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reread</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimeDirectory.__setitem__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimeDirectory.html#PyFoam.RunDictionary.TimeDirectory.TimeDirectory.__setitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reread</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">!=</span><span class="nb">str</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">),</span><span class="s2">&quot;of&quot;</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="s2">&quot;is not &#39;str&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__remove</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">FileBasis</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__mro__</span><span class="p">:</span>
+            <span class="n">value</span><span class="o">.</span><span class="n">writeFileAs</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">=</span><span class="n">FileBasis</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">writeFile</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reread</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimeDirectory.__iter__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimeDirectory.html#PyFoam.RunDictionary.TimeDirectory.TimeDirectory.__iter__">[docs]</a>    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reread</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">yieldParsedFiles</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">SolutionFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">key</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimeDirectory.clear"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimeDirectory.html#PyFoam.RunDictionary.TimeDirectory.TimeDirectory.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Wipe the directory clean&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="n">nm</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+            <span class="n">remove</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span>
+            <span class="n">remove</span><span class="p">(</span><span class="n">nm</span><span class="o">+</span><span class="s2">&quot;.gz&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reread</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimeDirectory.copy"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimeDirectory.html#PyFoam.RunDictionary.TimeDirectory.TimeDirectory.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">orig</span><span class="p">,</span><span class="n">purge</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">mustExist</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">exclude</span><span class="o">=</span><span class="p">[],</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;*&#39;</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;Copy SolutionFiles from another TimeDirectory to the</span>
+<span class="sd">        current TimeDirectory. Returns a list with the copied values</span>
+<span class="sd">        :param orig: the TimeDirectory with the original files</span>
+<span class="sd">        :param purge: remove all current files in this directory</span>
+<span class="sd">        :param overwrite: if the file already exists it is overwritten</span>
+<span class="sd">        :param mustExist: only if the file already exists it is overwritten</span>
+<span class="sd">        :param exclude: List of fnmatch-patterns that should be excluded</span>
+<span class="sd">        (Default: none)</span>
+<span class="sd">        :param include: List of fnmatch-patterns that should be included</span>
+<span class="sd">        (Default: all)&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">mustExist</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The options mustExist needs the option overwrite&quot;</span><span class="p">)</span>
+            <span class="n">overwrite</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">orig</span><span class="p">)</span><span class="o">!=</span><span class="n">TimeDirectory</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">),</span><span class="s2">&quot;is not TimeDirectory&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">purge</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="n">copied</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">orig</span><span class="p">:</span>
+            <span class="n">nm</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">baseName</span><span class="p">()</span>
+
+            <span class="n">doIt</span><span class="o">=</span><span class="bp">False</span>
+
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">include</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">fnmatch</span><span class="p">(</span><span class="n">nm</span><span class="p">,</span><span class="n">p</span><span class="p">):</span>
+                    <span class="n">doIt</span><span class="o">=</span><span class="bp">True</span>
+
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">exclude</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">fnmatch</span><span class="p">(</span><span class="n">nm</span><span class="p">,</span><span class="n">p</span><span class="p">):</span>
+                    <span class="n">doIt</span><span class="o">=</span><span class="bp">False</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">nm</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="n">doIt</span><span class="o">=</span><span class="bp">False</span>
+
+            <span class="k">if</span> <span class="n">mustExist</span> <span class="ow">and</span> <span class="n">nm</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="n">doIt</span><span class="o">=</span><span class="bp">False</span>
+
+            <span class="k">if</span> <span class="n">doIt</span><span class="p">:</span>
+                <span class="n">copied</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span>
+                <span class="bp">self</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span><span class="o">=</span><span class="n">v</span>
+
+        <span class="k">return</span> <span class="n">copied</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

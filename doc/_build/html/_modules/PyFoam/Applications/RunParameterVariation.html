@@ -1,0 +1,602 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.RunParameterVariation &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.RunParameterVariation</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.RunParameterVariation</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application class that implements pyFoamPrepareCase</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+<span class="kn">from</span> <span class="nn">.PrepareCase</span> <span class="kn">import</span> <span class="n">PrepareCase</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.DataStructures</span> <span class="kn">import</span> <span class="n">DictProxy</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Execution.AnalyzedRunner</span> <span class="kn">import</span> <span class="n">AnalyzedRunner</span>
+<span class="kn">from</span> <span class="nn">PyFoam.LogAnalysis.BoundingLogAnalyzer</span> <span class="kn">import</span> <span class="n">BoundingLogAnalyzer</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.RegionCases</span> <span class="kn">import</span> <span class="n">RegionCases</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">PyFoam.Basics.RunDatabase</span> <span class="kn">import</span> <span class="n">RunDatabase</span>
+    <span class="n">hasDatabase</span><span class="o">=</span><span class="bp">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">hasDatabase</span><span class="o">=</span><span class="bp">False</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">warning</span>
+
+<span class="kn">from</span> <span class="nn">.CommonPlotLines</span> <span class="kn">import</span> <span class="n">CommonPlotLines</span>
+<span class="kn">from</span> <span class="nn">.CommonReportUsage</span> <span class="kn">import</span> <span class="n">CommonReportUsage</span>
+<span class="kn">from</span> <span class="nn">.CommonReportRunnerData</span> <span class="kn">import</span> <span class="n">CommonReportRunnerData</span>
+<span class="kn">from</span> <span class="nn">.CommonStandardOutput</span> <span class="kn">import</span> <span class="n">CommonStandardOutput</span>
+<span class="kn">from</span> <span class="nn">.CommonParallel</span> <span class="kn">import</span> <span class="n">CommonParallel</span>
+<span class="kn">from</span> <span class="nn">.CommonServer</span> <span class="kn">import</span> <span class="n">CommonServer</span>
+<span class="kn">from</span> <span class="nn">.CommonPrePostHooks</span> <span class="kn">import</span> <span class="n">CommonPrePostHooks</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.CustomPlotInfo</span> <span class="kn">import</span> <span class="n">resetCustomCounter</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.TimeLineCollection</span> <span class="kn">import</span> <span class="n">allLines</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.GeneralPlotTimelines</span> <span class="kn">import</span> <span class="n">allPlots</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<div class="viewcode-block" id="RunParameterVariation"><a class="viewcode-back" href="../../../api/PyFoam.Applications.RunParameterVariation.html#PyFoam.Applications.RunParameterVariation.RunParameterVariation">[docs]</a><span class="k">class</span> <span class="nc">RunParameterVariation</span><span class="p">(</span><span class="n">PrepareCase</span><span class="p">,</span>
+                            <span class="n">CommonPlotLines</span><span class="p">,</span>
+                            <span class="n">CommonReportUsage</span><span class="p">,</span>
+                            <span class="n">CommonReportRunnerData</span><span class="p">,</span>
+                            <span class="n">CommonParallel</span><span class="p">,</span>
+                            <span class="n">CommonServer</span><span class="p">,</span>
+                            <span class="n">CommonStandardOutput</span><span class="p">,</span>
+                            <span class="n">CommonPrePostHooks</span><span class="p">):</span>
+<div class="viewcode-block" id="RunParameterVariation.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.RunParameterVariation.html#PyFoam.Applications.RunParameterVariation.RunParameterVariation.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Takes a template case and a file that specifies the parameters to be varied.</span>
+<span class="s2">Using the machinery from pyFoamPrepareCase.py it sets up the case with each</span>
+<span class="s2">parameters and runs the solver on it. Collects the results in a database</span>
+
+<span class="s2">The format of the parameter file is a regular OpenFOAM-dictionary file</span>
+<span class="s2">without a header. There is one required entry: a dictionary with the name</span>
+<span class="s2">values. Each entry is one parameter to varied. The possible values are in a list.</span>
+<span class="s2">The entries in the list are either single values or dictionaries. If the entries</span>
+<span class="s2">are dictionaries then the dictionary values are used. A required entry for &#39;values&#39;</span>
+<span class="s2">is &#39;solver&#39; that specifies at least one solver to be used.</span>
+
+<span class="s2">An optional entry for the dictionary is a dictionary called &#39;defaults&#39;. The values</span>
+<span class="s2">here are added to the parameters unless being overwritten by the variation values.</span>
+<span class="s2">This is useful with variation values that are dictionaries&quot;&quot;&quot;</span>
+
+        <span class="n">examples</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Do all the variations in the template case:</span>
+
+<span class="s2">%prog --inplace-execution templateCase parameter.file</span>
+
+<span class="s2">One case for every variation and start with the 4th variant</span>
+
+<span class="s2">%prog --every-variant-one-case-execution templateCase parameter.file --start=4</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+        <span class="n">CommonPlotLines</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">PrepareCase</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                             <span class="n">nr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                             <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog &lt;case&gt; &lt;parameterFile&gt;&quot;</span><span class="p">,</span>
+                             <span class="n">exactNr</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                             <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                             <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                             <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                             <span class="n">examples</span><span class="o">=</span><span class="n">examples</span><span class="p">,</span>
+                             <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RunParameterVariation.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.RunParameterVariation.html#PyFoam.Applications.RunParameterVariation.RunParameterVariation.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">CommonReportUsage</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">CommonReportRunnerData</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">CommonStandardOutput</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">CommonParallel</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">CommonPlotLines</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">CommonServer</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">CommonPrePostHooks</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">PrepareCase</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">variation</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                              <span class="s2">&quot;Parameter variation&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;Parameters specific to the parameter variation&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">variation</span><span class="p">)</span>
+
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--inplace-execution&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;inplaceExecution&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do everything in the template case (preparation and execution)&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--one-cloned-case-execution&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;oneClonedCase&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Clone to one case and do everything in that case (preparation and execution)&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--every-variant-one-case-execution&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;everyVariantOneCase&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Every variation gets its own case (that is not erased)&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-execute-solver&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;noExecuteSolver&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Only prepare the cases but do not execute the solver&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--cloned-case-prefix&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;clonedCasePrefix&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Prefix of the cloned cases. If unspecified the name of parameter file is used&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--cloned-case-postfix&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;clonedCasePostfix&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Postfix of the cloned cases. If unspecified an empty string. Helps to distinguish different sets of variations&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--clone-to-directory&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cloneToDirectory&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Directory to clone to. If unspecified use the directory in which the original case resides&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--single-variation&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                             <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;singleVariation&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Single variation to run&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--start-variation-number&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                             <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;startVariation&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Variation number to start with&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--end-variation-number&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                             <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;endVariation&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Variation number to end with&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--database&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;database&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to the database. If unset the name of parameter-file appended with &#39;.results&#39; will be used&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--create-database&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;createDatabase&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Create a new database file. Fail if it already exists&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--auto-create-database&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;autoCreateDatabase&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Create a new database file if it doesn&#39;t exist yet&#39;&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--list-variations&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;listVariations&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;List the selected variations but don&#39;t do anything&quot;</span><span class="p">)</span>
+        <span class="n">variation</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-database-write&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;noDatabaseWrite&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not write to the database&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RunParameterVariation.printPhase"><a class="viewcode-back" href="../../../api/PyFoam.Applications.RunParameterVariation.html#PyFoam.Applications.RunParameterVariation.RunParameterVariation.printPhase">[docs]</a>    <span class="k">def</span> <span class="nf">printPhase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">out</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">])</span>
+        <span class="n">print_</span><span class="p">()</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">))</span>
+        <span class="n">print_</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">))</span>
+        <span class="n">print_</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="RunParameterVariation.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.RunParameterVariation.html#PyFoam.Applications.RunParameterVariation.RunParameterVariation.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">origPath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">parameterFile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLocalConfig</span><span class="p">(</span><span class="n">origPath</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkCase</span><span class="p">(</span><span class="n">origPath</span><span class="p">)</span>
+
+        <span class="n">nrModes</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">inplaceExecution</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> \
+                <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">oneClonedCase</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> \
+                <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">listVariations</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> \
+                <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">everyVariantOneCase</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nrModes</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Specify one of the modes --list-variations, --inplace-execution, --one-cloned-case-execution or --every-variant-one-case-execution&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">nrModes</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The modes --list-variations, --inplace-execution, --one-cloned-case-execution or --every-variant-one-case-execution are mutual exclusive&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">noExecuteSolver</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">everyVariantOneCase</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">singleVariation</span><span class="o">==</span><span class="bp">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">listVariations</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;--no-execute-solver only works with --every-variant-one-case-execution&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clonedCasePrefix</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clonedCasePrefix</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">parameterFile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clonedCasePostfix</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clonedCasePostfix</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clonedCasePostfix</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clonedCasePostfix</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cloneToDirectory</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cloneToDirectory</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">origPath</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">database</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">database</span><span class="o">=</span><span class="n">parameterFile</span><span class="o">+</span><span class="s2">&quot;.database&quot;</span>
+
+        <span class="n">variationData</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">parameterFile</span><span class="p">,</span>
+                                          <span class="n">noHeader</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                          <span class="n">noVectorOrTensor</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">getValueDict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;values&quot;</span> <span class="ow">in</span> <span class="n">variationData</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Entry &#39;values&#39; (dictionary) needed in&quot;</span><span class="p">,</span><span class="n">parameterFile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;solver&quot;</span> <span class="ow">in</span> <span class="n">variationData</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Entry &#39;solver&#39; (list or string) needed in &#39;values&#39; in&quot;</span><span class="p">,</span><span class="n">parameterFile</span><span class="p">)</span>
+
+        <span class="n">fixed</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">defaults</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">varied</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">nrVariations</span><span class="o">=</span><span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">variationData</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]:</span>
+            <span class="n">v</span><span class="o">=</span><span class="n">variationData</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">!=</span><span class="nb">list</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Entry&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;is not a list&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">fixed</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">varied</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">))</span>
+                <span class="n">nrVariations</span><span class="o">*=</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Entry&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;is empty&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;defaults&quot;</span> <span class="ow">in</span> <span class="n">variationData</span><span class="p">:</span>
+            <span class="n">defaults</span><span class="o">=</span><span class="n">variationData</span><span class="p">[</span><span class="s2">&quot;defaults&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">varied</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No parameters to vary&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">printPhase</span><span class="p">(</span><span class="n">nrVariations</span><span class="p">,</span><span class="s2">&quot;variations with&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">varied</span><span class="p">),</span><span class="s2">&quot;parameters&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">makeVariations</span><span class="p">(</span><span class="n">vList</span><span class="p">):</span>
+            <span class="n">name</span><span class="p">,</span><span class="n">vals</span><span class="o">=</span><span class="n">vList</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vList</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">var</span><span class="o">=</span><span class="n">makeVariations</span><span class="p">(</span><span class="n">vList</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+                <span class="n">variation</span><span class="o">=</span><span class="p">[]</span>
+                <span class="k">for</span> <span class="n">orig</span> <span class="ow">in</span> <span class="n">var</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">:</span>
+                        <span class="n">d</span><span class="o">=</span><span class="n">orig</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,(</span><span class="nb">dict</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">)):</span>
+                            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">d</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">v</span>
+                        <span class="n">variation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">variation</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">v</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,(</span><span class="nb">dict</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">))</span> <span class="k">else</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span><span class="n">v</span><span class="p">}</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">]</span>
+
+        <span class="n">variations</span><span class="o">=</span><span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">defaults</span><span class="p">,</span><span class="o">**</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">makeVariations</span><span class="p">(</span><span class="n">varied</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;variations&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">variations</span>
+        <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;fixed&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">fixed</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">startVariation</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">startVariation</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">start</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">endVariation</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">end</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">endVariation</span>
+            <span class="k">if</span> <span class="n">end</span><span class="o">&gt;=</span><span class="nb">len</span><span class="p">(</span><span class="n">variations</span><span class="p">):</span>
+                <span class="n">end</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">variations</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">end</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">variations</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">singleVariation</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">startVariation</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">endVariation</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;--single-variation not possible with --end-variation-number or --start-variation-number&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">singleVariation</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;--single-variation must be greater or equal to 0&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">singleVariation</span><span class="o">&gt;=</span><span class="nb">len</span><span class="p">(</span><span class="n">variations</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Only&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">variations</span><span class="p">))</span>
+            <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">singleVariation</span>
+            <span class="n">end</span>  <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">singleVariation</span>
+
+        <span class="k">if</span> <span class="n">end</span><span class="o">&lt;</span><span class="n">start</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Start value&quot;</span><span class="p">,</span><span class="n">start</span><span class="p">,</span><span class="s2">&quot;bigger than end value&quot;</span><span class="p">,</span><span class="n">end</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">listVariations</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printPhase</span><span class="p">(</span><span class="s2">&quot;Listing variations&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="n">end</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Variation&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">variations</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">hasDatabase</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">noDatabaseWrite</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">database</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">createDatabase</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;database-file&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">database</span><span class="p">,</span><span class="s2">&quot;exists already.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">database</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">createDatabase</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">autoCreateDatabase</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;database-file&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">database</span><span class="p">,</span><span class="s2">&quot;does not exist&quot;</span><span class="p">)</span>
+
+        <span class="n">createDatabase</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">createDatabase</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">autoCreateDatabase</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">database</span><span class="p">):</span>
+            <span class="n">createDatabase</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">hasDatabase</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">noDatabaseWrite</span><span class="p">:</span>
+            <span class="n">db</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">db</span><span class="o">=</span><span class="n">RunDatabase</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">database</span><span class="p">,</span>
+                           <span class="n">create</span><span class="o">=</span><span class="n">createDatabase</span><span class="p">,</span>
+                           <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
+
+        <span class="n">origCase</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="n">origPath</span><span class="p">,</span><span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">oneClonedCase</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printPhase</span><span class="p">(</span><span class="s2">&quot;Cloning work case&quot;</span><span class="p">)</span>
+            <span class="n">workCase</span><span class="o">=</span><span class="n">origCase</span><span class="o">.</span><span class="n">cloneCase</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cloneToDirectory</span><span class="p">,</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clonedCasePrefix</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">origPath</span><span class="p">))</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clonedCasePostfix</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">printPhase</span><span class="p">(</span><span class="s2">&quot;Starting actual variations&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="n">end</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printPhase</span><span class="p">(</span><span class="s2">&quot;Variation&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="s2">&quot;of [&quot;</span><span class="p">,</span><span class="n">start</span><span class="p">,</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="n">end</span><span class="p">,</span><span class="s2">&quot;]&quot;</span><span class="p">)</span>
+
+            <span class="n">usedVals</span><span class="o">=</span><span class="n">variations</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">usedVals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">fixed</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">prepareHooks</span><span class="p">()</span>
+
+            <span class="n">clone</span><span class="o">=</span><span class="bp">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">inplaceExecution</span><span class="p">:</span>
+                <span class="n">workCase</span><span class="o">=</span><span class="n">origCase</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">oneClonedCase</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">printPhase</span><span class="p">(</span><span class="s2">&quot;Cloning work case&quot;</span><span class="p">)</span>
+                <span class="n">workCase</span><span class="o">=</span><span class="n">origCase</span><span class="o">.</span><span class="n">cloneCase</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cloneToDirectory</span><span class="p">,</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clonedCasePrefix</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span>
+                                                      <span class="p">(</span><span class="s2">&quot;</span><span class="si">%05d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">origPath</span><span class="p">))</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clonedCasePostfix</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">processPlotLineOptions</span><span class="p">(</span><span class="n">autoPath</span><span class="o">=</span><span class="n">workCase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">printPhase</span><span class="p">(</span><span class="s2">&quot;Setting up the case&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">workCase</span><span class="p">,</span><span class="n">overrideParameters</span><span class="o">=</span><span class="n">usedVals</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">noExecuteSolver</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">printPhase</span><span class="p">(</span><span class="s2">&quot;Not executing the solver&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">oneClonedCase</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">inplaceExecution</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setLogname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clonedCasePrefix</span><span class="o">+</span><span class="p">(</span><span class="s2">&quot;_</span><span class="si">%05d</span><span class="s2">_&quot;</span><span class="o">%</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="n">usedVals</span><span class="p">[</span><span class="s2">&quot;solver&quot;</span><span class="p">],</span>
+                                <span class="n">useApplication</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                <span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setLogname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clonedCasePrefix</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">usedVals</span><span class="p">[</span><span class="s2">&quot;solver&quot;</span><span class="p">],</span>
+                                <span class="n">useApplication</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                <span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+            <span class="n">lam</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getParallel</span><span class="p">(</span><span class="n">workCase</span><span class="p">)</span>
+
+            <span class="n">allLines</span><span class="p">()</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="n">allPlots</span><span class="p">()</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="n">resetCustomCounter</span><span class="p">()</span>
+
+            <span class="n">run</span><span class="o">=</span><span class="n">AnalyzedRunner</span><span class="p">(</span><span class="n">BoundingLogAnalyzer</span><span class="p">(</span><span class="n">progress</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">progress</span><span class="p">,</span>
+                                                   <span class="n">doFiles</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">writeFiles</span><span class="p">,</span>
+                                                   <span class="n">singleFile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">singleDataFilesOnly</span><span class="p">,</span>
+                                                   <span class="n">doTimelines</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+                               <span class="n">silent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">progress</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">,</span>
+                               <span class="n">argv</span><span class="o">=</span><span class="p">[</span><span class="n">usedVals</span><span class="p">[</span><span class="s2">&quot;solver&quot;</span><span class="p">],</span><span class="s2">&quot;-case&quot;</span><span class="p">,</span><span class="n">workCase</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
+                               <span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">server</span><span class="p">,</span>
+                               <span class="n">lam</span><span class="o">=</span><span class="n">lam</span><span class="p">,</span>
+                               <span class="n">logname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">logname</span><span class="p">,</span>
+                               <span class="n">compressLog</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">compress</span><span class="p">,</span>
+                               <span class="n">logTail</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">logTail</span><span class="p">,</span>
+                               <span class="n">noLog</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">noLog</span><span class="p">,</span>
+                               <span class="n">remark</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">remark</span><span class="p">,</span>
+                               <span class="n">parameters</span><span class="o">=</span><span class="n">usedVals</span><span class="p">,</span>
+                               <span class="n">echoCommandLine</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">echoCommandPrefix</span><span class="p">,</span>
+                               <span class="n">jobId</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">jobId</span><span class="p">)</span>
+
+            <span class="n">run</span><span class="o">.</span><span class="n">createPlots</span><span class="p">(</span><span class="n">customRegexp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lines_</span><span class="p">,</span>
+                            <span class="n">writeFiles</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">writeFiles</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">runPreHooks</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">printPhase</span><span class="p">(</span><span class="s2">&quot;Running&quot;</span><span class="p">)</span>
+
+            <span class="n">run</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">printPhase</span><span class="p">(</span><span class="s2">&quot;Getting data&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;run</span><span class="si">%05d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">data</span>
+            <span class="k">if</span> <span class="n">db</span><span class="p">:</span>
+                <span class="n">db</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">runPostHooks</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">reportUsage</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reportRunnerData</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">printPhase</span><span class="p">(</span><span class="s2">&quot;Ending variation&quot;</span><span class="p">)</span></div></div>
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

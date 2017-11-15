@@ -1,0 +1,1406 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.ThirdParty.pyratemp &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.ThirdParty.pyratemp</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.ThirdParty.pyratemp</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Small, simple and powerful template-engine for python.</span>
+
+<span class="sd">A template-engine for python, which is very simple, easy to use, small,</span>
+<span class="sd">fast, powerful, modular, extensible, well documented and pythonic.</span>
+
+<span class="sd">See documentation for a list of features, template-syntax etc.</span>
+
+<span class="sd">:Version:   0.2.0</span>
+
+<span class="sd">:Usage:</span>
+<span class="sd">    see class ``Template`` and examples below.</span>
+
+<span class="sd">:Example:</span>
+
+<span class="sd">    quickstart::</span>
+<span class="sd">        &gt;&gt;&gt; t = Template(&quot;hello @!name!@&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; print t(name=&quot;marvin&quot;)</span>
+<span class="sd">        hello marvin</span>
+
+<span class="sd">    generic usage::</span>
+<span class="sd">        &gt;&gt;&gt; t = Template(&quot;output is in Unicode äöü€&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; t                                           #doctest: +ELLIPSIS</span>
+<span class="sd">        &lt;...Template instance at 0x...&gt;</span>
+<span class="sd">        &gt;&gt;&gt; t()</span>
+<span class="sd">        u&#39;output is in Unicode \\xe4\\xf6\\xfc\\u20ac&#39;</span>
+<span class="sd">        &gt;&gt;&gt; unicode(t)</span>
+<span class="sd">        u&#39;output is in Unicode \\xe4\\xf6\\xfc\\u20ac&#39;</span>
+
+<span class="sd">    with data::</span>
+<span class="sd">        &gt;&gt;&gt; t = Template(&quot;hello @!name!@&quot;, data={&quot;name&quot;:&quot;world&quot;})</span>
+<span class="sd">        &gt;&gt;&gt; t()</span>
+<span class="sd">        u&#39;hello world&#39;</span>
+<span class="sd">        &gt;&gt;&gt; t(name=&quot;worlds&quot;)</span>
+<span class="sd">        u&#39;hello worlds&#39;</span>
+
+<span class="sd">        # &gt;&gt;&gt; t(note=&quot;data must be Unicode or ASCII&quot;, name=u&quot;ä&quot;)</span>
+<span class="sd">        # u&#39;hello \\xe4&#39;</span>
+
+<span class="sd">    escaping::</span>
+<span class="sd">        &gt;&gt;&gt; t = Template(&quot;hello escaped: @!name!@, unescaped: $!name!$&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; t(name=&#39;&#39;&#39;&lt;&gt;&amp;&#39;&quot;&#39;&#39;&#39;)</span>
+<span class="sd">        u&#39;hello escaped: &amp;lt;&amp;gt;&amp;amp;&amp;#39;&amp;quot;, unescaped: &lt;&gt;&amp;\\&#39;&quot;&#39;</span>
+
+<span class="sd">    result-encoding::</span>
+<span class="sd">        # encode the unicode-object to your encoding with encode()</span>
+<span class="sd">        &gt;&gt;&gt; t = Template(&quot;hello äöü€&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; result = t()</span>
+<span class="sd">        &gt;&gt;&gt; result</span>
+<span class="sd">        u&#39;hello \\xe4\\xf6\\xfc\\u20ac&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result.encode(&quot;utf-8&quot;)</span>
+<span class="sd">        &#39;hello \\xc3\\xa4\\xc3\\xb6\\xc3\\xbc\\xe2\\x82\\xac&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result.encode(&quot;ascii&quot;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">          ...</span>
+<span class="sd">        UnicodeEncodeError: &#39;ascii&#39; codec can&#39;t encode characters in position 6-9: ordinal not in range(128)</span>
+<span class="sd">        &gt;&gt;&gt; result.encode(&quot;ascii&quot;, &#39;xmlcharrefreplace&#39;)</span>
+<span class="sd">        &#39;hello &amp;#228;&amp;#246;&amp;#252;&amp;#8364;&#39;</span>
+
+<span class="sd">    python-expressions::</span>
+<span class="sd">        &gt;&gt;&gt; Template(&#39;formatted: @! &quot;%8.5f&quot; % value !@&#39;)(value=3.141592653)</span>
+<span class="sd">        u&#39;formatted:  3.14159&#39;</span>
+<span class="sd">        &gt;&gt;&gt; Template(&quot;hello --@!name.upper().center(20)!@--&quot;)(name=&quot;world&quot;)</span>
+<span class="sd">        u&#39;hello --       WORLD        --&#39;</span>
+<span class="sd">        &gt;&gt;&gt; Template(&quot;calculate @!var*5+7!@&quot;)(var=7)</span>
+<span class="sd">        u&#39;calculate 42&#39;</span>
+
+<span class="sd">    blocks (if/for/macros/...)::</span>
+<span class="sd">        &gt;&gt;&gt; t = Template(&quot;&lt;!--(if foo == 1)--&gt;bar&lt;!--(elif foo == 2)--&gt;baz&lt;!--(else)--&gt;unknown(@!foo!@)&lt;!--(end)--&gt;&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; t(foo=2)</span>
+<span class="sd">        u&#39;baz&#39;</span>
+<span class="sd">        &gt;&gt;&gt; t(foo=5)</span>
+<span class="sd">        u&#39;unknown(5)&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; t = Template(&quot;&lt;!--(for i in mylist)--&gt;@!i!@ &lt;!--(else)--&gt;(empty)&lt;!--(end)--&gt;&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; t(mylist=[])</span>
+<span class="sd">        u&#39;(empty)&#39;</span>
+<span class="sd">        &gt;&gt;&gt; t(mylist=[1,2,3])</span>
+<span class="sd">        u&#39;1 2 3 &#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; t = Template(&quot;&lt;!--(for i,elem in enumerate(mylist))--&gt; - @!i!@: @!elem!@&lt;!--(end)--&gt;&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; t(mylist=[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;])</span>
+<span class="sd">        u&#39; - 0: a - 1: b - 2: c&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; t = Template(&#39;&lt;!--(macro greetings)--&gt;hello &lt;strong&gt;@!name!@&lt;/strong&gt;&lt;!--(end)--&gt;  @!greetings(name=user)!@&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; t(user=&quot;monty&quot;)</span>
+<span class="sd">        u&#39;  hello &lt;strong&gt;monty&lt;/strong&gt;&#39;</span>
+
+<span class="sd">    exists::</span>
+<span class="sd">        &gt;&gt;&gt; t = Template(&#39;&lt;!--(if exists(&quot;foo&quot;))--&gt;YES&lt;!--(else)--&gt;NO&lt;!--(end)--&gt;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; t()</span>
+<span class="sd">        u&#39;NO&#39;</span>
+<span class="sd">        &gt;&gt;&gt; t(foo=1)</span>
+<span class="sd">        u&#39;YES&#39;</span>
+<span class="sd">        &gt;&gt;&gt; t(foo=None)       # note this difference to &#39;default()&#39;</span>
+<span class="sd">        u&#39;YES&#39;</span>
+
+<span class="sd">    default-values::</span>
+<span class="sd">        # non-existing variables raise an error</span>
+<span class="sd">        &gt;&gt;&gt; Template(&#39;hi @!optional!@&#39;)()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">          ...</span>
+<span class="sd">        TemplateRenderError: Cannot eval expression &#39;optional&#39;. (NameError: name &#39;optional&#39; is not defined)</span>
+
+<span class="sd">        &gt;&gt;&gt; t = Template(&#39;hi @!default(&quot;optional&quot;,&quot;anyone&quot;)!@&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; t()</span>
+<span class="sd">        u&#39;hi anyone&#39;</span>
+<span class="sd">        &gt;&gt;&gt; t(optional=None)</span>
+<span class="sd">        u&#39;hi anyone&#39;</span>
+<span class="sd">        &gt;&gt;&gt; t(optional=&quot;there&quot;)</span>
+<span class="sd">        u&#39;hi there&#39;</span>
+
+<span class="sd">        # the 1st parameter can be any eval-expression</span>
+<span class="sd">        &gt;&gt;&gt; t = Template(&#39;@!default(&quot;5*var1+var2&quot;,&quot;missing variable&quot;)!@&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; t(var1=10)</span>
+<span class="sd">        u&#39;missing variable&#39;</span>
+<span class="sd">        &gt;&gt;&gt; t(var1=10, var2=2)</span>
+<span class="sd">        u&#39;52&#39;</span>
+
+<span class="sd">        # also in blocks</span>
+<span class="sd">        &gt;&gt;&gt; t = Template(&#39;&lt;!--(if default(&quot;opt1+opt2&quot;,0) &gt; 0)--&gt;yes&lt;!--(else)--&gt;no&lt;!--(end)--&gt;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; t()</span>
+<span class="sd">        u&#39;no&#39;</span>
+<span class="sd">        &gt;&gt;&gt; t(opt1=23, opt2=42)</span>
+<span class="sd">        u&#39;yes&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; t = Template(&#39;&lt;!--(for i in default(&quot;optional_list&quot;,[]))--&gt;@!i!@&lt;!--(end)--&gt;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; t()</span>
+<span class="sd">        u&#39;&#39;</span>
+<span class="sd">        &gt;&gt;&gt; t(optional_list=[1,2,3])</span>
+<span class="sd">        u&#39;123&#39;</span>
+
+
+<span class="sd">        # but make sure to put the expression in quotation marks, otherwise:</span>
+<span class="sd">        &gt;&gt;&gt; Template(&#39;@!default(optional,&quot;fallback&quot;)!@&#39;)()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">          ...</span>
+<span class="sd">        TemplateRenderError: Cannot eval expression &#39;default(optional,&quot;fallback&quot;)&#39;. (NameError: name &#39;optional&#39; is not defined)</span>
+
+<span class="sd">    setvar::</span>
+<span class="sd">        &gt;&gt;&gt; t = Template(&#39;$!setvar(&quot;i&quot;, &quot;i+1&quot;)!$@!i!@&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; t(i=6)</span>
+<span class="sd">        u&#39;7&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; t = Template(&#39;&#39;&#39;&lt;!--(if isinstance(s, (list,tuple)))--&gt;$!setvar(&quot;s&quot;, &#39;&quot;\\\\\\\\n&quot;.join(s)&#39;)!$&lt;!--(end)--&gt;@!s!@&#39;&#39;&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; t(isinstance=isinstance, s=&quot;123&quot;)</span>
+<span class="sd">        u&#39;123&#39;</span>
+<span class="sd">        &gt;&gt;&gt; t(isinstance=isinstance, s=[&quot;123&quot;, &quot;456&quot;])</span>
+<span class="sd">        u&#39;123\\n456&#39;</span>
+
+<span class="sd">:Author:    Roland Koebler (rk at simple-is-better dot org)</span>
+<span class="sd">:Copyright: Roland Koebler</span>
+<span class="sd">:License:   MIT/X11-like, see __license__</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;0.2.0&quot;</span>
+<span class="n">__author__</span>   <span class="o">=</span> <span class="s2">&quot;Roland Koebler &lt;rk at simple-is-better dot org&gt;&quot;</span>
+<span class="n">__license__</span>  <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Copyright (c) Roland Koebler, 2007-2010</span>
+
+<span class="s2">Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="s2">of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="s2">in the Software without restriction, including without limitation the rights</span>
+<span class="s2">to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="s2">copies of the Software, and to permit persons to whom the Software is</span>
+<span class="s2">furnished to do so, subject to the following conditions:</span>
+
+<span class="s2">The above copyright notice and this permission notice shall be included in</span>
+<span class="s2">all copies or substantial portions of the Software.</span>
+
+<span class="s2">THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="s2">IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="s2">FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="s2">AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="s2">LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING</span>
+<span class="s2">FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS</span>
+<span class="s2">IN THE SOFTWARE.&quot;&quot;&quot;</span>
+
+<span class="c1">#=========================================</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="n">builtins</span> <span class="k">as</span> <span class="n">__builtin__</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">iteritems</span><span class="p">,</span><span class="n">text_type</span><span class="p">,</span><span class="n">string_types</span><span class="p">,</span><span class="n">PY3</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">u</span> <span class="k">as</span> <span class="n">toUni</span>
+
+<span class="c1"># convert to unicode (independent of python3)</span>
+<div class="viewcode-block" id="toUniCode"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.toUniCode">[docs]</a><span class="k">def</span> <span class="nf">toUniCode</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">text_type</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">s</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">toUni</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">toUni</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
+
+<span class="c1">#=========================================</span>
+<span class="c1"># some useful functions</span>
+
+<span class="c1">#----------------------</span>
+<span class="c1"># string-position: i &lt;-&gt; row,col</span>
+
+<div class="viewcode-block" id="srow"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.srow">[docs]</a><span class="k">def</span> <span class="nf">srow</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get line numer of ``string[i]`` in `string`.</span>
+
+<span class="sd">    :Returns: row, starting at 1</span>
+<span class="sd">    :Note:    This works for text-strings with ``\\n`` or ``\\r\\n``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">string</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="scol"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.scol">[docs]</a><span class="k">def</span> <span class="nf">scol</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get column number of ``string[i]`` in `string`.</span>
+
+<span class="sd">    :Returns: column, starting at 1 (but may be &lt;1 if i&lt;0)</span>
+<span class="sd">    :Note:    This works for text-strings with ``\\n`` or ``\\r\\n``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">i</span> <span class="o">-</span> <span class="n">string</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="sindex"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.sindex">[docs]</a><span class="k">def</span> <span class="nf">sindex</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get index of the character at `row`/`col` in `string`.</span>
+
+<span class="sd">    :Parameters:</span>
+<span class="sd">        - `row`: row number, starting at 1.</span>
+<span class="sd">        - `col`: column number, starting at 1.</span>
+<span class="sd">    :Returns:    ``i``, starting at 0 (but may be &lt;1 if row/col&lt;0)</span>
+<span class="sd">    :Note:       This works for text-strings with &#39;\\n&#39; or &#39;\\r\\n&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">row</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">n</span><span class="o">+</span><span class="n">col</span><span class="o">-</span><span class="mi">1</span></div>
+
+<span class="c1">#----------------------</span>
+
+<div class="viewcode-block" id="dictkeyclean"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.dictkeyclean">[docs]</a><span class="k">def</span> <span class="nf">dictkeyclean</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert all keys of the dict `d` to strings.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_d</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+        <span class="n">new_d</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="k">return</span> <span class="n">new_d</span></div>
+
+<span class="c1">#----------------------</span>
+
+<div class="viewcode-block" id="dummy"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.dummy">[docs]</a><span class="k">def</span> <span class="nf">dummy</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Dummy function, doing nothing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="dummy_raise"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.dummy_raise">[docs]</a><span class="k">def</span> <span class="nf">dummy_raise</span><span class="p">(</span><span class="n">exception</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create an exception-raising dummy function.</span>
+
+<span class="sd">    :Returns: dummy function, raising ``exception(value)``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">mydummy</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">exception</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mydummy</span></div>
+
+<span class="c1">#=========================================</span>
+<span class="c1"># escaping</span>
+
+<span class="p">(</span><span class="n">NONE</span><span class="p">,</span> <span class="n">HTML</span><span class="p">,</span> <span class="n">LATEX</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">ESCAPE_SUPPORTED</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;NONE&quot;</span><span class="p">:</span><span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;HTML&quot;</span><span class="p">:</span><span class="n">HTML</span><span class="p">,</span> <span class="s2">&quot;LATEX&quot;</span><span class="p">:</span><span class="n">LATEX</span><span class="p">}</span> <span class="c1">#for error-/parameter-checking</span>
+
+<div class="viewcode-block" id="escape"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.escape">[docs]</a><span class="k">def</span> <span class="nf">escape</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="n">HTML</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Replace special characters by their escape sequence.</span>
+
+<span class="sd">    :Parameters:</span>
+<span class="sd">        - `s`:      string or unicode-string to escape</span>
+<span class="sd">        - `format`:</span>
+
+<span class="sd">          - `NONE`:  nothing is replaced</span>
+<span class="sd">          - `HTML`:  replace &amp;&lt;&gt;&#39;&quot; by &amp;...;</span>
+<span class="sd">          - `LATEX`: replace \#$%&amp;_{} (TODO! - this is very incomplete!)</span>
+<span class="sd">    :Returns:</span>
+<span class="sd">        the escaped string in unicode</span>
+<span class="sd">    :Exceptions:</span>
+<span class="sd">        - `ValueError`: if `format` is invalid.</span>
+
+<span class="sd">    :TODO:  complete LaTeX-escaping, optimize speed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#Note: If you have to make sure that every character gets replaced</span>
+    <span class="c1">#      only once (and if you cannot achieve this with the following code),</span>
+    <span class="c1">#      use something like u&quot;&quot;.join([replacedict.get(c,c) for c in s])</span>
+    <span class="c1">#      which is about 2-3 times slower (but maybe needs less memory).</span>
+    <span class="c1">#Note: This is one of the most time-consuming parts of the template.</span>
+    <span class="c1">#      So maybe speed this up.</span>
+
+    <span class="k">if</span> <span class="n">format</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">format</span> <span class="o">==</span> <span class="n">NONE</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="n">format</span> <span class="o">==</span> <span class="n">HTML</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;&amp;&quot;</span><span class="p">),</span> <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;&amp;amp;&quot;</span><span class="p">))</span> <span class="c1"># must be done first!</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;&lt;&quot;</span><span class="p">),</span> <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;&amp;lt;&quot;</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;&gt;&quot;</span><span class="p">),</span> <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;&amp;gt;&quot;</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">u</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">),</span> <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;&amp;quot;&quot;</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">),</span> <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;&amp;#39;&quot;</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">format</span> <span class="o">==</span> <span class="n">LATEX</span><span class="p">:</span>
+        <span class="c1">#TODO: which are the &quot;reserved&quot; characters for LaTeX?</span>
+        <span class="c1">#      are there more than these?</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">backslash{}&quot;</span><span class="p">))</span>   <span class="c1">#must be done first!</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">,</span>  <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">#&quot;</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">,</span>  <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">$&quot;</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">,</span>  <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">%&quot;</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&amp;&quot;</span><span class="p">,</span>  <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&amp;&quot;</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span>  <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">_&quot;</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">,</span>  <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">{&quot;</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">,</span>  <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">}&quot;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid format (only None, HTML and LATEX are supported).&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">toUniCode</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+
+<span class="c1">#=========================================</span>
+
+<span class="c1">#-----------------------------------------</span>
+<span class="c1"># Exceptions</span>
+
+<div class="viewcode-block" id="TemplateException"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.TemplateException">[docs]</a><span class="k">class</span> <span class="nc">TemplateException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for template-exceptions.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="TemplateParseError"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.TemplateParseError">[docs]</a><span class="k">class</span> <span class="nc">TemplateParseError</span><span class="p">(</span><span class="n">TemplateException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Template parsing failed.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TemplateParseError.__init__"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.TemplateParseError.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">err</span><span class="p">,</span> <span class="n">errpos</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :Parameters:</span>
+<span class="sd">            - `err`:    error-message or exception to wrap</span>
+<span class="sd">            - `errpos`: ``(filename,row,col)`` where the error occured.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">err</span> <span class="o">=</span> <span class="n">err</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">row</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col</span> <span class="o">=</span> <span class="n">errpos</span>
+        <span class="n">TemplateException</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+<div class="viewcode-block" id="TemplateParseError.__str__"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.TemplateParseError.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;line </span><span class="si">%d</span><span class="s2">, col </span><span class="si">%d</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">row</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">err</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;file </span><span class="si">%s</span><span class="s2">, line </span><span class="si">%d</span><span class="s2">, col </span><span class="si">%d</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">row</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">err</span><span class="p">))</span></div></div>
+
+<div class="viewcode-block" id="TemplateSyntaxError"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.TemplateSyntaxError">[docs]</a><span class="k">class</span> <span class="nc">TemplateSyntaxError</span><span class="p">(</span><span class="n">TemplateParseError</span><span class="p">,</span> <span class="ne">SyntaxError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Template syntax-error.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="TemplateIncludeError"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.TemplateIncludeError">[docs]</a><span class="k">class</span> <span class="nc">TemplateIncludeError</span><span class="p">(</span><span class="n">TemplateParseError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Template &#39;include&#39; failed.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="TemplateRenderError"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.TemplateRenderError">[docs]</a><span class="k">class</span> <span class="nc">TemplateRenderError</span><span class="p">(</span><span class="n">TemplateException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Template rendering failed.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<span class="c1">#-----------------------------------------</span>
+<span class="c1"># Loader</span>
+
+<div class="viewcode-block" id="LoaderString"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.LoaderString">[docs]</a><span class="k">class</span> <span class="nc">LoaderString</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Load template from a string/unicode.</span>
+
+<span class="sd">    Note that &#39;include&#39; is not possible in such templates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="LoaderString.__init__"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.LoaderString.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">encoding</span> <span class="o">=</span> <span class="n">encoding</span></div>
+
+<div class="viewcode-block" id="LoaderString.load"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.LoaderString.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return template-string as unicode.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">text_type</span><span class="p">):</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="n">string</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoding</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">u</span></div></div>
+
+<div class="viewcode-block" id="LoaderFile"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.LoaderFile">[docs]</a><span class="k">class</span> <span class="nc">LoaderFile</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Load template from a file.</span>
+
+<span class="sd">    When loading a template from a file, it&#39;s possible to including other</span>
+<span class="sd">    templates (by using &#39;include&#39; in the template). But for simplicity</span>
+<span class="sd">    and security, all included templates have to be in the same directory!</span>
+<span class="sd">    (see ``allowed_path``)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="LoaderFile.__init__"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.LoaderFile.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allowed_path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Init the loader.</span>
+
+<span class="sd">        :Parameters:</span>
+<span class="sd">            - `allowed_path`: path of the template-files</span>
+<span class="sd">            - `encoding`: encoding of the template-files</span>
+<span class="sd">        :Exceptions:</span>
+<span class="sd">            - `ValueError`: if `allowed_path` is not a directory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">allowed_path</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">allowed_path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;allowed_path&#39; has to be a directory.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span>     <span class="o">=</span> <span class="n">allowed_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">encoding</span> <span class="o">=</span> <span class="n">encoding</span></div>
+
+<div class="viewcode-block" id="LoaderFile.load"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.LoaderFile.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load a template from a file.</span>
+
+<span class="sd">        Check if filename is allowed and return its contens in unicode.</span>
+
+<span class="sd">        :Parameters:</span>
+<span class="sd">            - `filename`: filename of the template without path</span>
+<span class="sd">        :Returns:</span>
+<span class="sd">            the contents of the template-file in unicode</span>
+<span class="sd">        :Exceptions:</span>
+<span class="sd">            - `ValueError`: if `filename` contains a path</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="o">!=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No path allowed in filename. (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">string</span><span class="p">,</span><span class="n">text_type</span><span class="p">):</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="n">string</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoding</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">u</span></div></div>
+
+<span class="c1">#-----------------------------------------</span>
+<span class="c1"># Parser</span>
+
+<div class="viewcode-block" id="Parser"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.Parser">[docs]</a><span class="k">class</span> <span class="nc">Parser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse a template into a parse-tree.</span>
+
+<span class="sd">    Includes a syntax-check, an optional expression-check and verbose</span>
+<span class="sd">    error-messages.</span>
+
+<span class="sd">    See documentation for a description of the parse-tree.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># template-syntax</span>
+    <span class="n">_comment_start</span> <span class="o">=</span> <span class="s2">&quot;#!&quot;</span>
+    <span class="n">_comment_end</span>   <span class="o">=</span> <span class="s2">&quot;!#&quot;</span>
+    <span class="n">_sub_start</span>     <span class="o">=</span> <span class="s2">&quot;$!&quot;</span>
+    <span class="n">_sub_end</span>       <span class="o">=</span> <span class="s2">&quot;!$&quot;</span>
+    <span class="n">_subesc_start</span>  <span class="o">=</span> <span class="s2">&quot;@!&quot;</span>
+    <span class="n">_subesc_end</span>    <span class="o">=</span> <span class="s2">&quot;!@&quot;</span>
+    <span class="n">_block_start</span>   <span class="o">=</span> <span class="s2">&quot;&lt;!--(&quot;</span>
+    <span class="n">_block_end</span>     <span class="o">=</span> <span class="s2">&quot;)--&gt;&quot;</span>
+
+    <span class="c1"># build regexps</span>
+    <span class="c1"># comment</span>
+    <span class="c1">#   single-line, until end-tag or end-of-line.</span>
+    <span class="n">_strComment</span> <span class="o">=</span> <span class="s2">r&quot;&quot;&quot;</span><span class="si">%s</span><span class="s2">(?P&lt;content&gt;.*?)(?P&lt;end&gt;</span><span class="si">%s</span><span class="s2">|\n|$)&quot;&quot;&quot;</span> \
+                    <span class="o">%</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">_comment_start</span><span class="p">),</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">_comment_end</span><span class="p">))</span>
+    <span class="n">_reComment</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">_strComment</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+
+    <span class="c1"># escaped or unescaped substitution</span>
+    <span class="c1">#   single-line (&quot;|$&quot; is needed to be able to generate good error-messges)</span>
+    <span class="n">_strSubstitution</span> <span class="o">=</span> <span class="s2">r&quot;&quot;&quot;</span>
+<span class="s2">                    (</span>
+<span class="s2">                    </span><span class="si">%s</span><span class="s2">\s*(?P&lt;sub&gt;.*?)\s*(?P&lt;end&gt;</span><span class="si">%s</span><span class="s2">|$)       #substitution</span>
+<span class="s2">                    |</span>
+<span class="s2">                    </span><span class="si">%s</span><span class="s2">\s*(?P&lt;escsub&gt;.*?)\s*(?P&lt;escend&gt;</span><span class="si">%s</span><span class="s2">|$) #escaped substitution</span>
+<span class="s2">                    )</span>
+<span class="s2">                &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">_sub_start</span><span class="p">),</span>    <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">_sub_end</span><span class="p">),</span>
+                       <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">_subesc_start</span><span class="p">),</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">_subesc_end</span><span class="p">))</span>
+    <span class="n">_reSubstitution</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">_strSubstitution</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">X</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+
+    <span class="c1"># block</span>
+    <span class="c1">#   - single-line, no nesting.</span>
+    <span class="c1">#   or</span>
+    <span class="c1">#   - multi-line, nested by whitespace indentation:</span>
+    <span class="c1">#       * start- and end-tag of a block must have exactly the same indentation.</span>
+    <span class="c1">#       * start- and end-tags of *nested* blocks should have a greater indentation.</span>
+    <span class="c1"># NOTE: A single-line block must not start at beginning of the line with</span>
+    <span class="c1">#       the same indentation as the enclosing multi-line blocks!</span>
+    <span class="c1">#       Note that &quot;       &quot; and &quot;\t&quot; are different, although they may</span>
+    <span class="c1">#       look the same in an editor!</span>
+    <span class="n">_s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">_block_start</span><span class="p">)</span>
+    <span class="n">_e</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">_block_end</span><span class="p">)</span>
+    <span class="n">_strBlock</span> <span class="o">=</span> <span class="s2">r&quot;&quot;&quot;</span>
+<span class="s2">                    ^(?P&lt;mEnd&gt;[ \t]*)</span><span class="si">%s</span><span class="s2">end</span><span class="si">%s</span><span class="s2">(?P&lt;meIgnored&gt;.*)\r?\n?   # multi-line end  (^   &lt;!--(end)--&gt;IGNORED_TEXT\n)</span>
+<span class="s2">                    |</span>
+<span class="s2">                    (?P&lt;sEnd&gt;)</span><span class="si">%s</span><span class="s2">end</span><span class="si">%s</span><span class="s2">                               # single-line end (&lt;!--(end)--&gt;)</span>
+<span class="s2">                    |</span>
+<span class="s2">                    (?P&lt;sSpace&gt;[ \t]*)                              # single-line tag (no nesting)</span>
+<span class="s2">                    </span><span class="si">%s</span><span class="s2">(?P&lt;sKeyw&gt;\w+)[ \t]*(?P&lt;sParam&gt;.*?)</span><span class="si">%s</span><span class="s2"></span>
+<span class="s2">                    (?P&lt;sContent&gt;.*?)</span>
+<span class="s2">                    (?=(?:</span><span class="si">%s</span><span class="s2">.*?</span><span class="si">%s</span><span class="s2">.*?)??</span><span class="si">%s</span><span class="s2">end</span><span class="si">%s</span><span class="s2">)                     # (match until end or i.e. &lt;!--(elif/else...)--&gt;)</span>
+<span class="s2">                    |</span>
+<span class="s2">                                                                    # multi-line tag, nested by whitespace indentation</span>
+<span class="s2">                    ^(?P&lt;indent&gt;[ \t]*)                             #   save indentation of start tag</span>
+<span class="s2">                    </span><span class="si">%s</span><span class="s2">(?P&lt;mKeyw&gt;\w+)\s*(?P&lt;mParam&gt;.*?)</span><span class="si">%s</span><span class="s2">(?P&lt;mIgnored&gt;.*)\r?\n</span>
+<span class="s2">                    (?P&lt;mContent&gt;(?:.*\n)*?)</span>
+<span class="s2">                    (?=(?P=indent)</span><span class="si">%s</span><span class="s2">(?:.|\s)*?</span><span class="si">%s</span><span class="s2">)                   #   match indentation</span>
+<span class="s2">                &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_s</span><span class="p">,</span> <span class="n">_e</span><span class="p">,</span>
+                       <span class="n">_s</span><span class="p">,</span> <span class="n">_e</span><span class="p">,</span>
+                       <span class="n">_s</span><span class="p">,</span> <span class="n">_e</span><span class="p">,</span> <span class="n">_s</span><span class="p">,</span> <span class="n">_e</span><span class="p">,</span> <span class="n">_s</span><span class="p">,</span> <span class="n">_e</span><span class="p">,</span>
+                       <span class="n">_s</span><span class="p">,</span> <span class="n">_e</span><span class="p">,</span> <span class="n">_s</span><span class="p">,</span> <span class="n">_e</span><span class="p">)</span>
+    <span class="n">_reBlock</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">_strBlock</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">X</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+
+    <span class="c1"># &quot;for&quot;-block parameters: &quot;var(,var)* in ...&quot;</span>
+    <span class="n">_strForParam</span> <span class="o">=</span> <span class="s2">r&quot;&quot;&quot;^(?P&lt;names&gt;\w+(?:\s*,\s*\w+)*)\s+in\s+(?P&lt;iter&gt;.+)$&quot;&quot;&quot;</span>
+    <span class="n">_reForParam</span>  <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">_strForParam</span><span class="p">)</span>
+
+    <span class="c1"># allowed macro-names</span>
+    <span class="n">_reMacroParam</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">r&quot;&quot;&quot;^\w+$&quot;&quot;&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Parser.__init__"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.Parser.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loadfunc</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">testexpr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="n">HTML</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Init the parser.</span>
+
+<span class="sd">        :Parameters:</span>
+<span class="sd">            - `loadfunc`: function to load included templates</span>
+<span class="sd">              (i.e. ``LoaderFile(...).load``)</span>
+<span class="sd">            - `testexpr`: function to test if a template-expressions is valid</span>
+<span class="sd">              (i.e. ``EvalPseudoSandbox().compile``)</span>
+<span class="sd">            - `escape`:   default-escaping (may be modified by the template)</span>
+<span class="sd">        :Exceptions:</span>
+<span class="sd">            - `ValueError`: if `testexpr` or `escape` is invalid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">loadfunc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_load</span> <span class="o">=</span> <span class="n">dummy_raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">,</span> <span class="s2">&quot;&#39;include&#39; not supported, since no &#39;loadfunc&#39; was given.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_load</span> <span class="o">=</span> <span class="n">loadfunc</span>
+
+        <span class="k">if</span> <span class="n">testexpr</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_testexprfunc</span> <span class="o">=</span> <span class="n">dummy</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>    <span class="c1"># test if testexpr() works</span>
+                <span class="n">testexpr</span><span class="p">(</span><span class="s2">&quot;i==1&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">err</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid &#39;testexpr&#39; (</span><span class="si">%s</span><span class="s2">).&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">err</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_testexprfunc</span> <span class="o">=</span> <span class="n">testexpr</span>
+
+        <span class="k">if</span> <span class="n">escape</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">ESCAPE_SUPPORTED</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported &#39;escape&#39; (</span><span class="si">%s</span><span class="s2">).&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">escape</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">escape</span> <span class="o">=</span> <span class="n">escape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_includestack</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="Parser.parse"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.Parser.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse a template.</span>
+
+<span class="sd">        :Parameters:</span>
+<span class="sd">            - `template`: template-unicode-string</span>
+<span class="sd">        :Returns:         the resulting parse-tree</span>
+<span class="sd">        :Exceptions:</span>
+<span class="sd">            - `TemplateSyntaxError`: for template-syntax-errors</span>
+<span class="sd">            - `TemplateIncludeError`: if template-inclusion failed</span>
+<span class="sd">            - `TemplateException`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_includestack</span> <span class="o">=</span> <span class="p">[(</span><span class="bp">None</span><span class="p">,</span> <span class="n">template</span><span class="p">)]</span>   <span class="c1"># for error-messages (_errpos)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse</span><span class="p">(</span><span class="n">template</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parser._errpos"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.Parser._errpos">[docs]</a>    <span class="k">def</span> <span class="nf">_errpos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpos</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert `fpos` to ``(filename,row,column)`` for error-messages.&quot;&quot;&quot;</span>
+        <span class="n">filename</span><span class="p">,</span> <span class="n">string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_includestack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">filename</span><span class="p">,</span> <span class="n">srow</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">fpos</span><span class="p">),</span> <span class="n">scol</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">fpos</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parser._testexpr"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.Parser._testexpr">[docs]</a>    <span class="k">def</span> <span class="nf">_testexpr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span>  <span class="n">fpos</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test a template-expression to detect errors.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_testexprfunc</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">SyntaxError</span><span class="p">:</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">fpos</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Parser._parse_sub"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.Parser._parse_sub">[docs]</a>    <span class="k">def</span> <span class="nf">_parse_sub</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parsetree</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">fpos</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse substitutions, and append them to the parse-tree.</span>
+
+<span class="sd">        Additionally, remove comments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">curr</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reSubstitution</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">curr</span><span class="p">:</span>
+                <span class="n">parsetree</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reComment</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">[</span><span class="n">curr</span><span class="p">:</span><span class="n">start</span><span class="p">])))</span>
+
+            <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;sub&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;end&quot;</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Missing closing tag &#39;</span><span class="si">%s</span><span class="s2">&#39; for &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sub_end</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">fpos</span><span class="o">+</span><span class="n">start</span><span class="p">))</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;sub&quot;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_testexpr</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;sub&quot;</span><span class="p">),</span> <span class="n">fpos</span><span class="o">+</span><span class="n">start</span><span class="p">)</span>
+                    <span class="n">parsetree</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;sub&quot;</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;sub&quot;</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;escsub&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;escend&quot;</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Missing closing tag &#39;</span><span class="si">%s</span><span class="s2">&#39; for &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_subesc_end</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">fpos</span><span class="o">+</span><span class="n">start</span><span class="p">))</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;escsub&quot;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_testexpr</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;escsub&quot;</span><span class="p">),</span> <span class="n">fpos</span><span class="o">+</span><span class="n">start</span><span class="p">)</span>
+                    <span class="n">parsetree</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;esc&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">escape</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;escsub&quot;</span><span class="p">)))</span>
+
+            <span class="n">curr</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">curr</span><span class="p">:</span>
+            <span class="n">parsetree</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reComment</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">[</span><span class="n">curr</span><span class="p">:])))</span></div>
+
+<div class="viewcode-block" id="Parser._parse"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.Parser._parse">[docs]</a>    <span class="k">def</span> <span class="nf">_parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">fpos</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Recursive part of `parse()`.</span>
+
+<span class="sd">        :Parameters:</span>
+<span class="sd">            - template</span>
+<span class="sd">            - fpos: position of ``template`` in the complete template (for error-messages)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># blank out comments</span>
+        <span class="c1"># (So that its content does not collide with other syntax, and</span>
+        <span class="c1">#  because removing them completely would falsify the character-</span>
+        <span class="c1">#  position (&quot;match.start()&quot;) of error-messages)</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reComment</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="k">lambda</span> <span class="n">match</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comment_start</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="o">+</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">template</span><span class="p">)</span>
+
+        <span class="c1"># init parser</span>
+        <span class="n">parsetree</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">curr</span> <span class="o">=</span> <span class="mi">0</span>            <span class="c1"># current position (= end of previous block)</span>
+        <span class="n">block_type</span> <span class="o">=</span> <span class="bp">None</span>   <span class="c1"># block type: if,for,macro,raw,...</span>
+        <span class="n">block_indent</span> <span class="o">=</span> <span class="bp">None</span> <span class="c1"># None: single-line, &gt;=0: multi-line</span>
+
+        <span class="c1"># find blocks</span>
+        <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reBlock</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">template</span><span class="p">):</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="c1"># process template-part before this block</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">curr</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_parse_sub</span><span class="p">(</span><span class="n">parsetree</span><span class="p">,</span> <span class="n">template</span><span class="p">[</span><span class="n">curr</span><span class="p">:</span><span class="n">start</span><span class="p">],</span> <span class="n">fpos</span><span class="p">)</span>
+
+            <span class="c1"># analyze block syntax (incl. error-checking and -messages)</span>
+            <span class="n">keyword</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">block</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">groupdict</span><span class="p">()</span>
+            <span class="n">pos__</span> <span class="o">=</span> <span class="n">fpos</span> <span class="o">+</span> <span class="n">start</span>                <span class="c1"># shortcut</span>
+            <span class="k">if</span>   <span class="n">block</span><span class="p">[</span><span class="s2">&quot;sKeyw&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>    <span class="c1"># single-line block tag</span>
+                <span class="n">block_indent</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">keyword</span> <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;sKeyw&quot;</span><span class="p">]</span>
+                <span class="n">param</span>   <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;sParam&quot;</span><span class="p">]</span>
+                <span class="n">content</span> <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;sContent&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;sSpace&quot;</span><span class="p">]:</span>             <span class="c1"># restore spaces before start-tag</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsetree</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">parsetree</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;str&quot;</span><span class="p">:</span>
+                        <span class="n">parsetree</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">parsetree</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;sSpace&quot;</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">parsetree</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;sSpace&quot;</span><span class="p">]))</span>
+                <span class="n">pos_p</span> <span class="o">=</span> <span class="n">fpos</span> <span class="o">+</span> <span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s2">&quot;sParam&quot;</span><span class="p">)</span>    <span class="c1"># shortcuts</span>
+                <span class="n">pos_c</span> <span class="o">=</span> <span class="n">fpos</span> <span class="o">+</span> <span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s2">&quot;sContent&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;mKeyw&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>    <span class="c1"># multi-line block tag</span>
+                <span class="n">block_indent</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="s2">&quot;indent&quot;</span><span class="p">])</span>
+                <span class="n">keyword</span> <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;mKeyw&quot;</span><span class="p">]</span>
+                <span class="n">param</span>   <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;mParam&quot;</span><span class="p">]</span>
+                <span class="n">content</span> <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;mContent&quot;</span><span class="p">]</span>
+                <span class="n">pos_p</span> <span class="o">=</span> <span class="n">fpos</span> <span class="o">+</span> <span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s2">&quot;mParam&quot;</span><span class="p">)</span>
+                <span class="n">pos_c</span> <span class="o">=</span> <span class="n">fpos</span> <span class="o">+</span> <span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s2">&quot;mContent&quot;</span><span class="p">)</span>
+                <span class="n">ignored</span> <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;mIgnored&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">ignored</span>  <span class="ow">and</span>  <span class="n">ignored</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comment_start</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;No code allowed after block-tag.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">fpos</span><span class="o">+</span><span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s2">&quot;mIgnored&quot;</span><span class="p">)))</span>
+            <span class="k">elif</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;mEnd&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>     <span class="c1"># multi-line block end</span>
+                <span class="k">if</span> <span class="n">block_type</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;No block to end here/invalid indent.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">)</span> <span class="p">)</span>
+                <span class="k">if</span> <span class="n">block_indent</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="s2">&quot;mEnd&quot;</span><span class="p">]):</span>
+                    <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Invalid indent for end-tag.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">)</span> <span class="p">)</span>
+                <span class="n">ignored</span> <span class="o">=</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;meIgnored&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">ignored</span>  <span class="ow">and</span>  <span class="n">ignored</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comment_start</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;No code allowed after end-tag.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">fpos</span><span class="o">+</span><span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s2">&quot;meIgnored&quot;</span><span class="p">)))</span>
+                <span class="n">block_type</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">elif</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;sEnd&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>     <span class="c1"># single-line block end</span>
+                <span class="k">if</span> <span class="n">block_type</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;No block to end here/invalid indent.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">block_indent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Invalid indent for end-tag.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                <span class="n">block_type</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">TemplateException</span><span class="p">(</span><span class="s2">&quot;FATAL: Block regexp error. Please contact the author. (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
+
+            <span class="c1"># analyze block content (mainly error-checking and -messages)</span>
+            <span class="k">if</span> <span class="n">keyword</span><span class="p">:</span>
+                <span class="n">keyword</span> <span class="o">=</span> <span class="n">keyword</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="k">if</span>   <span class="s1">&#39;for&#39;</span>   <span class="o">==</span> <span class="n">keyword</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">block_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Missing block-end-tag before new block at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="n">block_type</span> <span class="o">=</span> <span class="s1">&#39;for&#39;</span>
+                    <span class="n">cond</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reForParam</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">cond</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Invalid &#39;for ...&#39; at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">param</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos_p</span><span class="p">))</span>
+                    <span class="n">names</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>  <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">cond</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;names&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_testexpr</span><span class="p">(</span><span class="n">cond</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;iter&quot;</span><span class="p">),</span> <span class="n">pos_p</span><span class="o">+</span><span class="n">cond</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s2">&quot;iter&quot;</span><span class="p">))</span>
+                    <span class="n">parsetree</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;for&quot;</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">cond</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;iter&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">pos_c</span><span class="p">)))</span>
+                <span class="k">elif</span> <span class="s1">&#39;if&#39;</span>    <span class="o">==</span> <span class="n">keyword</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">block_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Missing block-end-tag before new block at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">param</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Missing condition for &#39;if&#39; at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="n">block_type</span> <span class="o">=</span> <span class="s1">&#39;if&#39;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_testexpr</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">pos_p</span><span class="p">)</span>
+                    <span class="n">parsetree</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;if&quot;</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">pos_c</span><span class="p">)))</span>
+                <span class="k">elif</span> <span class="s1">&#39;elif&#39;</span>  <span class="o">==</span> <span class="n">keyword</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">block_type</span> <span class="o">!=</span> <span class="s1">&#39;if&#39;</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;&#39;elif&#39; may only appear after &#39;if&#39; at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">param</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Missing condition for &#39;elif&#39; at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_testexpr</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">pos_p</span><span class="p">)</span>
+                    <span class="n">parsetree</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;elif&quot;</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">pos_c</span><span class="p">)))</span>
+                <span class="k">elif</span> <span class="s1">&#39;else&#39;</span>  <span class="o">==</span> <span class="n">keyword</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">block_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;if&#39;</span><span class="p">,</span> <span class="s1">&#39;for&#39;</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;&#39;else&#39; may only appear after &#39;if&#39; of &#39;for&#39; at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">param</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;&#39;else&#39; may not have parameters at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="n">parsetree</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;else&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">pos_c</span><span class="p">)))</span>
+                <span class="k">elif</span> <span class="s1">&#39;macro&#39;</span> <span class="o">==</span> <span class="n">keyword</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">block_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Missing block-end-tag before new block &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="n">block_type</span> <span class="o">=</span> <span class="s1">&#39;macro&#39;</span>
+                    <span class="c1"># make sure param is &quot;\w+&quot; (instead of &quot;.+&quot;)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">param</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Missing name for &#39;macro&#39; at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reMacroParam</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">param</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Invalid name for &#39;macro&#39; at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="c1">#remove last newline</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">content</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+                        <span class="n">content</span> <span class="o">=</span> <span class="n">content</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">content</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">:</span>
+                        <span class="n">content</span> <span class="o">=</span> <span class="n">content</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">parsetree</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;macro&quot;</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">pos_c</span><span class="p">)))</span>
+
+                <span class="c1"># parser-commands</span>
+                <span class="k">elif</span> <span class="s1">&#39;raw&#39;</span>   <span class="o">==</span> <span class="n">keyword</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">block_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Missing block-end-tag before new block &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">param</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;&#39;raw&#39; may not have parameters at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="n">block_type</span> <span class="o">=</span> <span class="s1">&#39;raw&#39;</span>
+                    <span class="n">parsetree</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">content</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="s1">&#39;include&#39;</span> <span class="o">==</span> <span class="n">keyword</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">block_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Missing block-end-tag before new block &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">param</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;&#39;include&#39; may not have parameters at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="n">block_type</span> <span class="o">=</span> <span class="s1">&#39;include&#39;</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="n">err</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                        <span class="k">raise</span> <span class="n">TemplateIncludeError</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_includestack</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">content</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">u</span><span class="p">))</span>  <span class="c1"># current filename/template for error-msg.</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_includestack</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+                    <span class="n">parsetree</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="s1">&#39;set_escape&#39;</span> <span class="o">==</span> <span class="n">keyword</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">block_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Missing block-end-tag before new block &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">param</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;&#39;set_escape&#39; may not have parameters at &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="n">block_type</span> <span class="o">=</span> <span class="s1">&#39;set_escape&#39;</span>
+                    <span class="n">esc</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">esc</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ESCAPE_SUPPORTED</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Unsupported escape &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">esc</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">escape</span> <span class="o">=</span> <span class="n">ESCAPE_SUPPORTED</span><span class="p">[</span><span class="n">esc</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Invalid keyword &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">keyword</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+            <span class="n">curr</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">block_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s2">&quot;Missing end-tag.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_errpos</span><span class="p">(</span><span class="n">pos__</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">template</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">curr</span><span class="p">:</span>            <span class="c1"># process template-part after last block</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parse_sub</span><span class="p">(</span><span class="n">parsetree</span><span class="p">,</span> <span class="n">template</span><span class="p">[</span><span class="n">curr</span><span class="p">:],</span> <span class="n">fpos</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">parsetree</span></div></div>
+
+<span class="c1">#-----------------------------------------</span>
+<span class="c1"># Evaluation</span>
+
+<span class="c1"># some checks</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="s2">&quot;dir()&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;__builtins__&#39;</span><span class="p">:{</span><span class="s1">&#39;dir&#39;</span><span class="p">:</span><span class="nb">dir</span><span class="p">}}))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> \
+    <span class="s2">&quot;FATAL: &#39;eval&#39; does not work as expected (</span><span class="si">%s</span><span class="s2">).&quot;</span>
+<span class="k">assert</span> <span class="nb">compile</span><span class="p">(</span><span class="s2">&quot;0 .__class__&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;eval&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">co_names</span> <span class="o">==</span> <span class="p">(</span><span class="s1">&#39;__class__&#39;</span><span class="p">,),</span> \
+    <span class="s2">&quot;FATAL: &#39;compile&#39; does not work as expected.&quot;</span>
+
+<div class="viewcode-block" id="EvalPseudoSandbox"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.EvalPseudoSandbox">[docs]</a><span class="k">class</span> <span class="nc">EvalPseudoSandbox</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;An eval-pseudo-sandbox.</span>
+
+<span class="sd">    The pseudo-sandbox restricts the available functions/objects, so the</span>
+<span class="sd">    code can only access:</span>
+
+<span class="sd">    - some of the builtin python-functions, which are considered &quot;safe&quot;</span>
+<span class="sd">      (see safe_builtins)</span>
+<span class="sd">    - some additional functions (exists(), default(), setvar())</span>
+<span class="sd">    - the passed objects incl. their methods.</span>
+
+<span class="sd">    Additionally, names beginning with &quot;_&quot; are forbidden.</span>
+<span class="sd">    This is to prevent things like &#39;0 .__class__&#39;, with which you could</span>
+<span class="sd">    easily break out of a &quot;sandbox&quot;.</span>
+
+<span class="sd">    Be careful to only pass &quot;safe&quot; objects/functions to the template,</span>
+<span class="sd">    because any unsafe function/method could break the sandbox!</span>
+<span class="sd">    For maximum security, restrict the access to as few objects/functions</span>
+<span class="sd">    as possible!</span>
+
+<span class="sd">    :Warning:</span>
+<span class="sd">        Note that this is no real sandbox! (And although I don&#39;t know any</span>
+<span class="sd">        way to break out of the sandbox without passing-in an unsafe object,</span>
+<span class="sd">        I cannot guarantee that there is no such way. So use with care.)</span>
+
+<span class="sd">        Take care if you want to use it for untrusted code!!</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">safe_builtins</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;abs&quot;</span>       <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">abs</span><span class="p">,</span>
+        <span class="s2">&quot;chr&quot;</span>       <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">chr</span><span class="p">,</span>
+        <span class="s2">&quot;divmod&quot;</span>    <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">divmod</span><span class="p">,</span>
+        <span class="s2">&quot;hash&quot;</span>      <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">hash</span><span class="p">,</span>
+        <span class="s2">&quot;hex&quot;</span>       <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">hex</span><span class="p">,</span>
+        <span class="s2">&quot;len&quot;</span>       <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">len</span><span class="p">,</span>
+        <span class="s2">&quot;max&quot;</span>       <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">max</span><span class="p">,</span>
+        <span class="s2">&quot;min&quot;</span>       <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">min</span><span class="p">,</span>
+        <span class="s2">&quot;oct&quot;</span>       <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">oct</span><span class="p">,</span>
+        <span class="s2">&quot;ord&quot;</span>       <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">ord</span><span class="p">,</span>
+        <span class="s2">&quot;pow&quot;</span>       <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">pow</span><span class="p">,</span>
+        <span class="s2">&quot;range&quot;</span>     <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">range</span><span class="p">,</span>
+        <span class="s2">&quot;round&quot;</span>     <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">round</span><span class="p">,</span>
+        <span class="s2">&quot;sorted&quot;</span>    <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">sorted</span><span class="p">,</span>
+        <span class="s2">&quot;sum&quot;</span>       <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span>
+        <span class="s2">&quot;zip&quot;</span>       <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">zip</span><span class="p">,</span>
+
+        <span class="s2">&quot;bool&quot;</span>      <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span>
+        <span class="s2">&quot;complex&quot;</span>   <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">complex</span><span class="p">,</span>
+        <span class="s2">&quot;dict&quot;</span>      <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">dict</span><span class="p">,</span>
+        <span class="s2">&quot;enumerate&quot;</span> <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">enumerate</span><span class="p">,</span>
+        <span class="s2">&quot;float&quot;</span>     <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">float</span><span class="p">,</span>
+        <span class="s2">&quot;int&quot;</span>       <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">int</span><span class="p">,</span>
+        <span class="s2">&quot;list&quot;</span>      <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">list</span><span class="p">,</span>
+        <span class="s2">&quot;reversed&quot;</span>  <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">reversed</span><span class="p">,</span>
+        <span class="s2">&quot;str&quot;</span>       <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">str</span><span class="p">,</span>
+        <span class="s2">&quot;tuple&quot;</span>     <span class="p">:</span> <span class="n">__builtin__</span><span class="o">.</span><span class="n">tuple</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">safe_builtins_python2</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;unichr&quot;</span>    <span class="p">:</span> <span class="s2">&quot;__builtin__.unichr&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;unicode&quot;</span>   <span class="p">:</span> <span class="s2">&quot;__builtin__.unicode&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;long&quot;</span>      <span class="p">:</span> <span class="s2">&quot;__builtin__.long&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;xrange&quot;</span>    <span class="p">:</span> <span class="s2">&quot;__builtin__.xrange&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cmp&quot;</span>       <span class="p">:</span> <span class="s2">&quot;__builtin__.cmp&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;None&quot;</span>      <span class="p">:</span> <span class="s2">&quot;__builtin__.None&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;True&quot;</span>      <span class="p">:</span> <span class="s2">&quot;__builtin__.True&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;False&quot;</span>     <span class="p">:</span> <span class="s2">&quot;__builtin__.False&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+<div class="viewcode-block" id="EvalPseudoSandbox.__init__"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.EvalPseudoSandbox.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compile_cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">locals_ptr</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_allowed_globals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">safe_builtins</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">PY3</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">d</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">safe_builtins_python2</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">eval_allowed_globals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;__import__&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_import</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;exists&quot;</span><span class="p">,</span>  <span class="bp">self</span><span class="o">.</span><span class="n">f_exists</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_default</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;setvar&quot;</span><span class="p">,</span>  <span class="bp">self</span><span class="o">.</span><span class="n">f_setvar</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EvalPseudoSandbox.register"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.EvalPseudoSandbox.register">[docs]</a>    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add an object to the &quot;allowed eval-globals&quot;.</span>
+
+<span class="sd">        Mainly useful to add user-defined functions to the pseudo-sandbox.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_allowed_globals</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span></div>
+
+<div class="viewcode-block" id="EvalPseudoSandbox.compile"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.EvalPseudoSandbox.compile">[docs]</a>    <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compile a python-eval-expression.</span>
+
+<span class="sd">        - Use a compile-cache.</span>
+<span class="sd">        - Raise a `NameError` if `expr` contains a name beginning with ``_``.</span>
+
+<span class="sd">        :Returns: the compiled `expr`</span>
+<span class="sd">        :Exceptions:</span>
+<span class="sd">            - `SyntaxError`: for compile-errors</span>
+<span class="sd">            - `NameError`: if expr contains a name beginning with ``_``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">expr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compile_cache</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="nb">compile</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;eval&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">co_names</span><span class="p">:</span>    <span class="c1">#prevent breakout via new-style-classes</span>
+                <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;_&#39;</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s2">&quot;Name &#39;</span><span class="si">%s</span><span class="s2">&#39; is not allowed.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_compile_cache</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compile_cache</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="EvalPseudoSandbox.eval"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.EvalPseudoSandbox.eval">[docs]</a>    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="nb">locals</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Eval a python-eval-expression.</span>
+
+<span class="sd">        Sets ``self.locals_ptr`` to ``locales`` and compiles the code</span>
+<span class="sd">        before evaluating.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sav</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">locals_ptr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">locals_ptr</span> <span class="o">=</span> <span class="nb">locals</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">expr</span><span class="p">),</span> <span class="p">{</span><span class="s2">&quot;__builtins__&quot;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_allowed_globals</span><span class="p">},</span> <span class="nb">locals</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">locals_ptr</span> <span class="o">=</span> <span class="n">sav</span>
+        <span class="k">return</span> <span class="n">x</span></div>
+
+<div class="viewcode-block" id="EvalPseudoSandbox.f_import"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.EvalPseudoSandbox.f_import">[docs]</a>    <span class="k">def</span> <span class="nf">f_import</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;``import``/``__import__()`` for the sandboxed code.</span>
+
+<span class="sd">        Since &quot;import&quot; is insecure, the PseudoSandbox does not allow to</span>
+<span class="sd">        import other modules. But since some functions need to import</span>
+<span class="sd">        other modules (e.g. &quot;datetime.datetime.strftime&quot; imports &quot;time&quot;),</span>
+<span class="sd">        this function replaces the builtin &quot;import&quot; and allows to use</span>
+<span class="sd">        modules which are already accessible by the sandboxed code.</span>
+
+<span class="sd">        :Note:</span>
+<span class="sd">            - This probably only works for rather simple imports.</span>
+<span class="sd">            - For security, it may be better to avoid such (complex) modules</span>
+<span class="sd">              which import other modules. (e.g. use time.localtime and</span>
+<span class="sd">              time.strftime instead of datetime.datetime.strftime)</span>
+
+<span class="sd">        :Example:</span>
+
+<span class="sd">            &gt;&gt;&gt; from datetime import datetime</span>
+<span class="sd">            &gt;&gt;&gt; import pyratemp</span>
+<span class="sd">            &gt;&gt;&gt; t = pyratemp.Template(&#39;@!mytime.strftime(&quot;%H:%M:%S&quot;)!@&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; print t(mytime=datetime.now())</span>
+<span class="sd">            Traceback (most recent call last):</span>
+<span class="sd">              ...</span>
+<span class="sd">            ImportError: import not allowed in pseudo-sandbox; try to import &#39;time&#39; yourself and pass it to the sandbox/template</span>
+<span class="sd">            &gt;&gt;&gt; import time</span>
+<span class="sd">            &gt;&gt;&gt; print t(mytime=datetime.strptime(&quot;13:40:54&quot;, &quot;%H:%M:%S&quot;), time=time)</span>
+<span class="sd">            13:40:54</span>
+
+<span class="sd">            # &gt;&gt;&gt; print t(mytime=datetime.now(), time=time)</span>
+<span class="sd">            # 13:40:54</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">types</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">locals_ptr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>  <span class="ow">and</span>  <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">locals_ptr</span>  <span class="ow">and</span>  <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">locals_ptr</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">locals_ptr</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;import not allowed in pseudo-sandbox; try to import &#39;</span><span class="si">%s</span><span class="s2">&#39; yourself and pass it to the sandbox/template&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EvalPseudoSandbox.f_exists"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.EvalPseudoSandbox.f_exists">[docs]</a>    <span class="k">def</span> <span class="nf">f_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;``exists()`` for the sandboxed code.</span>
+
+<span class="sd">        Test if the variable `varname` exists in the current locals-namespace.</span>
+
+<span class="sd">        This only works for single variable names. If you want to test</span>
+<span class="sd">        complicated expressions, use i.e. `default`.</span>
+<span class="sd">        (i.e. `default(&quot;expr&quot;,False)`)</span>
+
+<span class="sd">        :Note:      the variable-name has to be quoted! (like in eval)</span>
+<span class="sd">        :Example:   see module-docstring</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">varname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">locals_ptr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EvalPseudoSandbox.f_default"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.EvalPseudoSandbox.f_default">[docs]</a>    <span class="k">def</span> <span class="nf">f_default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;``default()`` for the sandboxed code.</span>
+
+<span class="sd">        Try to evaluate an expression and return the result or a</span>
+<span class="sd">        fallback-/default-value; the `default`-value is used</span>
+<span class="sd">        if `expr` does not exist/is invalid/results in None.</span>
+
+<span class="sd">        This is very useful for optional data.</span>
+
+<span class="sd">        :Parameter:</span>
+<span class="sd">            - expr: eval-expression</span>
+<span class="sd">            - default: fallback-falue if eval(expr) fails or is None.</span>
+<span class="sd">        :Returns:</span>
+<span class="sd">            the eval-result or the &quot;fallback&quot;-value.</span>
+
+<span class="sd">        :Note:      the eval-expression has to be quoted! (like in eval)</span>
+<span class="sd">        :Example:   see module-docstring</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">locals_ptr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">default</span>
+            <span class="k">return</span> <span class="n">r</span>
+        <span class="c1">#TODO: which exceptions should be catched here?</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">NameError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">default</span></div>
+
+<div class="viewcode-block" id="EvalPseudoSandbox.f_setvar"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.EvalPseudoSandbox.f_setvar">[docs]</a>    <span class="k">def</span> <span class="nf">f_setvar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;``setvar()`` for the sandboxed code.</span>
+
+<span class="sd">        Set a variable.</span>
+
+<span class="sd">        :Example:   see module-docstring</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">locals_ptr</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">locals_ptr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span></div></div>
+
+<span class="c1">#-----------------------------------------</span>
+<span class="c1"># basic template / subtemplate</span>
+
+<div class="viewcode-block" id="TemplateBase"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.TemplateBase">[docs]</a><span class="k">class</span> <span class="nc">TemplateBase</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Basic template-class.</span>
+
+<span class="sd">    Used both for the template itself and for &#39;macro&#39;s (&quot;subtemplates&quot;) in</span>
+<span class="sd">    the template.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TemplateBase.__init__"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.TemplateBase.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parsetree</span><span class="p">,</span> <span class="n">renderfunc</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create the Template/Subtemplate/Macro.</span>
+
+<span class="sd">        :Parameters:</span>
+<span class="sd">            - `parsetree`: parse-tree of the template/subtemplate/macro</span>
+<span class="sd">            - `renderfunc`: render-function</span>
+<span class="sd">            - `data`: data to fill into the template by default (dictionary).</span>
+<span class="sd">              This data may later be overridden when rendering the template.</span>
+<span class="sd">        :Exceptions:</span>
+<span class="sd">            - `TypeError`: if `data` is not a dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#TODO: parameter-checking?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parsetree</span> <span class="o">=</span> <span class="n">parsetree</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">elif</span> <span class="n">data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;&quot;data&quot; must be a dict (or None).&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_render</span> <span class="o">=</span> <span class="n">renderfunc</span></div>
+
+<div class="viewcode-block" id="TemplateBase.__call__"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.TemplateBase.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">override</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fill out/render the template.</span>
+
+<span class="sd">        :Parameters:</span>
+<span class="sd">            - `override`: objects to add to the data-namespace, overriding</span>
+<span class="sd">              the &quot;default&quot;-data.</span>
+<span class="sd">        :Returns:    the filled template (in unicode)</span>
+<span class="sd">        :Note:       This is also called when invoking macros</span>
+<span class="sd">                     (i.e. ``$!mymacro()!$``).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">override</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">toUniCode</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_render</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parsetree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_data</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>       <span class="c1"># restore current_data</span>
+        <span class="k">return</span> <span class="n">_dontescape</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>               <span class="c1"># (see class _dontescape)</span></div>
+
+<div class="viewcode-block" id="TemplateBase.__unicode__"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.TemplateBase.__unicode__">[docs]</a>    <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Alias for __call__().&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__call__</span><span class="p">()</span></div>
+<div class="viewcode-block" id="TemplateBase.__str__"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.TemplateBase.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Only here for completeness. Use __unicode__ instead!&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__call__</span><span class="p">()</span></div></div>
+
+<span class="c1">#-----------------------------------------</span>
+<span class="c1"># Renderer</span>
+
+<div class="viewcode-block" id="_dontescape"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp._dontescape">[docs]</a><span class="k">class</span> <span class="nc">_dontescape</span><span class="p">(</span><span class="n">text_type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Unicode-string which should not be escaped.</span>
+
+<span class="sd">    If ``isinstance(object,_dontescape)``, then don&#39;t escape the object in</span>
+<span class="sd">    ``@!...!@``. It&#39;s useful for not double-escaping macros, and it&#39;s</span>
+<span class="sd">    automatically used for macros/subtemplates.</span>
+
+<span class="sd">    :Note: This only works if the object is used on its own in ``@!...!@``.</span>
+<span class="sd">           It i.e. does not work in ``@!object*2!@`` or ``@!object + &quot;hi&quot;!@``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__slots__</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="Renderer"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.Renderer">[docs]</a><span class="k">class</span> <span class="nc">Renderer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Render a template-parse-tree.</span>
+
+<span class="sd">    :Uses: `TemplateBase` for macros</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Renderer.__init__"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.Renderer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evalfunc</span><span class="p">,</span> <span class="n">escapefunc</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Init the renderer.</span>
+
+<span class="sd">        :Parameters:</span>
+<span class="sd">            - `evalfunc`: function for template-expression-evaluation</span>
+<span class="sd">              (i.e. ``EvalPseudoSandbox().eval``)</span>
+<span class="sd">            - `escapefunc`: function for escaping special characters</span>
+<span class="sd">              (i.e. `escape`)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#TODO: test evalfunc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evalfunc</span> <span class="o">=</span> <span class="n">evalfunc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">escapefunc</span> <span class="o">=</span> <span class="n">escapefunc</span></div>
+
+<div class="viewcode-block" id="Renderer._eval"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.Renderer._eval">[docs]</a>    <span class="k">def</span> <span class="nf">_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;evalfunc with error-messages&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">evalfunc</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="c1">#TODO: any other errors to catch here?</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span><span class="ne">NameError</span><span class="p">,</span><span class="ne">IndexError</span><span class="p">,</span><span class="ne">KeyError</span><span class="p">,</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">SyntaxError</span><span class="p">):</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="k">raise</span> <span class="n">TemplateRenderError</span><span class="p">(</span><span class="s2">&quot;Cannot eval expression &#39;</span><span class="si">%s</span><span class="s2">&#39;. (</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">err</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">err</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Renderer.render"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.Renderer.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parsetree</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Render a parse-tree of a template.</span>
+
+<span class="sd">        :Parameters:</span>
+<span class="sd">            - `parsetree`: the parse-tree</span>
+<span class="sd">            - `data`:      the data to fill into the template (dictionary)</span>
+<span class="sd">        :Returns:   the rendered output-unicode-string</span>
+<span class="sd">        :Exceptions:</span>
+<span class="sd">            - `TemplateRenderError`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_eval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval</span>  <span class="c1"># shortcut</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">do_else</span> <span class="o">=</span> <span class="bp">False</span>     <span class="c1"># use else/elif-branch?</span>
+
+        <span class="k">if</span> <span class="n">parsetree</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">parsetree</span><span class="p">:</span>
+            <span class="k">if</span>   <span class="s2">&quot;str&quot;</span>   <span class="o">==</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="s2">&quot;sub&quot;</span>   <span class="o">==</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">toUniCode</span><span class="p">(</span><span class="n">_eval</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">data</span><span class="p">)))</span>
+            <span class="k">elif</span> <span class="s2">&quot;esc&quot;</span>   <span class="o">==</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="n">_eval</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="n">data</span><span class="p">)</span>
+                <span class="c1">#prevent double-escape</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">_dontescape</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">TemplateBase</span><span class="p">):</span>
+                    <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">toUniCode</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">escapefunc</span><span class="p">(</span><span class="n">toUniCode</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="k">elif</span> <span class="s2">&quot;for&quot;</span>   <span class="o">==</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">do_else</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">iterable</span><span class="p">)</span> <span class="o">=</span> <span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">loop_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">_eval</span><span class="p">(</span><span class="n">iterable</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">TemplateRenderError</span><span class="p">(</span><span class="s2">&quot;Cannot loop over &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">iterable</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">loop_iter</span><span class="p">:</span>
+                    <span class="n">do_else</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">data</span><span class="p">[</span><span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">i</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">i</span><span class="p">)))</span>   <span class="c1">#&quot;for a,b,.. in list&quot;</span>
+                    <span class="n">output</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">data</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="s2">&quot;if&quot;</span>    <span class="o">==</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">do_else</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">if</span> <span class="n">_eval</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">data</span><span class="p">):</span>
+                    <span class="n">do_else</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="n">output</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">data</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="s2">&quot;elif&quot;</span>  <span class="o">==</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">do_else</span> <span class="ow">and</span> <span class="n">_eval</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">data</span><span class="p">):</span>
+                    <span class="n">do_else</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="n">output</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">data</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="s2">&quot;else&quot;</span>  <span class="o">==</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">do_else</span><span class="p">:</span>
+                    <span class="n">do_else</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="n">output</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">data</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="s2">&quot;macro&quot;</span> <span class="o">==</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">TemplateBase</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">TemplateRenderError</span><span class="p">(</span><span class="s2">&quot;Invalid parse-tree (</span><span class="si">%s</span><span class="s2">).&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">elem</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">output</span></div></div>
+
+<span class="c1">#-----------------------------------------</span>
+<span class="c1"># template user-interface (putting all together)</span>
+
+<div class="viewcode-block" id="Template"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.Template">[docs]</a><span class="k">class</span> <span class="nc">Template</span><span class="p">(</span><span class="n">TemplateBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Template-User-Interface.</span>
+
+<span class="sd">    :Usage:</span>
+<span class="sd">        ::</span>
+<span class="sd">            t = Template(...)  (&lt;- see __init__)</span>
+<span class="sd">            output = t(...)    (&lt;- see TemplateBase.__call__)</span>
+
+<span class="sd">    :Example:</span>
+<span class="sd">        see module-docstring</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Template.__init__"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp.Template.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">filename</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">parsetree</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="n">HTML</span><span class="p">,</span>
+            <span class="n">loader_class</span><span class="o">=</span><span class="n">LoaderFile</span><span class="p">,</span>
+            <span class="n">parser_class</span><span class="o">=</span><span class="n">Parser</span><span class="p">,</span>
+            <span class="n">renderer_class</span><span class="o">=</span><span class="n">Renderer</span><span class="p">,</span>
+            <span class="n">eval_class</span><span class="o">=</span><span class="n">EvalPseudoSandbox</span><span class="p">,</span>
+            <span class="n">escape_func</span><span class="o">=</span><span class="n">escape</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load (+parse) a template.</span>
+
+<span class="sd">        :Parameters:</span>
+<span class="sd">            - `string,filename,parsetree`: a template-string,</span>
+<span class="sd">                                           filename of a template to load,</span>
+<span class="sd">                                           or a template-parsetree.</span>
+<span class="sd">                                           (only one of these 3 is allowed)</span>
+<span class="sd">            - `encoding`: encoding of the template-files (only used for &quot;filename&quot;)</span>
+<span class="sd">            - `data`:     data to fill into the template by default (dictionary).</span>
+<span class="sd">                          This data may later be overridden when rendering the template.</span>
+<span class="sd">            - `escape`:   default-escaping for the template, may be overwritten by the template!</span>
+<span class="sd">            - `loader_class`</span>
+<span class="sd">            - `parser_class`</span>
+<span class="sd">            - `renderer_class`</span>
+<span class="sd">            - `eval_class`</span>
+<span class="sd">            - `escapefunc`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">string</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">parsetree</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Exactly 1 of string,filename,parsetree is necessary.&#39;</span><span class="p">)</span>
+
+        <span class="n">tmpl</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c1"># load template</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">incl_load</span> <span class="o">=</span> <span class="n">loader_class</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span> <span class="n">encoding</span><span class="p">)</span><span class="o">.</span><span class="n">load</span>
+            <span class="n">tmpl</span> <span class="o">=</span> <span class="n">incl_load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">string</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">incl_load</span> <span class="o">=</span> <span class="n">dummy_raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">,</span> <span class="s2">&quot;&#39;include&#39; not supported for template-strings.&quot;</span><span class="p">)</span>
+            <span class="n">tmpl</span> <span class="o">=</span> <span class="n">LoaderString</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+
+        <span class="c1"># eval (incl. compile-cache)</span>
+        <span class="n">templateeval</span> <span class="o">=</span> <span class="n">eval_class</span><span class="p">()</span>
+
+        <span class="c1"># parse</span>
+        <span class="k">if</span> <span class="n">tmpl</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">parser_class</span><span class="p">(</span><span class="n">loadfunc</span><span class="o">=</span><span class="n">incl_load</span><span class="p">,</span> <span class="n">testexpr</span><span class="o">=</span><span class="n">templateeval</span><span class="o">.</span><span class="n">compile</span><span class="p">,</span> <span class="n">escape</span><span class="o">=</span><span class="n">escape</span><span class="p">)</span>
+            <span class="n">parsetree</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">tmpl</span><span class="p">)</span>
+            <span class="k">del</span> <span class="n">p</span>
+
+        <span class="c1"># renderer</span>
+        <span class="n">renderfunc</span> <span class="o">=</span> <span class="n">renderer_class</span><span class="p">(</span><span class="n">templateeval</span><span class="o">.</span><span class="n">eval</span><span class="p">,</span> <span class="n">escape_func</span><span class="p">)</span><span class="o">.</span><span class="n">render</span>
+
+        <span class="c1">#create template</span>
+        <span class="n">TemplateBase</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parsetree</span><span class="p">,</span> <span class="n">renderfunc</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div></div>
+
+
+<span class="c1">#=========================================</span>
+<span class="c1">#doctest</span>
+
+<div class="viewcode-block" id="_doctest"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.pyratemp.html#PyFoam.ThirdParty.pyratemp._doctest">[docs]</a><span class="k">def</span> <span class="nf">_doctest</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;doctest this module.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">doctest</span>
+    <span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span></div>
+
+<span class="c1">#----------------------</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">_doctest</span><span class="p">()</span>
+
+<span class="c1">#=========================================</span>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

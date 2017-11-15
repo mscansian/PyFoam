@@ -1,0 +1,283 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.RunDictionary.ParsedBlockMeshDict &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.RunDictionary.ParsedBlockMeshDict</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.RunDictionary.ParsedBlockMeshDict</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;A parsed blockMeshDict&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span>
+
+<div class="viewcode-block" id="ParsedBlockMeshDict"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParsedBlockMeshDict.html#PyFoam.RunDictionary.ParsedBlockMeshDict.ParsedBlockMeshDict">[docs]</a><span class="k">class</span> <span class="nc">ParsedBlockMeshDict</span><span class="p">(</span><span class="n">ParsedParameterFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A parsed version of a blockMeshDict-file. Adds some</span>
+<span class="sd">    convenience-methods to access parts of the file&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ParsedBlockMeshDict.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParsedBlockMeshDict.html#PyFoam.RunDictionary.ParsedBlockMeshDict.ParsedBlockMeshDict.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">name</span><span class="p">,</span>
+                 <span class="n">backup</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">doMacroExpansion</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="n">ParsedParameterFile</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                     <span class="n">name</span><span class="p">,</span>
+                                     <span class="n">backup</span><span class="o">=</span><span class="n">backup</span><span class="p">,</span>
+                                     <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span>
+                                     <span class="n">longListOutputThreshold</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                     <span class="n">doMacroExpansion</span><span class="o">=</span><span class="n">doMacroExpansion</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParsedBlockMeshDict.convertToMeters"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParsedBlockMeshDict.html#PyFoam.RunDictionary.ParsedBlockMeshDict.ParsedBlockMeshDict.convertToMeters">[docs]</a>    <span class="k">def</span> <span class="nf">convertToMeters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;convertToMeters&quot;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="ParsedBlockMeshDict.vertices"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParsedBlockMeshDict.html#PyFoam.RunDictionary.ParsedBlockMeshDict.ParsedBlockMeshDict.vertices">[docs]</a>    <span class="k">def</span> <span class="nf">vertices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">factor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">convertToMeters</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[[</span><span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">*</span><span class="n">factor</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="ParsedBlockMeshDict.blocks"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParsedBlockMeshDict.html#PyFoam.RunDictionary.ParsedBlockMeshDict.ParsedBlockMeshDict.blocks">[docs]</a>    <span class="k">def</span> <span class="nf">blocks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a list with the 8 vertices that define each block&quot;&quot;&quot;</span>
+        <span class="n">result</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">i</span><span class="o">=</span><span class="mi">1</span>
+        <span class="k">while</span> <span class="n">i</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;blocks&quot;</span><span class="p">]):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;blocks&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]])</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;blocks&quot;</span><span class="p">][</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+                <span class="n">i</span><span class="o">+=</span><span class="mi">6</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">i</span><span class="o">+=</span><span class="mi">5</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="ParsedBlockMeshDict.patches"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParsedBlockMeshDict.html#PyFoam.RunDictionary.ParsedBlockMeshDict.ParsedBlockMeshDict.patches">[docs]</a>    <span class="k">def</span> <span class="nf">patches</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a dictionary with lists of 4-tuples that define each patch&quot;&quot;&quot;</span>
+        <span class="n">result</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">if</span> <span class="s2">&quot;boundary&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="c1"># New format in 2.0</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;boundary&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">],</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;boundary&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]):</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="p">[[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;faces&quot;</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;patches&quot;</span><span class="p">]),</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">result</span><span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;patches&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]]</span><span class="o">=</span><span class="p">[[</span><span class="nb">int</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;patches&quot;</span><span class="p">][</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="ParsedBlockMeshDict.arcs"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParsedBlockMeshDict.html#PyFoam.RunDictionary.ParsedBlockMeshDict.ParsedBlockMeshDict.arcs">[docs]</a>    <span class="k">def</span> <span class="nf">arcs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">factor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">convertToMeters</span><span class="p">()</span>
+        <span class="n">result</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">])):</span>
+                <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span><span class="o">==</span><span class="s1">&#39;arc&#39;</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">][</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]),</span>
+                                   <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">*</span><span class="n">factor</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">][</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">]],</span>
+                                   <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">][</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">])))</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="ParsedBlockMeshDict.getBounds"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParsedBlockMeshDict.html#PyFoam.RunDictionary.ParsedBlockMeshDict.ParsedBlockMeshDict.getBounds">[docs]</a>    <span class="k">def</span> <span class="nf">getBounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">v</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">()</span>
+        <span class="n">mi</span><span class="o">=</span><span class="p">[</span> <span class="mf">1e10</span><span class="p">,</span> <span class="mf">1e10</span><span class="p">,</span> <span class="mf">1e10</span><span class="p">]</span>
+        <span class="n">ma</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1e10</span><span class="p">,</span><span class="o">-</span><span class="mf">1e10</span><span class="p">,</span><span class="o">-</span><span class="mf">1e10</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">mi</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">mi</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">ma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">ma</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">mi</span><span class="p">,</span><span class="n">ma</span></div>
+
+<div class="viewcode-block" id="ParsedBlockMeshDict.typicalLength"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.ParsedBlockMeshDict.html#PyFoam.RunDictionary.ParsedBlockMeshDict.ParsedBlockMeshDict.typicalLength">[docs]</a>    <span class="k">def</span> <span class="nf">typicalLength</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">mi</span><span class="p">,</span><span class="n">ma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getBounds</span><span class="p">()</span>
+
+        <span class="n">biggest</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">ma</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">mi</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">ma</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">mi</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">ma</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">mi</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">smallest</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">ma</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">mi</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">ma</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">mi</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">ma</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">mi</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="c1">#        return 2*biggest*smallest/(biggest+smallest)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">biggest</span><span class="o">+</span><span class="n">smallest</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

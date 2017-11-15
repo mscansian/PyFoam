@@ -1,0 +1,1202 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.PrepareCase &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.PrepareCase</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.PrepareCase</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application-class that implements pyFoamPrepareCase.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.DataStructures</span> <span class="kn">import</span> <span class="n">DictProxy</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.Utilities</span> <span class="kn">import</span> <span class="n">rmtree</span><span class="p">,</span><span class="n">copytree</span><span class="p">,</span><span class="n">execute</span><span class="p">,</span><span class="n">remove</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span><span class="p">,</span><span class="n">WriteParameterFile</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.TemplateFile</span> <span class="kn">import</span> <span class="n">TemplateFile</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Execution.BasicRunner</span> <span class="kn">import</span> <span class="n">BasicRunner</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.RestructuredTextHelper</span> <span class="kn">import</span> <span class="n">RestructuredTextHelper</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">foamFork</span><span class="p">,</span><span class="n">foamVersion</span>
+
+<span class="kn">from</span> <span class="nn">.CommonTemplateFormat</span> <span class="kn">import</span> <span class="n">CommonTemplateFormat</span>
+<span class="kn">from</span> <span class="nn">.CommonTemplateBehaviour</span> <span class="kn">import</span> <span class="n">CommonTemplateBehaviour</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">iteritems</span><span class="p">,</span><span class="n">exec_</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">listdir</span><span class="p">,</span><span class="n">mkdir</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">copymode</span><span class="p">,</span><span class="n">copy</span><span class="p">,</span><span class="n">move</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<div class="viewcode-block" id="buildFilenameExtension"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.buildFilenameExtension">[docs]</a><span class="k">def</span> <span class="nf">buildFilenameExtension</span><span class="p">(</span><span class="n">paraList</span><span class="p">,</span><span class="n">valueStrings</span><span class="p">):</span>
+    <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paraList</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">ext</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paraList</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valueStrings</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">d</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">valueStrings</span><span class="p">:</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+        <span class="n">ext</span><span class="o">+=</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">d</span><span class="p">)])</span>
+    <span class="k">if</span> <span class="n">ext</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;_vanilla&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">ext</span></div>
+
+<div class="viewcode-block" id="PrepareCase"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase">[docs]</a><span class="k">class</span> <span class="nc">PrepareCase</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">,</span>
+                  <span class="n">CommonTemplateBehaviour</span><span class="p">,</span>
+                  <span class="n">CommonTemplateFormat</span><span class="p">):</span>
+
+    <span class="n">parameterOutFile</span><span class="o">=</span><span class="s2">&quot;PyFoamPrepareCaseParameters&quot;</span>
+
+<div class="viewcode-block" id="PrepareCase.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">exactNr</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog &lt;caseDirectory&gt;&quot;</span><span class="p">,</span>
+                 <span class="n">examples</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">description</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaultMeshCreate</span><span class="o">=</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;PrepareCase&quot;</span><span class="p">,</span><span class="s2">&quot;MeshCreateScript&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaultCaseSetup</span><span class="o">=</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;PrepareCase&quot;</span><span class="p">,</span><span class="s2">&quot;CaseSetupScript&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaultParameterFile</span><span class="o">=</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;PrepareCase&quot;</span><span class="p">,</span><span class="s2">&quot;DefaultParameterFile&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaultIgnoreDirecotries</span><span class="o">=</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">getList</span><span class="p">(</span><span class="s2">&quot;PrepareCase&quot;</span><span class="p">,</span><span class="s2">&quot;IgnoreDirectories&quot;</span><span class="p">)</span>
+
+        <span class="n">description2</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Prepares a case for running. This is intended to be the replacement for</span>
+<span class="s2">boiler-plate scripts. The steps done are</span>
+
+<span class="s2">  1. Clear old data from the case (including processor directories)</span>
+
+<span class="s2">  2. if a folder 0.org is present remove the 0 folder too</span>
+
+<span class="s2">  3. go through all folders and for every found file with the extension .template</span>
+<span class="s2">do template expansion using the pyratemp-engine (automatically create variables</span>
+<span class="s2">casePath and caseName)</span>
+
+<span class="s2">  4. create a mesh (either by using a script or if a blockMeshDict is present by</span>
+<span class="s2">running blockMesh. If none of these is present assume that there is a valid mesh</span>
+<span class="s2">present)</span>
+
+<span class="s2">  5. copy every foo.org that is found to to foo (recursively if directory)</span>
+
+<span class="s2">  6. do template-expansion for every file with the extension .postTemplate</span>
+
+<span class="s2">  7. execute another preparation script (caseSetup.sh). If no such script is found</span>
+<span class="s2">but a setFieldsDict in system then setFields is executed</span>
+
+<span class="s2">  8. do final template-expansion for every file with the extension .finalTemplate</span>
+
+<span class="s2">The used parameters are written to a file &#39;PyFoamPrepareCaseParameters&#39; and are used by other utilities</span>
+<span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">examples2</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">%prog . --paramter-file=parameters.base</span>
+
+<span class="s2">  Prepare the current case with the parameters list in parameters.base</span>
+
+<span class="s2">%prog . --paramter-file=parameters.base --values-string=&quot;{&#39;visco&#39;:1e-3}&quot;</span>
+
+<span class="s2">  Changes the value of the parameter visco</span>
+
+<span class="s2">%prog . --no-mesh-create</span>
+
+<span class="s2">  Skip the mesh creation phase</span>
+<span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span> <span class="k">if</span> <span class="n">description</span> <span class="k">else</span> <span class="n">description2</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="n">usage</span><span class="p">,</span>
+                                   <span class="n">examples</span><span class="o">=</span><span class="n">examples</span> <span class="k">if</span> <span class="n">examples</span> <span class="k">else</span> <span class="n">examples2</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="n">interspersed</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="n">nr</span><span class="p">,</span>
+                                   <span class="n">exactNr</span><span class="o">=</span><span class="n">exactNr</span><span class="p">,</span>
+                                   <span class="n">findLocalConfigurationFile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">localConfigInArgs</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PrepareCase.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">output</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                         <span class="s2">&quot;Output&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;What information should be given&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--fatal&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;fatal&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If non-cases are specified the program should abort&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-complain&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;noComplain&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t complain about non-case-files&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--quiet&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not report what is being done&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-write-parameters&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;writeParameters&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Usually a file &#39;&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">parameterOutFile</span><span class="o">+</span><span class="s2">&quot;&#39; with a dictionary of the used parameters is written to the case directory. &quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-write-report&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;writeReport&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Usually a file &#39;&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">parameterOutFile</span><span class="o">+</span><span class="s2">&quot;.rst&#39; with a ReST-file that reports the used parameters is written to the case directory. &quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--warn-on-wrong-options&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;failOnWrongOption&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Only issue a warning if a value was set that is not found in the list of valid options&quot;</span><span class="p">)</span>
+
+        <span class="n">extensions</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                               <span class="s2">&quot;Extensions&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;File extensions that are used in actions&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">extensions</span><span class="p">)</span>
+        <span class="n">extensions</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--template-extension&quot;</span><span class="p">,</span>
+                              <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                              <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;templateExt&quot;</span><span class="p">,</span>
+                              <span class="n">default</span><span class="o">=</span><span class="s2">&quot;.template&quot;</span><span class="p">,</span>
+                              <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Extension for template files. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">extensions</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--post-template-extension&quot;</span><span class="p">,</span>
+                              <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                              <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;postTemplateExt&quot;</span><span class="p">,</span>
+                              <span class="n">default</span><span class="o">=</span><span class="s2">&quot;.postTemplate&quot;</span><span class="p">,</span>
+                              <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Extension for post-template files. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">extensions</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--final-template-extension&quot;</span><span class="p">,</span>
+                              <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                              <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;finalTemplateExt&quot;</span><span class="p">,</span>
+                              <span class="n">default</span><span class="o">=</span><span class="s2">&quot;.finalTemplate&quot;</span><span class="p">,</span>
+                              <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Extension for final-template files. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">extensions</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--original-extension&quot;</span><span class="p">,</span>
+                              <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                              <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;originalExt&quot;</span><span class="p">,</span>
+                              <span class="n">default</span><span class="o">=</span><span class="s2">&quot;.org&quot;</span><span class="p">,</span>
+                              <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Extension for files and directories that are copied. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">extensions</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--extension-addition&quot;</span><span class="p">,</span>
+                              <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                              <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;extensionAddition&quot;</span><span class="p">,</span>
+                              <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                              <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Addtional extension that is added to templates and originals to allow overrides. For instance if an addition &#39;steady&#39; is specified and a file &#39;T.template&#39; and &#39;T.template.steady&#39; is found then the later is used. Can be specied more than once. The last instance is used.&quot;</span><span class="p">)</span>
+
+        <span class="n">inputs</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Inputs&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;Inputs for the templating process&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+
+        <span class="n">inputs</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--parameter-file&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;valuesDicts&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Name of a dictionary-file in OpenFOAM-format. Can be specified more than once. Values in later files override old values. If a file &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultParameterFile</span><span class="o">+</span><span class="s2">&quot; is present it is read before all other paraemter files&quot;</span><span class="p">)</span>
+        <span class="n">inputs</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-default-parameter-file&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;useDefaultParameterFile&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Even if present do NOT use the file &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultParameterFile</span><span class="o">+</span><span class="s2">&quot; before the other parameter files&quot;</span><span class="p">)</span>
+        <span class="n">inputs</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--values-string&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;values&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;String with the values that are to be inserted into the template as a dictionaty in Python-format. Can be specified more than once and overrides values from the parameter-files&quot;</span><span class="p">)</span>
+
+        <span class="n">special</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Special files and directories&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;Files and directories that get special treatment&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">special</span><span class="p">)</span>
+
+        <span class="n">special</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--directories-to-clean&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;0&quot;</span><span class="p">],</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cleanDirectories&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Directory from which templates are cleaned (to avoid problems with decomposePar). Can be specified more than once. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">special</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--overload-directory&quot;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;overloadDirs&quot;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Before starting the preparation process load files from this directory recursively into this case. Caution: existing files will be overwritten. Can be specified more than once. Directories are then copied in the specified order&quot;</span><span class="p">)</span>
+        <span class="n">special</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--clone-case&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cloneCase&quot;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If this is set then this directory is cloned to the specified directory and setup is done there (the target directory must not exist except if the name is build with --automatic-casename)&quot;</span><span class="p">)</span>
+        <span class="n">special</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--automatic-casename&quot;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;autoCasename&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If used with --clone-case then the casename is built from the original casename, the names of the parameter-files and the set values&quot;</span><span class="p">)</span>
+        <span class="n">special</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--ignore-directories&quot;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;ignoreDirectories&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultIgnoreDirecotries</span><span class="p">),</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Regular expression. Directories that match this expression are ignored. Can be used more than once. Already set: &quot;</span><span class="o">+</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;r&#39;&quot;</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="s2">&quot;&#39;&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaultIgnoreDirecotries</span><span class="p">]))</span>
+        <span class="n">CommonTemplateFormat</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">CommonTemplateBehaviour</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">stages</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Stages&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;Which steps should be executed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">stages</span><span class="p">)</span>
+
+        <span class="n">stages</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--only-variables&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;onlyVariables&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do nothing. Only read the variables&quot;</span><span class="p">)</span>
+
+        <span class="n">stages</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-clear&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doClear&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not clear the case&quot;</span><span class="p">)</span>
+
+        <span class="n">stages</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-templates&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doTemplates&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not rework the templates&quot;</span><span class="p">)</span>
+
+        <span class="n">stages</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-mesh-create&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doMeshCreate&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not execute a script to create a mesh&quot;</span><span class="p">)</span>
+
+        <span class="n">stages</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-copy&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doCopy&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not copy original directories&quot;</span><span class="p">)</span>
+
+        <span class="n">stages</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-post-templates&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doPostTemplates&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not rework the post-templates&quot;</span><span class="p">)</span>
+
+        <span class="n">stages</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-case-setup&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doCaseSetup&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not execute a script to set initial conditions etc&quot;</span><span class="p">)</span>
+
+        <span class="n">stages</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-final-templates&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doFinalTemplates&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not rework the final-templates&quot;</span><span class="p">)</span>
+
+        <span class="n">stages</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-template-clean&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doTemplateClean&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not clean template files from 0-directory&quot;</span><span class="p">)</span>
+
+        <span class="n">scripts</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                            <span class="s2">&quot;Scripts&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;Specification of scripts to be executed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">scripts</span><span class="p">)</span>
+
+        <span class="n">scripts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--mesh-create-script&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;meshCreateScript&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Script that is executed after the template expansion to create the mesh. If not specified then the utility looks for &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultMeshCreate</span><span class="o">+</span><span class="s2">&quot; and executes this. If this is also not found blockMesh is executed if a blockMeshDict is found&quot;</span><span class="p">)</span>
+        <span class="n">stages</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-keep-zero-directory-from-mesh-create&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;keepZeroDirectoryFromMesh&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If the script that creates the mesh generates a &#39;0&#39;-directory with data then this data will be removed. Otherwise it is kept&quot;</span><span class="p">)</span>
+        <span class="n">scripts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--case-setup-script&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;caseSetupScript&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Script that is executed after the original files have been copied to set initial conditions or similar. If not specified then the utility looks for &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultCaseSetup</span><span class="o">+</span><span class="s2">&quot; and executes this.&quot;</span><span class="p">)</span>
+        <span class="n">scripts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--derived-parameters-script&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;derivedParametersScript&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="s2">&quot;derivedParameters.py&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If this script is found then it is executed after the parameters are read. All variables set in this script can then be used in the templates. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">scripts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--allow-derived-changes&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;allowDerivedChanges&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Allow that the derived script changes existing values&quot;</span><span class="p">)</span>
+        <span class="n">scripts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--continue-on-script-failure&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;failOnScriptFailure&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t fail the whole process even if a script fails&quot;</span><span class="p">)</span>
+
+        <span class="n">variables</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                              <span class="s2">&quot;Variables&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;Variables that are automatically defined&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span>
+        <span class="n">variables</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--number-of-processors&quot;</span><span class="p">,</span>
+                             <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                             <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                             <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;numberOfProcessors&quot;</span><span class="p">,</span>
+                             <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Value of the variable numberOfProcessors. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PrepareCase.info"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.info">[docs]</a>    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Information output&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PrepareCase.listdir"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.listdir">[docs]</a>    <span class="k">def</span> <span class="nf">listdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">d</span><span class="p">,</span><span class="n">ext</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Private copy of listdir. Returns a list of pairs: first element is</span>
+<span class="sd">        the real file-name. Second the name with the extensions stripped off or</span>
+<span class="sd">        None if the file doesn&#39;t match any extensions&quot;&quot;&quot;</span>
+
+        <span class="n">extAdditions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span><span class="o">+</span><span class="p">[</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">extensionAddition</span><span class="p">]</span>
+        <span class="n">allFiles</span><span class="o">=</span><span class="n">listdir</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">templated</span><span class="o">=</span><span class="nb">set</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">allFiles</span><span class="p">:</span>
+            <span class="n">isPlain</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">extAdditions</span><span class="p">:</span>
+                <span class="n">ee</span><span class="o">=</span><span class="n">ext</span><span class="o">+</span><span class="n">e</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">&gt;</span><span class="nb">len</span><span class="p">(</span><span class="n">ee</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">ee</span><span class="p">):]</span><span class="o">==</span><span class="n">ee</span><span class="p">:</span>
+                        <span class="n">isPlain</span><span class="o">=</span><span class="bp">False</span>
+                        <span class="n">templated</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">f</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">ee</span><span class="p">)])</span>
+            <span class="k">if</span> <span class="n">isPlain</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">f</span><span class="p">,</span><span class="bp">None</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">templated</span><span class="p">:</span>
+            <span class="n">found</span><span class="o">=</span><span class="bp">None</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">extAdditions</span><span class="p">:</span>
+                <span class="n">tt</span><span class="o">=</span><span class="n">t</span><span class="o">+</span><span class="n">ext</span><span class="o">+</span><span class="n">e</span>
+                <span class="k">if</span> <span class="n">tt</span> <span class="ow">in</span> <span class="n">allFiles</span><span class="p">:</span>
+                    <span class="n">found</span><span class="o">=</span><span class="n">tt</span>
+            <span class="k">if</span> <span class="n">found</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This should not happen. Nothing found for&quot;</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="s2">&quot;with extensions&quot;</span><span class="p">,</span>
+                           <span class="n">extAdditions</span><span class="p">,</span><span class="s2">&quot;in files&quot;</span><span class="p">,</span><span class="n">allFiles</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">found</span><span class="p">,</span><span class="n">t</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="PrepareCase.copyOriginals"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.copyOriginals">[docs]</a>    <span class="k">def</span> <span class="nf">copyOriginals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">startDir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Go recursivly through directories and copy foo.org to foo&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Looking for originals in&quot;</span><span class="p">,</span><span class="n">startDir</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span><span class="p">,</span><span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">startDir</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">originalExt</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;.&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skipping&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">src</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">startDir</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">dst</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">startDir</span><span class="p">,</span><span class="n">t</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Replacing&quot;</span><span class="p">,</span><span class="n">dst</span><span class="p">,</span><span class="s2">&quot;with&quot;</span><span class="p">,</span><span class="n">src</span><span class="p">)</span>
+                    <span class="n">rmtree</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Copying&quot;</span><span class="p">,</span><span class="n">src</span><span class="p">,</span><span class="s2">&quot;to&quot;</span><span class="p">,</span><span class="n">dst</span><span class="p">)</span>
+                <span class="n">copytree</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">dst</span><span class="p">,</span><span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">copyOriginals</span><span class="p">(</span><span class="n">src</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PrepareCase.cleanExtension"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.cleanExtension">[docs]</a>    <span class="k">def</span> <span class="nf">cleanExtension</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">startDir</span><span class="p">,</span>
+                       <span class="n">ext</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Go recursivly through directories and remove all files that have a specific extension&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Looking for extension&quot;</span><span class="p">,</span><span class="n">ext</span><span class="p">,</span><span class="s2">&quot;in&quot;</span><span class="p">,</span><span class="n">startDir</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">listdir</span><span class="p">(</span><span class="n">startDir</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;.&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skipping&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">src</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">startDir</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">src</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="n">ext</span> <span class="ow">or</span> <span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">src</span><span class="p">)[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="n">ext</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Removing&quot;</span><span class="p">,</span><span class="n">src</span><span class="p">)</span>
+                    <span class="n">remove</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cleanExtension</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="n">ext</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PrepareCase.searchAndReplaceTemplates"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.searchAndReplaceTemplates">[docs]</a>    <span class="k">def</span> <span class="nf">searchAndReplaceTemplates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                  <span class="n">startDir</span><span class="p">,</span>
+                                  <span class="n">values</span><span class="p">,</span>
+                                  <span class="n">templateExt</span><span class="p">,</span>
+                                  <span class="n">ignoreDirectories</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;Go through the directory recursively and replate foo.template with</span>
+<span class="sd">        foo after inserting the values&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Looking for templates with extension&quot;</span><span class="p">,</span><span class="n">templateExt</span><span class="p">,</span><span class="s2">&quot;in &quot;</span><span class="p">,</span><span class="n">startDir</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span><span class="p">,</span><span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">startDir</span><span class="p">,</span><span class="n">templateExt</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;.&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skipping&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">startDir</span><span class="p">,</span><span class="n">f</span><span class="p">)):</span>
+                <span class="n">matches</span><span class="o">=</span><span class="bp">None</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ignoreDirectories</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">p</span><span class="o">+</span><span class="s2">&quot;$&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+                        <span class="n">matches</span><span class="o">=</span><span class="n">p</span>
+                        <span class="k">break</span>
+                <span class="k">if</span> <span class="n">matches</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skipping directory&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="s2">&quot;because it matches&quot;</span><span class="p">,</span><span class="n">matches</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">searchAndReplaceTemplates</span><span class="p">(</span>
+                    <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">startDir</span><span class="p">,</span><span class="n">f</span><span class="p">),</span>
+                    <span class="n">values</span><span class="p">,</span>
+                    <span class="n">templateExt</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">t</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">tName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">startDir</span><span class="p">,</span><span class="n">t</span><span class="p">)</span>
+                <span class="n">fName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">startDir</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Found template for&quot;</span><span class="p">,</span><span class="n">tName</span><span class="p">)</span>
+                <span class="n">t</span><span class="o">=</span><span class="n">TemplateFile</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">fName</span><span class="p">,</span>
+                               <span class="n">tolerantRender</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">tolerantRender</span><span class="p">,</span>
+                               <span class="n">allowExec</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">allowExec</span><span class="p">,</span>
+                               <span class="n">expressionDelimiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">expressionDelimiter</span><span class="p">,</span>
+                               <span class="n">assignmentDebug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pickAssignmentDebug</span><span class="p">(</span><span class="n">fName</span><span class="p">),</span>
+                               <span class="n">assignmentLineStart</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">assignmentLineStart</span><span class="p">)</span>
+                <span class="n">t</span><span class="o">.</span><span class="n">writeToFile</span><span class="p">(</span><span class="n">tName</span><span class="p">,</span><span class="n">values</span><span class="p">)</span>
+                <span class="n">copymode</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="n">tName</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PrepareCase.overloadDir"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.overloadDir">[docs]</a>    <span class="k">def</span> <span class="nf">overloadDir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">here</span><span class="p">,</span><span class="n">there</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Copy files recursively. Overwrite local copies if they exist&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">listdir</span><span class="p">(</span><span class="n">there</span><span class="p">):</span>
+            <span class="n">fSrc</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">there</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">fDst</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">here</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">fSrc</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fDst</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating directory&quot;</span><span class="p">,</span><span class="n">fDst</span><span class="p">)</span>
+                    <span class="n">mkdir</span><span class="p">(</span><span class="n">fDst</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">fDst</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Destination path&quot;</span><span class="p">,</span><span class="n">fDst</span><span class="p">,</span><span class="s2">&quot;exists, but is no directory&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">overloadDir</span><span class="p">(</span><span class="n">fDst</span><span class="p">,</span><span class="n">fSrc</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fSrc</span><span class="p">):</span>
+                <span class="n">isThere</span><span class="o">=</span><span class="bp">False</span>
+                <span class="n">rmDest</span><span class="o">=</span><span class="bp">None</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fDst</span><span class="p">):</span>
+                    <span class="n">isThere</span><span class="o">=</span><span class="bp">True</span>
+                <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fSrc</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;.gz&quot;</span> <span class="ow">and</span> \
+                     <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fDst</span><span class="p">)[</span><span class="mi">0</span><span class="p">]):</span>
+                    <span class="n">rmDest</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fDst</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fSrc</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;&quot;</span> <span class="ow">and</span> \
+                     <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fDst</span><span class="o">+</span><span class="s2">&quot;.gz&quot;</span><span class="p">):</span>
+                    <span class="n">rmDest</span><span class="o">=</span><span class="n">fDst</span><span class="o">+</span><span class="s2">&quot;.gz&quot;</span>
+
+                <span class="k">if</span> <span class="n">rmDest</span><span class="p">:</span>
+                    <span class="n">remove</span><span class="p">(</span><span class="n">rmDest</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">isThere</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fDst</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Desination&quot;</span><span class="p">,</span><span class="n">fDst</span><span class="p">,</span><span class="s2">&quot;exists but is no file&quot;</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Copying&quot;</span><span class="p">,</span><span class="n">fSrc</span><span class="p">,</span><span class="s2">&quot;to&quot;</span><span class="p">,</span><span class="n">fDst</span><span class="p">)</span>
+                <span class="n">copy</span><span class="p">(</span><span class="n">fSrc</span><span class="p">,</span><span class="n">fDst</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">errr</span><span class="p">(</span><span class="s2">&quot;Source file&quot;</span><span class="p">,</span><span class="n">fSrc</span><span class="p">,</span><span class="s2">&quot;is neither file nor directory&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PrepareCase.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cloneCase</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">autoCasename</span><span class="p">:</span>
+                <span class="n">cName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cName</span><span class="p">,</span>
+                                <span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cloneCase</span><span class="p">)</span><span class="o">+</span>
+                                <span class="n">buildFilenameExtension</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">valuesDicts</span><span class="p">,</span>
+                                                       <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cName</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">cName</span><span class="p">,</span><span class="s2">&quot;already existing (case should not exist when used with --clone-case)&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkCase</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cloneCase</span><span class="p">,</span>
+                              <span class="n">fatal</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fatal</span><span class="p">,</span>
+                              <span class="n">verbose</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">noComplain</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addLocalConfig</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cloneCase</span><span class="p">)</span>
+            <span class="n">orig</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cloneCase</span><span class="p">,</span>
+                                   <span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">paraviewLink</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">sol</span><span class="o">=</span><span class="n">orig</span><span class="o">.</span><span class="n">cloneCase</span><span class="p">(</span><span class="n">cName</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkCase</span><span class="p">(</span><span class="n">cName</span><span class="p">,</span>
+                              <span class="n">fatal</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fatal</span><span class="p">,</span>
+                              <span class="n">verbose</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">noComplain</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addLocalConfig</span><span class="p">(</span><span class="n">cName</span><span class="p">)</span>
+            <span class="n">sol</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="n">cName</span><span class="p">,</span><span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">paraviewLink</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__lastMessage</span><span class="o">=</span><span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="n">cName</span><span class="o">=</span><span class="n">cName</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lastMessage</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__lastMessage</span><span class="o">+</span><span class="s2">&quot; failed&quot;</span><span class="p">)</span>
+            <span class="k">raise</span></div>
+
+    <span class="k">def</span> <span class="nf">__strip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Strip extra &quot; from strings&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,(</span><span class="nb">str</span><span class="p">,)):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;&quot;&#39;</span> <span class="ow">and</span> <span class="n">val</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;&quot;&#39;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+<div class="viewcode-block" id="PrepareCase.processDefault"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.processDefault">[docs]</a>    <span class="k">def</span> <span class="nf">processDefault</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">raw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process a dictionary and return a &#39;flattened&#39; dictionary with the</span>
+<span class="sd">        values and a dictionary with the meta-data&quot;&quot;&quot;</span>
+        <span class="n">values</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">meta</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">raw</span><span class="p">):</span>
+            <span class="n">isNormal</span><span class="o">=</span><span class="bp">True</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,(</span><span class="n">DictProxy</span><span class="p">,</span><span class="nb">dict</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="s2">&quot;description&quot;</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;default&quot;</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="s2">&quot;values&quot;</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="s2">&quot; has also a &#39;values&#39;-entry. Might be a subgroup&quot;</span><span class="p">)</span>
+                        <span class="n">vMeta</span><span class="o">=</span><span class="p">{}</span>
+                        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">a</span><span class="o">==</span><span class="s2">&quot;description&quot;</span><span class="p">:</span>
+                                <span class="n">vMeta</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__strip</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">a</span><span class="p">])</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">vMeta</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">=</span><span class="n">v</span><span class="p">[</span><span class="n">a</span><span class="p">]</span>
+                        <span class="n">meta</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">vMeta</span>
+                    <span class="k">elif</span> <span class="s2">&quot;values&quot;</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+                        <span class="n">isNormal</span><span class="o">=</span><span class="bp">False</span>
+
+            <span class="k">if</span> <span class="n">isNormal</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;defined twice in defaults&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]:</span>
+                    <span class="n">meta</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;default&quot;</span><span class="p">:</span><span class="n">v</span><span class="p">}</span>
+                    <span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">v</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">meta</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;default&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pVal</span><span class="p">,</span><span class="n">pMeta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">processDefault</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">])</span>
+                <span class="n">meta</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__strip</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]),</span><span class="n">pMeta</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">pVal</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s2">&quot;already defined in sub-directory&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">values</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">=</span><span class="n">pVal</span><span class="p">[</span><span class="n">a</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">values</span><span class="p">,</span><span class="n">meta</span></div>
+
+<div class="viewcode-block" id="PrepareCase.getDefaultValues"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.getDefaultValues">[docs]</a>    <span class="k">def</span> <span class="nf">getDefaultValues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cName</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process the file with the default values - if present</span>
+<span class="sd">        Returns a dictionary with the values and a dictionary with the meta-data</span>
+<span class="sd">        about the parameters&quot;&quot;&quot;</span>
+        <span class="n">defFile</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">cName</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultParameterFile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">useDefaultParameterFile</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">defFile</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using default values from&quot;</span><span class="p">,</span><span class="n">defFile</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">processDefault</span><span class="p">(</span>
+                <span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">defFile</span><span class="p">,</span>
+                                    <span class="n">noHeader</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                    <span class="n">doMacroExpansion</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">getValueDict</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{},{}</span></div>
+
+<div class="viewcode-block" id="PrepareCase.addDictValues"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.addDictValues">[docs]</a>    <span class="k">def</span> <span class="nf">addDictValues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">description</span><span class="p">,</span><span class="n">values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add values from a dictionary&quot;&quot;&quot;</span>
+        <span class="n">meta</span><span class="o">=</span><span class="nb">dict</span><span class="p">([(</span><span class="n">k</span><span class="p">,{</span><span class="s2">&quot;default&quot;</span><span class="p">:</span><span class="n">v</span><span class="p">})</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">values</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metaData</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="n">description</span><span class="p">,{</span><span class="s2">&quot;&quot;</span><span class="p">:</span><span class="n">meta</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">values</span></div>
+
+<div class="viewcode-block" id="PrepareCase.makeReport"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.makeReport">[docs]</a>    <span class="k">def</span> <span class="nf">makeReport</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">values</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">meta</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">meta</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">meta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metaData</span>
+        <span class="n">helper</span><span class="o">=</span><span class="n">RestructuredTextHelper</span><span class="p">(</span><span class="n">defaultHeading</span><span class="o">=</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">val</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">tab</span><span class="o">=</span><span class="n">helper</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="n">labeled</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="s2">&quot;default&quot;</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">kk</span><span class="p">]</span> <span class="ow">and</span> <span class="n">values</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span><span class="o">!=</span><span class="n">meta</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">kk</span><span class="p">][</span><span class="s2">&quot;default&quot;</span><span class="p">]:</span>
+                        <span class="n">changed</span><span class="o">=</span><span class="bp">True</span>
+                        <span class="n">tab</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="n">helper</span><span class="o">.</span><span class="n">strong</span><span class="p">(</span><span class="n">kk</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">changed</span><span class="o">=</span><span class="bp">False</span>
+                        <span class="n">tab</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="n">kk</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">kk</span><span class="p">]):</span>
+                        <span class="n">tab</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+                        <span class="n">tab</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span><span class="n">helper</span><span class="o">.</span><span class="n">strong</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">kk</span><span class="p">]))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tab</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span><span class="n">values</span><span class="p">[</span><span class="n">kk</span><span class="p">])</span>
+                <span class="n">val</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">descr</span><span class="p">,</span><span class="n">newMeta</span><span class="o">=</span><span class="n">meta</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="n">val</span><span class="o">+=</span><span class="n">helper</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="n">descr</span><span class="p">)</span>
+                <span class="n">val</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Short name: &quot;</span><span class="o">+</span><span class="n">helper</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">val</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeReport</span><span class="p">(</span><span class="n">values</span><span class="p">,</span>
+                                     <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>
+                                     <span class="n">meta</span><span class="o">=</span><span class="n">newMeta</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">val</span></div>
+
+<div class="viewcode-block" id="PrepareCase.checkCorrectOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.checkCorrectOptions">[docs]</a>    <span class="k">def</span> <span class="nf">checkCorrectOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">values</span><span class="p">,</span><span class="n">meta</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">meta</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">meta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">metaData</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="s2">&quot;options&quot;</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">kk</span><span class="p">]</span> <span class="ow">and</span> <span class="n">values</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">kk</span><span class="p">][</span><span class="s2">&quot;options&quot;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">failOnWrongOption</span><span class="p">:</span>
+                            <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">error</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">warning</span>
+
+                        <span class="n">func</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span><span class="n">values</span><span class="p">[</span><span class="n">kk</span><span class="p">],</span><span class="s2">&quot;for parameter&quot;</span><span class="p">,</span><span class="n">kk</span><span class="p">,</span>
+                             <span class="s2">&quot;not in list of allowed options:&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">kk</span><span class="p">][</span><span class="s2">&quot;options&quot;</span><span class="p">]]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">checkCorrectOptions</span><span class="p">(</span><span class="n">values</span><span class="p">,</span><span class="n">meta</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="PrepareCase.executeScript"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.executeScript">[docs]</a>    <span class="k">def</span> <span class="nf">executeScript</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">scriptName</span><span class="p">,</span><span class="n">workdir</span><span class="p">,</span><span class="n">echo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Execute a script and write a corresponding logfile&quot;&quot;&quot;</span>
+
+        <span class="n">ret</span><span class="p">,</span><span class="n">txt</span><span class="o">=</span><span class="n">execute</span><span class="p">([</span><span class="n">scriptName</span><span class="p">],</span>
+                        <span class="n">workdir</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span>
+                        <span class="n">echo</span><span class="o">=</span><span class="n">echo</span><span class="p">,</span>
+                        <span class="n">getReturnCode</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="n">result</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span>
+        <span class="nb">open</span><span class="p">(</span><span class="n">scriptName</span><span class="o">+</span><span class="s2">&quot;.log&quot;</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ret</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="bp">None</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">scriptName</span><span class="p">,</span><span class="s2">&quot;failed with code&quot;</span><span class="p">,</span><span class="n">ret</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">failOnScriptFailure</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Script&quot;</span><span class="p">,</span><span class="n">scriptName</span><span class="p">,</span><span class="s2">&quot;failed with code&quot;</span><span class="p">,</span><span class="n">ret</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__writeToStateFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sol</span><span class="p">,</span><span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write a message to a state file&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__lastMessage</span><span class="o">=</span><span class="n">message</span>
+        <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;PyFoamState.TheState&quot;</span><span class="p">),</span><span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Prepare: &quot;</span><span class="o">+</span><span class="n">message</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PrepareCase.prepare"><a class="viewcode-back" href="../../../api/PyFoam.Applications.PrepareCase.html#PyFoam.Applications.PrepareCase.PrepareCase.prepare">[docs]</a>    <span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sol</span><span class="p">,</span>
+                <span class="n">cName</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">overrideParameters</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">numberOfProcessors</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Do the actual preparing</span>
+<span class="sd">        :param numberOfProcessors: If set this overrides the value set in the</span>
+<span class="sd">        command line&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">cName</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">cName</span><span class="o">=</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">onlyVariables</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="n">vals</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">vals</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">metaData</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getDefaultValues</span><span class="p">(</span><span class="n">cName</span><span class="p">)</span>
+        <span class="n">vals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">addDictValues</span><span class="p">(</span><span class="s2">&quot;System&quot;</span><span class="p">,</span>
+                                       <span class="s2">&quot;Automatically defined values&quot;</span><span class="p">,</span>
+                                       <span class="p">{</span>
+                                           <span class="s2">&quot;casePath&quot;</span> <span class="p">:</span> <span class="s1">&#39;&quot;&#39;</span><span class="o">+</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">cName</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span>
+                                           <span class="s2">&quot;caseName&quot;</span> <span class="p">:</span> <span class="s1">&#39;&quot;&#39;</span><span class="o">+</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">cName</span><span class="p">))</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span>
+                                           <span class="s2">&quot;foamVersion&quot;</span> <span class="p">:</span> <span class="n">foamVersion</span><span class="p">(),</span>
+                                           <span class="s2">&quot;foamFork&quot;</span> <span class="p">:</span> <span class="n">foamFork</span><span class="p">(),</span>
+                                           <span class="s2">&quot;numberOfProcessors&quot;</span> <span class="p">:</span> <span class="n">numberOfProcessors</span> <span class="k">if</span> <span class="n">numberOfProcessors</span><span class="o">!=</span><span class="bp">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">numberOfProcessors</span>
+                                       <span class="p">}))</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">extensionAddition</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">vals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">addDictValues</span><span class="p">(</span><span class="s2">&quot;ExtensionAdditions&quot;</span><span class="p">,</span>
+                                           <span class="s2">&quot;Additional extensions to be processed&quot;</span><span class="p">,</span>
+                                           <span class="nb">dict</span><span class="p">((</span><span class="n">e</span><span class="p">,</span><span class="bp">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">extensionAddition</span><span class="p">)))</span>
+
+        <span class="n">valsWithDefaults</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="n">vals</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Looking for template values&quot;</span><span class="p">,</span><span class="n">cName</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">valuesDicts</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Reading values from&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">vals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">f</span><span class="p">,</span>
+                                            <span class="n">noHeader</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                            <span class="n">doMacroExpansion</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">getValueDict</span><span class="p">())</span>
+
+        <span class="n">setValues</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Updating values&quot;</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+            <span class="n">vals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+            <span class="n">setValues</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">overrideParameters</span><span class="p">:</span>
+            <span class="n">vals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">overrideParameters</span><span class="p">)</span>
+
+        <span class="n">unknownValues</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="n">vals</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">-</span><span class="n">valsWithDefaults</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unknownValues</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Values for which no default was specified: &quot;</span><span class="o">+</span>
+                         <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">unknownValues</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Used values</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">nameLen</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">),</span>
+                        <span class="nb">max</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">vals</span><span class="o">.</span><span class="n">keys</span><span class="p">()]))</span>
+            <span class="n">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%%%d</span><span class="s2">s - </span><span class="si">%%</span><span class="s2">s&quot;</span> <span class="o">%</span> <span class="n">nameLen</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">format</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span><span class="s2">&quot;Value&quot;</span><span class="p">))</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">iteritems</span><span class="p">(</span><span class="n">vals</span><span class="p">)):</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">format</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">))</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">No values specified</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkCorrectOptions</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+
+        <span class="n">derivedScript</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cName</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">derivedParametersScript</span><span class="p">)</span>
+        <span class="n">derivedAdded</span><span class="o">=</span><span class="bp">None</span>
+        <span class="n">derivedChanged</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">derivedScript</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Deriving variables in script&quot;</span><span class="p">,</span><span class="n">derivedScript</span><span class="p">)</span>
+            <span class="n">scriptText</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">derivedScript</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">glob</span><span class="o">=</span><span class="p">{}</span>
+            <span class="n">oldVals</span><span class="o">=</span><span class="n">vals</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">exec_</span><span class="p">(</span><span class="n">scriptText</span><span class="p">,</span><span class="n">glob</span><span class="p">,</span><span class="n">vals</span><span class="p">)</span>
+            <span class="n">derivedAdded</span><span class="o">=</span><span class="p">[]</span>
+            <span class="n">derivedChanged</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">oldVals</span><span class="p">:</span>
+                    <span class="n">derivedAdded</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">vals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">!=</span><span class="n">oldVals</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+                    <span class="n">derivedChanged</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">derivedChanged</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">allowDerivedChanges</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;PrepareCase&quot;</span><span class="p">,</span><span class="s2">&quot;AllowDerivedChanges&quot;</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">derivedParametersScript</span><span class="p">,</span>
+                           <span class="s2">&quot;changed values of&quot;</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">derivedChanged</span><span class="p">),</span>
+                           <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">To allow this set --allow-derived-changes or the configuration item &#39;AllowDerivedChanges&#39;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">derivedAdded</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Added values:&quot;</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">derivedAdded</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">derivedChanged</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Changed values:&quot;</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">derivedChanged</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">derivedAdded</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">derivedChanged</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Nothing added or changed&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No script&quot;</span><span class="p">,</span><span class="n">derivedScript</span><span class="p">,</span><span class="s2">&quot;for derived values&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">onlyVariables</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Starting&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">doClear</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Clearing&quot;</span><span class="p">,</span><span class="n">cName</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Clearing&quot;</span><span class="p">)</span>
+            <span class="n">sol</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="n">processor</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">pyfoam</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">vtk</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">removeAnalyzed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">keepParallel</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="n">clearHistory</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="n">clearParameters</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">additional</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;postProcessing&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Done clearing&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">writeParameters</span><span class="p">:</span>
+            <span class="n">fName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cName</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">parameterOutFile</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Writing parameters to&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">WriteParameterFile</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="n">noHeader</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span><span class="n">toString</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">w</span><span class="p">[</span><span class="s2">&quot;foamVersion&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="s2">&quot;foamVersion&quot;</span><span class="p">]</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">writeReport</span><span class="p">:</span>
+            <span class="n">fName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cName</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">parameterOutFile</span><span class="o">+</span><span class="s2">&quot;.rst&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Writing report to&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+                <span class="n">helper</span><span class="o">=</span><span class="n">RestructuredTextHelper</span><span class="p">(</span><span class="n">defaultHeading</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;.. title:: &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">__strip</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="s2">&quot;caseName&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;.. sectnum::</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;.. header:: &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">__strip</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="s2">&quot;caseName&quot;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;.. header:: &quot;</span><span class="o">+</span><span class="n">time</span><span class="o">.</span><span class="n">asctime</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;.. footer:: ###Page### / ###Total###</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Parameters set in case directory &quot;</span><span class="o">+</span>
+                        <span class="n">helper</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__strip</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="s2">&quot;casePath&quot;</span><span class="p">]))</span><span class="o">+</span><span class="s2">&quot; at &quot;</span><span class="o">+</span>
+                        <span class="n">helper</span><span class="o">.</span><span class="n">emphasis</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">asctime</span><span class="p">())</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;.. contents::</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">valuesDicts</span><span class="p">):</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">helper</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;Parameter files&quot;</span><span class="p">))</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Parameters read from files</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">helper</span><span class="o">.</span><span class="n">enumerateList</span><span class="p">([</span><span class="n">helper</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">valuesDicts</span><span class="p">]))</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">setValues</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">helper</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;Overwritten parameters&quot;</span><span class="p">))</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;These parameters were set from the command line</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">helper</span><span class="o">.</span><span class="n">definitionList</span><span class="p">(</span><span class="n">setValues</span><span class="p">))</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">helper</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;Parameters with defaults&quot;</span><span class="p">))</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">makeReport</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unknownValues</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">helper</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;Unspecified parameters&quot;</span><span class="p">))</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;If these parameters are actually used then specify them in &quot;</span><span class="o">+</span>
+                            <span class="n">helper</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultParameterFile</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">tab</span><span class="o">=</span><span class="n">helper</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">unknownValues</span><span class="p">:</span>
+                        <span class="n">tab</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+                        <span class="n">tab</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span><span class="n">vals</span><span class="p">[</span><span class="n">u</span><span class="p">])</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tab</span><span class="p">))</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">derivedAdded</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">helper</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;Derived Variables&quot;</span><span class="p">))</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Script with derived Parameters&quot;</span><span class="o">+</span>
+                            <span class="n">helper</span><span class="o">.</span><span class="n">literal</span><span class="p">(</span><span class="n">derivedScript</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">derivedAdded</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                        <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;These values were added:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">tab</span><span class="o">=</span><span class="n">helper</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">derivedAdded</span><span class="p">:</span>
+                            <span class="n">tab</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                            <span class="n">tab</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="n">a</span><span class="p">]))</span>
+                        <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tab</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">derivedChanged</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                        <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;These values were changed:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">tab</span><span class="o">=</span><span class="n">helper</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">derivedChanged</span><span class="p">:</span>
+                            <span class="n">tab</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                            <span class="n">tab</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="n">a</span><span class="p">]))</span>
+                            <span class="n">tab</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Old&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">oldVals</span><span class="p">[</span><span class="n">a</span><span class="p">]))</span>
+                        <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tab</span><span class="p">))</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;The code of the script:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">helper</span><span class="o">.</span><span class="n">code</span><span class="p">(</span><span class="n">scriptText</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addToCaseLog</span><span class="p">(</span><span class="n">cName</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">over</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">overloadDirs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Overloading files from&quot;</span><span class="p">,</span><span class="n">over</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Overloading&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">overloadDir</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">over</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Initial&quot;</span><span class="p">)</span>
+
+        <span class="n">zeroOrig</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;0.org&quot;</span><span class="p">)</span>
+
+        <span class="n">hasOrig</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">zeroOrig</span><span class="p">)</span>
+        <span class="n">cleanZero</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">hasOrig</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Not going to clean &#39;0&#39;&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cleanDirectories</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+            <span class="n">cleanZero</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">doCopy</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">hasOrig</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Found 0.org. Clearing 0&quot;</span><span class="p">)</span>
+                <span class="n">zeroDir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">zeroDir</span><span class="p">):</span>
+                    <span class="n">rmtree</span><span class="p">(</span><span class="n">zeroDir</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No 0-directory&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cleanZero</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">doTemplates</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Templates&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">searchAndReplaceTemplates</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                           <span class="n">vals</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">templateExt</span><span class="p">,</span>
+                                           <span class="n">ignoreDirectories</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">ignoreDirectories</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="n">backupZeroDir</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">doMeshCreate</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Meshing&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">meshCreateScript</span><span class="p">:</span>
+                <span class="n">scriptName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">meshCreateScript</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">scriptName</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Script&quot;</span><span class="p">,</span><span class="n">scriptName</span><span class="p">,</span><span class="s2">&quot;does not exist&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultMeshCreate</span><span class="p">)):</span>
+                <span class="n">scriptName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultMeshCreate</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">scriptName</span><span class="o">=</span><span class="bp">None</span>
+
+            <span class="k">if</span> <span class="n">scriptName</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executing&quot;</span><span class="p">,</span><span class="n">scriptName</span><span class="p">,</span><span class="s2">&quot;for mesh creation&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">echo</span><span class="o">=</span><span class="s2">&quot;Mesh: &quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">echo</span><span class="o">=</span><span class="bp">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">executeScript</span><span class="p">(</span><span class="n">scriptName</span><span class="p">,</span><span class="n">workdir</span><span class="o">=</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">echo</span><span class="o">=</span><span class="n">echo</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No script for mesh creation found. Looking for &#39;blockMeshDict&#39;&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">sol</span><span class="o">.</span><span class="n">blockMesh</span><span class="p">()</span><span class="o">!=</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">blockMesh</span><span class="p">(),</span><span class="s2">&quot;found. Executing &#39;blockMesh&#39;&quot;</span><span class="p">)</span>
+                    <span class="n">bm</span><span class="o">=</span><span class="n">BasicRunner</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;blockMesh&quot;</span><span class="p">,</span><span class="s2">&quot;-case&quot;</span><span class="p">,</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+                    <span class="n">bm</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">bm</span><span class="o">.</span><span class="n">runOK</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem with blockMesh&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sol</span><span class="o">.</span><span class="n">regions</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Checking region&quot;</span><span class="p">,</span><span class="n">r</span><span class="p">)</span>
+                    <span class="n">s</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">region</span><span class="o">=</span><span class="n">r</span><span class="p">,</span>
+                                        <span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">paraviewLink</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">blockMesh</span><span class="p">()</span><span class="o">!=</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">blockMesh</span><span class="p">(),</span><span class="s2">&quot;found. Executing &#39;blockMesh&#39;&quot;</span><span class="p">)</span>
+                        <span class="n">bm</span><span class="o">=</span><span class="n">BasicRunner</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;blockMesh&quot;</span><span class="p">,</span><span class="s2">&quot;-case&quot;</span><span class="p">,</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                             <span class="s2">&quot;-region&quot;</span><span class="p">,</span><span class="n">r</span><span class="p">])</span>
+                        <span class="n">bm</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">bm</span><span class="o">.</span><span class="n">runOK</span><span class="p">():</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem with blockMesh&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">cleanZero</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">zeroDir</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Mesh creation recreated 0-directory&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">keepZeroDirectoryFromMesh</span><span class="p">:</span>
+                    <span class="n">backupZeroDir</span><span class="o">=</span><span class="n">zeroDir</span><span class="o">+</span><span class="s2">&quot;.bakByPyFoam&quot;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Backing up&quot;</span><span class="p">,</span><span class="n">zeroDir</span><span class="p">,</span><span class="s2">&quot;to&quot;</span><span class="p">,</span><span class="n">backupZeroDir</span><span class="p">)</span>
+                    <span class="n">move</span><span class="p">(</span><span class="n">zeroDir</span><span class="p">,</span><span class="n">backupZeroDir</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Data in&quot;</span><span class="p">,</span><span class="n">zeroDir</span><span class="p">,</span><span class="s2">&quot;will be removed&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Done Meshing&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">doCopy</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Copying&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">copyOriginals</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">backupZeroDir</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Copying backups from&quot;</span><span class="p">,</span><span class="n">backupZeroDir</span><span class="p">,</span><span class="s2">&quot;to&quot;</span><span class="p">,</span><span class="n">zeroDir</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">overloadDir</span><span class="p">(</span><span class="n">zeroDir</span><span class="p">,</span><span class="n">backupZeroDir</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Removing backup&quot;</span><span class="p">,</span><span class="n">backupZeroDir</span><span class="p">)</span>
+                <span class="n">rmtree</span><span class="p">(</span><span class="n">backupZeroDir</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">doPostTemplates</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Post-templates&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">searchAndReplaceTemplates</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                           <span class="n">vals</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">postTemplateExt</span><span class="p">,</span>
+                                           <span class="n">ignoreDirectories</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">ignoreDirectories</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">doCaseSetup</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Case setup&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">caseSetupScript</span><span class="p">:</span>
+                <span class="n">scriptName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">caseSetupScript</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">scriptName</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Script&quot;</span><span class="p">,</span><span class="n">scriptName</span><span class="p">,</span><span class="s2">&quot;does not exist&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultCaseSetup</span><span class="p">)):</span>
+                <span class="n">scriptName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultCaseSetup</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">scriptName</span><span class="o">=</span><span class="bp">None</span>
+
+            <span class="k">if</span> <span class="n">scriptName</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executing&quot;</span><span class="p">,</span><span class="n">scriptName</span><span class="p">,</span><span class="s2">&quot;for case setup&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">echo</span><span class="o">=</span><span class="s2">&quot;Case:&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">echo</span><span class="o">=</span><span class="bp">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">executeScript</span><span class="p">(</span><span class="n">scriptName</span><span class="p">,</span><span class="n">workdir</span><span class="o">=</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">echo</span><span class="o">=</span><span class="n">echo</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="s2">&quot;setFieldsDict&quot;</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;So setup script found. But &#39;setFieldsDict&#39;. Executing setFields&quot;</span><span class="p">)</span>
+                <span class="n">sf</span><span class="o">=</span><span class="n">BasicRunner</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;setFields&quot;</span><span class="p">,</span><span class="s2">&quot;-case&quot;</span><span class="p">,</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+                <span class="n">sf</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">sf</span><span class="o">.</span><span class="n">runOK</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem with setFields&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No script for case-setup found. Nothing done&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Done case setup&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">doFinalTemplates</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Final templates&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">searchAndReplaceTemplates</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                           <span class="n">vals</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">finalTemplateExt</span><span class="p">,</span>
+                                           <span class="n">ignoreDirectories</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">ignoreDirectories</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">doTemplateClean</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Clearing templates&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cleanDirectories</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">templateExt</span><span class="p">,</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">postTemplateExt</span><span class="p">,</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">finalTemplateExt</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cleanExtension</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">d</span><span class="p">),</span><span class="n">e</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Case setup finished&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__writeToStateFile</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span><span class="s2">&quot;Finished OK&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

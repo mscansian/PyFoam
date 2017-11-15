@@ -1,0 +1,1265 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.RunDictionary.ParsedParameterFile module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.RunDictionary package" href="PyFoam.RunDictionary.html"/>
+        <link rel="next" title="PyFoam.RunDictionary.RegionCases module" href="PyFoam.RunDictionary.RegionCases.html"/>
+        <link rel="prev" title="PyFoam.RunDictionary.ParsedBlockMeshDict module" href="PyFoam.RunDictionary.ParsedBlockMeshDict.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a> &raquo;</li>
+      
+    <li>PyFoam.RunDictionary.ParsedParameterFile module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.RunDictionary.ParsedParameterFile.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.RunDictionary.ParsedParameterFile">
+<span id="pyfoam-rundictionary-parsedparameterfile-module"></span><h1>PyFoam.RunDictionary.ParsedParameterFile module<a class="headerlink" href="#module-PyFoam.RunDictionary.ParsedParameterFile" title="Permalink to this headline">¶</a></h1>
+<p>Parameter file is read into memory and modified there</p>
+<dl class="exception">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.BinaryParserError">
+<em class="property">exception </em><code class="descclassname">PyFoam.RunDictionary.ParsedParameterFile.</code><code class="descname">BinaryParserError</code><span class="sig-paren">(</span><em>descr</em>, <em>data=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#BinaryParserError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.BinaryParserError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.RunDictionary.ParsedParameterFile.PyFoamParserError" title="PyFoam.RunDictionary.ParsedParameterFile.PyFoamParserError"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.RunDictionary.ParsedParameterFile.PyFoamParserError</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.BinaryParserError.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>descr</em>, <em>data=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#BinaryParserError.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.BinaryParserError.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.BinaryParserError.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.RunDictionary.ParsedParameterFile'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.BinaryParserError.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.Enumerate">
+<em class="property">class </em><code class="descclassname">PyFoam.RunDictionary.ParsedParameterFile.</code><code class="descname">Enumerate</code><span class="sig-paren">(</span><em>names</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#Enumerate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.Enumerate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.Enumerate.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__init__': &lt;function Enumerate.__init__&gt;, '__weakref__': &lt;attribute '__weakref__' of 'Enumerate' objects&gt;, '__module__': 'PyFoam.RunDictionary.ParsedParameterFile', '__dict__': &lt;attribute '__dict__' of 'Enumerate' objects&gt;, '__doc__': None})</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.Enumerate.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.Enumerate.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>names</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#Enumerate.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.Enumerate.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.Enumerate.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.RunDictionary.ParsedParameterFile'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.Enumerate.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.Enumerate.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.Enumerate.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser">
+<em class="property">class </em><code class="descclassname">PyFoam.RunDictionary.ParsedParameterFile.</code><code class="descname">FoamFileParser</code><span class="sig-paren">(</span><em>content</em>, <em>fName=None</em>, <em>debug=False</em>, <em>noHeader=False</em>, <em>noBody=False</em>, <em>doMacroExpansion=False</em>, <em>boundaryDict=False</em>, <em>preserveComments=True</em>, <em>preserveNewlines=True</em>, <em>listDict=False</em>, <em>listDictWithHeader=False</em>, <em>listLengthUnparsed=None</em>, <em>binaryMode=False</em>, <em>treatBinaryAsASCII=False</em>, <em>duplicateCheck=False</em>, <em>noVectorOrTensor=False</em>, <em>dictStack=None</em>, <em>duplicateFail=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="PyFoam.Basics.PlyParser.html#PyFoam.Basics.PlyParser.PlyParser" title="PyFoam.Basics.PlyParser.PlyParser"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Basics.PlyParser.PlyParser</span></code></a></p>
+<p>Class that parses a string that contains the contents of an
+OpenFOAM-file and builds a nested structure of directories and
+lists from it</p>
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__contains__">
+<code class="descname">__contains__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.__contains__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__contains__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__delitem__">
+<code class="descname">__delitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.__delitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__delitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>content</em>, <em>fName=None</em>, <em>debug=False</em>, <em>noHeader=False</em>, <em>noBody=False</em>, <em>doMacroExpansion=False</em>, <em>boundaryDict=False</em>, <em>preserveComments=True</em>, <em>preserveNewlines=True</em>, <em>listDict=False</em>, <em>listDictWithHeader=False</em>, <em>listLengthUnparsed=None</em>, <em>binaryMode=False</em>, <em>treatBinaryAsASCII=False</em>, <em>duplicateCheck=False</em>, <em>noVectorOrTensor=False</em>, <em>dictStack=None</em>, <em>duplicateFail=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>content</strong> &#8211; the string to be parsed</li>
+<li><strong>fName</strong> &#8211; Name of the actual file (if any)</li>
+<li><strong>debug</strong> &#8211; output debug information during parsing</li>
+<li><strong>noHeader</strong> &#8211; switch that turns off the parsing of the header</li>
+<li><strong>duplicateCheck</strong> &#8211; Check for duplicates in dictionaries</li>
+<li><strong>duplicateFail</strong> &#8211; Fail if a duplicate is discovered</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__iter__">
+<code class="descname">__iter__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.__iter__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.RunDictionary.ParsedParameterFile'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__setitem__">
+<code class="descname">__setitem__</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.__setitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.addCommentToDecorations">
+<code class="descname">addCommentToDecorations</code><span class="sig-paren">(</span><em>text</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.addCommentToDecorations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.addCommentToDecorations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.addNewlinesToDecorations">
+<code class="descname">addNewlinesToDecorations</code><span class="sig-paren">(</span><em>text</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.addNewlinesToDecorations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.addNewlinesToDecorations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.addToDecoration">
+<code class="descname">addToDecoration</code><span class="sig-paren">(</span><em>text</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.addToDecoration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.addToDecoration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.condenseAllPreFixLists">
+<code class="descname">condenseAllPreFixLists</code><span class="sig-paren">(</span><em>orig</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.condenseAllPreFixLists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.condenseAllPreFixLists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether this list is a list that consists only of prefix-Lists</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.directory">
+<code class="descname">directory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.directory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.directory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.getData">
+<code class="descname">getData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.getData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.getData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the data structure</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.getDecoration">
+<code class="descname">getDecoration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.getDecoration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.getDecoration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.getHeader">
+<code class="descname">getHeader</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.getHeader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.getHeader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the OpenFOAM-header</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.literals">
+<code class="descname">literals</code><em class="property"> = '(){};[]^'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.literals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_afterHeader">
+<code class="descname">p_afterHeader</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_afterHeader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_afterHeader" title="Permalink to this definition">¶</a></dt>
+<dd><p>afterHeader :</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_binaryblob">
+<code class="descname">p_binaryblob</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_binaryblob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_binaryblob" title="Permalink to this definition">¶</a></dt>
+<dd><p>binaryblob : BINARYBLOB</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_boundaryDict">
+<code class="descname">p_boundaryDict</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_boundaryDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_boundaryDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>boundaryDict : header list
+| header prelist</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_codeSeen">
+<code class="descname">p_codeSeen</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_codeSeen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_codeSeen" title="Permalink to this definition">¶</a></dt>
+<dd><p>codeSeen :</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_codestream">
+<code class="descname">p_codestream</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_codestream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_codestream" title="Permalink to this definition">¶</a></dt>
+<dd><p>codestream : codeSeen CODESTART CODESTREAMCHUNK CODEEND</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_dictbody">
+<code class="descname">p_dictbody</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_dictbody"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_dictbody" title="Permalink to this definition">¶</a></dt>
+<dd><p>dictbody : dictbody dictline
+| dictline
+| empty</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_dictionary">
+<code class="descname">p_dictionary</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_dictionary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_dictionary" title="Permalink to this definition">¶</a></dt>
+<dd><p>dictionary : &#8216;{&#8216; enter_dict dictbody &#8216;}&#8217; exit_dict
+| &#8216;{&#8216; &#8216;}&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_dictitem">
+<code class="descname">p_dictitem</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_dictitem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_dictitem" title="Permalink to this definition">¶</a></dt>
+<dd><p>dictitem : longitem
+| pitem</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_dictkey">
+<code class="descname">p_dictkey</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_dictkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_dictkey" title="Permalink to this definition">¶</a></dt>
+<dd><p>dictkey : word
+| SCONST</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_dictline">
+<code class="descname">p_dictline</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_dictline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_dictline" title="Permalink to this definition">¶</a></dt>
+<dd><p>dictline : dictkey dictitem &#8216;;&#8217;
+| dictkey list &#8216;;&#8217;
+| dictkey prelist &#8216;;&#8217;
+| dictkey uniformfield &#8216;;&#8217;
+| dictkey fieldvalue &#8216;;&#8217;
+| macro
+| substitution &#8216;;&#8217;
+| dictkey codestream &#8216;;&#8217;
+| dictkey dictionary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_dimension">
+<code class="descname">p_dimension</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_dimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_dimension" title="Permalink to this definition">¶</a></dt>
+<dd><p>dimension : &#8216;[&#8216; number number number number number number number &#8216;]&#8217;
+| &#8216;[&#8216; number number number number number &#8216;]&#8217;
+| &#8216;[&#8216; symbolic_dimension &#8216;]&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_empty">
+<code class="descname">p_empty</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_empty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_empty" title="Permalink to this definition">¶</a></dt>
+<dd><p>empty :</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_enter_dict">
+<code class="descname">p_enter_dict</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_enter_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_enter_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>enter_dict :</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_error">
+<code class="descname">p_error</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_exit_dict">
+<code class="descname">p_exit_dict</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_exit_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_exit_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>exit_dict :</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_fieldvalue_nonuniform">
+<code class="descname">p_fieldvalue_nonuniform</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_fieldvalue_nonuniform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_fieldvalue_nonuniform" title="Permalink to this definition">¶</a></dt>
+<dd><p>fieldvalue : NONUNIFORM NAME list
+| NONUNIFORM prelist
+| NONUNIFORM NAME prelist</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_fieldvalue_uniform">
+<code class="descname">p_fieldvalue_uniform</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_fieldvalue_uniform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_fieldvalue_uniform" title="Permalink to this definition">¶</a></dt>
+<dd><p>fieldvalue : UNIFORM number
+| UNIFORM vector
+| UNIFORM tensor
+| UNIFORM symmtensor</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_float">
+<code class="descname">p_float</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_float"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_float" title="Permalink to this definition">¶</a></dt>
+<dd><p>float : FCONST</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_global">
+<code class="descname">p_global</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_global"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_global" title="Permalink to this definition">¶</a></dt>
+<dd><p>global : header dictbody</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_gotHeader">
+<code class="descname">p_gotHeader</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_gotHeader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_gotHeader" title="Permalink to this definition">¶</a></dt>
+<dd><p>gotHeader :</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_header">
+<code class="descname">p_header</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>header : FOAMFILE dictionary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_ignore_rest_of_line">
+<code class="descname">p_ignore_rest_of_line</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_ignore_rest_of_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_ignore_rest_of_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>ignore_rest_of_line :</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_include">
+<code class="descname">p_include</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_include"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_include" title="Permalink to this definition">¶</a></dt>
+<dd><p>include : INCLUDE ignore_rest_of_line SCONST
+| INCLUDE_ETC ignore_rest_of_line SCONST
+| INCLUDEIFPRESENT ignore_rest_of_line SCONST</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_inputMode">
+<code class="descname">p_inputMode</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_inputMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_inputMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>inputMode : INPUTMODE ignore_rest_of_line ERROR
+| INPUTMODE ignore_rest_of_line WARN
+| INPUTMODE ignore_rest_of_line PROTECT
+| INPUTMODE ignore_rest_of_line DEFAULT
+| INPUTMODE ignore_rest_of_line MERGE
+| INPUTMODE ignore_rest_of_line OVERWRITE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_integer">
+<code class="descname">p_integer</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_integer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_integer" title="Permalink to this definition">¶</a></dt>
+<dd><p>integer : ICONST</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_item">
+<code class="descname">p_item</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_item"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_item" title="Permalink to this definition">¶</a></dt>
+<dd><p>item : pitem
+| REACTION
+| prelist
+| list
+| uniformfield
+| dictionary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_itemlist">
+<code class="descname">p_itemlist</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_itemlist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_itemlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>itemlist : itemlist item
+| itemlist &#8216;;&#8217;
+| item</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_list">
+<code class="descname">p_list</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>list : &#8216;(&#8216; itemlist &#8216;)&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_longitem">
+<code class="descname">p_longitem</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_longitem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_longitem" title="Permalink to this definition">¶</a></dt>
+<dd><p>longitem : pitemlist pitem</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_macro">
+<code class="descname">p_macro</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_macro"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_macro" title="Permalink to this definition">¶</a></dt>
+<dd><p>macro : KANALGITTER include RESTOFLINE
+| KANALGITTER inputMode RESTOFLINE
+| KANALGITTER remove RESTOFLINE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_noBody">
+<code class="descname">p_noBody</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_noBody"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_noBody" title="Permalink to this definition">¶</a></dt>
+<dd><p>noBody : FOAMFILE &#8216;{&#8216; dictbody gotHeader &#8216;}&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_noHeader">
+<code class="descname">p_noHeader</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_noHeader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_noHeader" title="Permalink to this definition">¶</a></dt>
+<dd><p>noHeader : dictbody</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_number">
+<code class="descname">p_number</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>number : integer
+| FCONST</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_onlyListOrPList">
+<code class="descname">p_onlyListOrPList</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_onlyListOrPList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_onlyListOrPList" title="Permalink to this definition">¶</a></dt>
+<dd><p>onlyListOrPList : list
+| prelist
+| uniformfield</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_pitem">
+<code class="descname">p_pitem</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_pitem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_pitem" title="Permalink to this definition">¶</a></dt>
+<dd><p>pitem : word
+| SCONST
+| number
+| dictionary
+| list
+| dimension
+| substitution
+| empty</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_pitemlist">
+<code class="descname">p_pitemlist</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_pitemlist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_pitemlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>pitemlist : pitemlist pitem
+| pitem</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_prelist">
+<code class="descname">p_prelist</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_prelist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_prelist" title="Permalink to this definition">¶</a></dt>
+<dd><p>prelist : integer prelist_seen &#8216;(&#8216; itemlist &#8216;)&#8217;
+| integer prelist_seen &#8216;(&#8216; binaryblob &#8216;)&#8217;
+| integer prelist_seen &#8216;(&#8216; unparsed &#8216;)&#8217;
+| integer prelist_seen &#8216;{&#8216; item &#8216;}&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_prelist_seen">
+<code class="descname">p_prelist_seen</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_prelist_seen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_prelist_seen" title="Permalink to this definition">¶</a></dt>
+<dd><p>prelist_seen :</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_pureList">
+<code class="descname">p_pureList</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_pureList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_pureList" title="Permalink to this definition">¶</a></dt>
+<dd><p>pureList : onlyListOrPList</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_pureListWithHeader">
+<code class="descname">p_pureListWithHeader</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_pureListWithHeader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_pureListWithHeader" title="Permalink to this definition">¶</a></dt>
+<dd><p>pureListWithHeader : header onlyListOrPList</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_remove">
+<code class="descname">p_remove</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>remove : REMOVE ignore_rest_of_line word
+| REMOVE wlist</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_substitution">
+<code class="descname">p_substitution</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_substitution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_substitution" title="Permalink to this definition">¶</a></dt>
+<dd><p>substitution : SUBSTITUTION</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_symbolic_dimension">
+<code class="descname">p_symbolic_dimension</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_symbolic_dimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_symbolic_dimension" title="Permalink to this definition">¶</a></dt>
+<dd><p>symbolic_dimension :  symbolic_dimension_terminal symbolic_dimension
+|  symbolic_dimension_terminal</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_symbolic_dimension_terminal">
+<code class="descname">p_symbolic_dimension_terminal</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_symbolic_dimension_terminal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_symbolic_dimension_terminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>symbolic_dimension_terminal : word
+| number
+| &#8216;(&#8216;
+| &#8216;)&#8217;
+| &#8216;*&#8217;
+| &#8216;/&#8217;
+| &#8216;^&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_symmtensor">
+<code class="descname">p_symmtensor</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_symmtensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_symmtensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>symmtensor : &#8216;(&#8216; number number number number number number &#8216;)&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_tensor">
+<code class="descname">p_tensor</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_tensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_tensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>tensor : &#8216;(&#8216; number number number number number number number number number &#8216;)&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_uniformfield">
+<code class="descname">p_uniformfield</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_uniformfield"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_uniformfield" title="Permalink to this definition">¶</a></dt>
+<dd><p>uniformfield : integer &#8216;{&#8216; number &#8216;}&#8217;
+| integer &#8216;{&#8216; vector &#8216;}&#8217;
+| integer &#8216;{&#8216; tensor &#8216;}&#8217;
+| integer &#8216;{&#8216; symmtensor &#8216;}&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_unparsed">
+<code class="descname">p_unparsed</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_unparsed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_unparsed" title="Permalink to this definition">¶</a></dt>
+<dd><p>unparsed : UNPARSEDCHUNK</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_vector">
+<code class="descname">p_vector</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>vector : &#8216;(&#8216; number number number &#8216;)&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_wlist">
+<code class="descname">p_wlist</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_wlist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_wlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>wlist : &#8216;(&#8216; wordlist ignore_rest_of_line &#8216;)&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_word">
+<code class="descname">p_word</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_word"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_word" title="Permalink to this definition">¶</a></dt>
+<dd><p>word : NAME
+| UNIFORM
+| NONUNIFORM
+| MERGE
+| OVERWRITE
+| DEFAULT
+| WARN
+| PROTECT
+| ERROR</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_wordlist">
+<code class="descname">p_wordlist</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.p_wordlist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.p_wordlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>wordlist : wordlist word
+| word</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.parseSubst_root">
+<code class="descname">parseSubst_root</code><span class="sig-paren">(</span><em>nm</em>, <em>stck</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.parseSubst_root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.parseSubst_root" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.parserError">
+<code class="descname">parserError</code><span class="sig-paren">(</span><em>text</em>, <em>c</em>, <em>ind</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.parserError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.parserError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints the error message of the parser and exit</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.printContext">
+<code class="descname">printContext</code><span class="sig-paren">(</span><em>c</em>, <em>ind</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.printContext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.printContext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints the context of the current index</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.reserved">
+<code class="descname">reserved</code><em class="property"> = {'default': 'DEFAULT', 'includeIfPresent': 'INCLUDEIFPRESENT', 'merge': 'MERGE', 'error': 'ERROR', 'uniform': 'UNIFORM', 'warn': 'WARN', 'protect': 'PROTECT', 'inputMode': 'INPUTMODE', 'FoamFile': 'FOAMFILE', 'includeEtc': 'INCLUDE_ETC', 'overwrite': 'OVERWRITE', 'remove': 'REMOVE', 'include': 'INCLUDE', 'nonuniform': 'NONUNIFORM'}</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.reserved" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.resetDecoration">
+<code class="descname">resetDecoration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.resetDecoration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.resetDecoration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.states">
+<code class="descname">states</code><em class="property"> = (('unparsed', 'exclusive'), ('codestream', 'exclusive'), ('mlcomment', 'exclusive'), ('binaryblob', 'exclusive'), ('ignorerestofline', 'exclusive'))</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.states" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_CODEEND">
+<code class="descname">t_CODEEND</code><em class="property"> = '\\#\\}'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_CODEEND" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_CODESTART">
+<code class="descname">t_CODESTART</code><em class="property"> = '\\#\\{'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_CODESTART" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_FCONST">
+<code class="descname">t_FCONST</code><em class="property"> = '(-|)((\\d+)(\\.\\d*)([eE](\\+|-)?(\\d+))? | (\\d+)[eE](\\+|-)?(\\d+))([lL]|[fF])?'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_FCONST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ICONST">
+<code class="descname">t_ICONST</code><em class="property"> = '(-|)\\d+([uU]|[lL]|[uU][lL]|[lL][uU])?'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ICONST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_KANALGITTER">
+<code class="descname">t_KANALGITTER</code><em class="property"> = '\\#'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_KANALGITTER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_NAME">
+<code class="descname">t_NAME</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_NAME"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_NAME" title="Permalink to this definition">¶</a></dt>
+<dd><p>[<a href="#id1"><span class="problematic" id="id2">a-zA-Z_</span></a>][+-&lt;&gt;(),.*|a-zA-Z_0-9&amp;%:]*</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_SCONST">
+<code class="descname">t_SCONST</code><em class="property"> = '\\&quot;([^\\\\\\n]|(\\\\.))*?\\&quot;'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_SCONST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_SUBSTITUITION">
+<code class="descname">t_SUBSTITUITION</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_SUBSTITUITION"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_SUBSTITUITION" title="Permalink to this definition">¶</a></dt>
+<dd><p>$[<a href="#id3"><span class="problematic" id="id4">a-zA-Z_</span></a>.:{][+-&lt;&gt;(),.*|a-zA-Z_0-9&amp;%:${}]*</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_binaryblob_close">
+<code class="descname">t_binaryblob_close</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_binaryblob_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_binaryblob_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_binaryblob_error">
+<code class="descname">t_binaryblob_error</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_binaryblob_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_binaryblob_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_binaryblob_ignore">
+<code class="descname">t_binaryblob_ignore</code><em class="property"> = ''</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_binaryblob_ignore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_binaryblob_throwaway">
+<code class="descname">t_binaryblob_throwaway</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_binaryblob_throwaway"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_binaryblob_throwaway" title="Permalink to this definition">¶</a></dt>
+<dd><p>[^)]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ccode_comment">
+<code class="descname">t_ccode_comment</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_ccode_comment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ccode_comment" title="Permalink to this definition">¶</a></dt>
+<dd><p>//.*</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_codestream_end">
+<code class="descname">t_codestream_end</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_codestream_end"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_codestream_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>#}</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_codestream_error">
+<code class="descname">t_codestream_error</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_codestream_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_codestream_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_codestream_ignore">
+<code class="descname">t_codestream_ignore</code><em class="property"> = ''</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_codestream_ignore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_codestream_throwaway">
+<code class="descname">t_codestream_throwaway</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_codestream_throwaway"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_codestream_throwaway" title="Permalink to this definition">¶</a></dt>
+<dd><p>[^#]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_error">
+<code class="descname">t_error</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ignore">
+<code class="descname">t_ignore</code><em class="property"> = ' \t\r'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ignore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ignorerestofline_SCONST">
+<code class="descname">t_ignorerestofline_SCONST</code><em class="property"> = '\\&quot;([^\\\\\\n]|(\\\\.))*?\\&quot;'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ignorerestofline_SCONST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ignorerestofline_error">
+<code class="descname">t_ignorerestofline_error</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_ignorerestofline_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ignorerestofline_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ignorerestofline_ignore">
+<code class="descname">t_ignorerestofline_ignore</code><em class="property"> = ''</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ignorerestofline_ignore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ignorerestofline_newline">
+<code class="descname">t_ignorerestofline_newline</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_ignorerestofline_newline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ignorerestofline_newline" title="Permalink to this definition">¶</a></dt>
+<dd><p>[n]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ignorerestofline_restofline">
+<code class="descname">t_ignorerestofline_restofline</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_ignorerestofline_restofline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_ignorerestofline_restofline" title="Permalink to this definition">¶</a></dt>
+<dd><p>[^n]+</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_mlcomment_endcomment">
+<code class="descname">t_mlcomment_endcomment</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_mlcomment_endcomment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_mlcomment_endcomment" title="Permalink to this definition">¶</a></dt>
+<dd><p>*/</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_mlcomment_error">
+<code class="descname">t_mlcomment_error</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_mlcomment_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_mlcomment_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_mlcomment_ignore">
+<code class="descname">t_mlcomment_ignore</code><em class="property"> = ''</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_mlcomment_ignore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_mlcomment_newlevel">
+<code class="descname">t_mlcomment_newlevel</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_mlcomment_newlevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_mlcomment_newlevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>/*</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_mlcomment_throwaway">
+<code class="descname">t_mlcomment_throwaway</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_mlcomment_throwaway"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_mlcomment_throwaway" title="Permalink to this definition">¶</a></dt>
+<dd><p>[^*]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_newline">
+<code class="descname">t_newline</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_newline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_newline" title="Permalink to this definition">¶</a></dt>
+<dd><p>n+</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_startmlcomment">
+<code class="descname">t_startmlcomment</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_startmlcomment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_startmlcomment" title="Permalink to this definition">¶</a></dt>
+<dd><p>/*</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_unparsed_error">
+<code class="descname">t_unparsed_error</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_unparsed_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_unparsed_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_unparsed_ignore">
+<code class="descname">t_unparsed_ignore</code><em class="property"> = ' \t\n0123456789.-+e'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_unparsed_ignore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_unparsed_left">
+<code class="descname">t_unparsed_left</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_unparsed_left"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_unparsed_left" title="Permalink to this definition">¶</a></dt>
+<dd><p>(</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_unparsed_right">
+<code class="descname">t_unparsed_right</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamFileParser.t_unparsed_right"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.t_unparsed_right" title="Permalink to this definition">¶</a></dt>
+<dd><p>)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.tokens">
+<code class="descname">tokens</code><em class="property"> = ('NAME', 'ICONST', 'FCONST', 'SCONST', 'FOAMFILE', 'UNIFORM', 'NONUNIFORM', 'UNPARSEDCHUNK', 'CODESTREAMCHUNK', 'REACTION', 'SUBSTITUTION', 'MERGE', 'OVERWRITE', 'ERROR', 'WARN', 'PROTECT', 'DEFAULT', 'INCLUDE', 'INCLUDE_ETC', 'INCLUDEIFPRESENT', 'REMOVE', 'INPUTMODE', 'KANALGITTER', 'CODESTART', 'CODEEND', 'BINARYBLOB', 'RESTOFLINE')</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser.tokens" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamStringParser">
+<em class="property">class </em><code class="descclassname">PyFoam.RunDictionary.ParsedParameterFile.</code><code class="descname">FoamStringParser</code><span class="sig-paren">(</span><em>content</em>, <em>debug=False</em>, <em>noVectorOrTensor=False</em>, <em>duplicateCheck=False</em>, <em>listDict=False</em>, <em>doMacroExpansion=False</em>, <em>duplicateFail=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamStringParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamStringParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser" title="PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.RunDictionary.ParsedParameterFile.FoamFileParser</span></code></a></p>
+<p>Convenience class that parses only a headerless OpenFOAM dictionary</p>
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamStringParser.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>content</em>, <em>debug=False</em>, <em>noVectorOrTensor=False</em>, <em>duplicateCheck=False</em>, <em>listDict=False</em>, <em>doMacroExpansion=False</em>, <em>duplicateFail=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamStringParser.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamStringParser.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>content</strong> &#8211; the string to be parsed</li>
+<li><strong>debug</strong> &#8211; output debug information during parsing</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamStringParser.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.RunDictionary.ParsedParameterFile'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamStringParser.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.FoamStringParser.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#FoamStringParser.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.FoamStringParser.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.NotAPrelist">
+<em class="property">class </em><code class="descclassname">PyFoam.RunDictionary.ParsedParameterFile.</code><code class="descname">NotAPrelist</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#NotAPrelist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.NotAPrelist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Class to return if the length of the prelist does not fit the prefix</p>
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.NotAPrelist.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__init__': &lt;function NotAPrelist.__init__&gt;, '__weakref__': &lt;attribute '__weakref__' of 'NotAPrelist' objects&gt;, '__module__': 'PyFoam.RunDictionary.ParsedParameterFile', '__dict__': &lt;attribute '__dict__' of 'NotAPrelist' objects&gt;, '__doc__': 'Class to return if the length of the prelist does not fit the prefix'})</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.NotAPrelist.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.NotAPrelist.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#NotAPrelist.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.NotAPrelist.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.NotAPrelist.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.RunDictionary.ParsedParameterFile'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.NotAPrelist.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.NotAPrelist.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.NotAPrelist.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedBoundaryDict">
+<em class="property">class </em><code class="descclassname">PyFoam.RunDictionary.ParsedParameterFile.</code><code class="descname">ParsedBoundaryDict</code><span class="sig-paren">(</span><em>name</em>, <em>treatBinaryAsASCII=False</em>, <em>backup=False</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedBoundaryDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedBoundaryDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile" title="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile</span></code></a></p>
+<p>Convenience class that parses only a OpenFOAM polyMesh-boundaries file</p>
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedBoundaryDict.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>treatBinaryAsASCII=False</em>, <em>backup=False</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedBoundaryDict.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedBoundaryDict.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name of the parameter file</li>
+<li><strong>backup</strong> &#8211; create a backup-copy of the file</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedBoundaryDict.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.RunDictionary.ParsedParameterFile'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedBoundaryDict.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedBoundaryDict.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedBoundaryDict.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedBoundaryDict.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedBoundaryDict.parse">
+<code class="descname">parse</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedBoundaryDict.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedBoundaryDict.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs a representation of the file</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedFileHeader">
+<em class="property">class </em><code class="descclassname">PyFoam.RunDictionary.ParsedParameterFile.</code><code class="descname">ParsedFileHeader</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedFileHeader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedFileHeader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile" title="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile</span></code></a></p>
+<p>Only parse the header of a file</p>
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedFileHeader.__contains__">
+<code class="descname">__contains__</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedFileHeader.__contains__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedFileHeader.__contains__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedFileHeader.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedFileHeader.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedFileHeader.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedFileHeader.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedFileHeader.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedFileHeader.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedFileHeader.__len__">
+<code class="descname">__len__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedFileHeader.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedFileHeader.__len__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedFileHeader.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.RunDictionary.ParsedParameterFile'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedFileHeader.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile">
+<em class="property">class </em><code class="descclassname">PyFoam.RunDictionary.ParsedParameterFile.</code><code class="descname">ParsedParameterFile</code><span class="sig-paren">(</span><em>name</em>, <em>backup=False</em>, <em>debug=False</em>, <em>boundaryDict=False</em>, <em>listDict=False</em>, <em>listDictWithHeader=False</em>, <em>listLengthUnparsed=None</em>, <em>preserveComments=True</em>, <em>noHeader=False</em>, <em>binaryMode=False</em>, <em>treatBinaryAsASCII=False</em>, <em>noBody=False</em>, <em>doMacroExpansion=False</em>, <em>dontRead=False</em>, <em>noVectorOrTensor=False</em>, <em>dictStack=None</em>, <em>createZipped=True</em>, <em>longListOutputThreshold=20</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedParameterFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasisBackup" title="PyFoam.RunDictionary.FileBasis.FileBasisBackup"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.RunDictionary.FileBasis.FileBasisBackup</span></code></a></p>
+<p>Parameterfile whose complete representation is read into
+memory, can be manipulated and afterwards written to disk</p>
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__contains__">
+<code class="descname">__contains__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedParameterFile.__contains__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__contains__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__delitem__">
+<code class="descname">__delitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedParameterFile.__delitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__delitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedParameterFile.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>backup=False</em>, <em>debug=False</em>, <em>boundaryDict=False</em>, <em>listDict=False</em>, <em>listDictWithHeader=False</em>, <em>listLengthUnparsed=None</em>, <em>preserveComments=True</em>, <em>noHeader=False</em>, <em>binaryMode=False</em>, <em>treatBinaryAsASCII=False</em>, <em>noBody=False</em>, <em>doMacroExpansion=False</em>, <em>dontRead=False</em>, <em>noVectorOrTensor=False</em>, <em>dictStack=None</em>, <em>createZipped=True</em>, <em>longListOutputThreshold=20</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedParameterFile.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name of the parameter file</li>
+<li><strong>backup</strong> &#8211; create a backup-copy of the file</li>
+<li><strong>boundaryDict</strong> &#8211; the file to parse is a boundary file</li>
+<li><strong>listDict</strong> &#8211; the file only contains a list</li>
+<li><strong>listDictWithHeader</strong> &#8211; the file only contains a list and a header</li>
+<li><strong>listLengthUnparsed</strong> &#8211; Lists longer than that length are not parsed</li>
+<li><strong>binaryMode</strong> &#8211; Parse long lists in binary mode (to be overridden by</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>the settings in the header).
+:param treatBinaryAsASCII: even if the header says that this is a
+binary file treat it like an ASCII-file
+:param noHeader: don&#8217;t expect a header
+:param noBody: don&#8217;t read the body of the file (only the header)
+:param doMacroExpansion: expand #include and $var
+:param noVectorOrTensor: short lists of length 3, 6 an 9 are NOT
+interpreted as vectors or tensors
+:param dontRead: Do not read the file during construction
+:param longListOutputThreshold: Lists that are longer than this are
+prefixed with a length
+:param dictStack: dictionary stack for lookup (only used for include)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__iter__">
+<code class="descname">__iter__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedParameterFile.__iter__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__len__">
+<code class="descname">__len__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedParameterFile.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__len__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.RunDictionary.ParsedParameterFile'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__setitem__">
+<code class="descname">__setitem__</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedParameterFile.__setitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedParameterFile.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a string from the contents in memory
+Used to be called makeString</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.getValueDict">
+<code class="descname">getValueDict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedParameterFile.getValueDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.getValueDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a dictionary with the values with the decorators removed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.parse">
+<code class="descname">parse</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#ParsedParameterFile.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs a representation of the file</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.PyFoamParserError">
+<em class="property">exception </em><code class="descclassname">PyFoam.RunDictionary.ParsedParameterFile.</code><code class="descname">PyFoamParserError</code><span class="sig-paren">(</span><em>descr</em>, <em>data=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#PyFoamParserError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.PyFoamParserError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="PyFoam.Error.html#PyFoam.Error.FatalErrorPyFoamException" title="PyFoam.Error.FatalErrorPyFoamException"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Error.FatalErrorPyFoamException</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.PyFoamParserError.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>descr</em>, <em>data=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#PyFoamParserError.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.PyFoamParserError.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.PyFoamParserError.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.RunDictionary.ParsedParameterFile'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.PyFoamParserError.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.PyFoamParserError.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#PyFoamParserError.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.PyFoamParserError.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.PyFoamParserError.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#PyFoamParserError.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.PyFoamParserError.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.WriteParameterFile">
+<em class="property">class </em><code class="descclassname">PyFoam.RunDictionary.ParsedParameterFile.</code><code class="descname">WriteParameterFile</code><span class="sig-paren">(</span><em>name</em>, <em>backup=False</em>, <em>className='dictionary'</em>, <em>objectName=None</em>, <em>createZipped=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#WriteParameterFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.WriteParameterFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile" title="PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.RunDictionary.ParsedParameterFile.ParsedParameterFile</span></code></a></p>
+<p>A specialization that is used to only write to the file</p>
+<dl class="method">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.WriteParameterFile.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>backup=False</em>, <em>className='dictionary'</em>, <em>objectName=None</em>, <em>createZipped=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/RunDictionary/ParsedParameterFile.html#WriteParameterFile.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.WriteParameterFile.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.RunDictionary.ParsedParameterFile.WriteParameterFile.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.RunDictionary.ParsedParameterFile'</em><a class="headerlink" href="#PyFoam.RunDictionary.ParsedParameterFile.WriteParameterFile.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.RunDictionary.RegionCases.html" class="btn btn-neutral float-right" title="PyFoam.RunDictionary.RegionCases module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.RunDictionary.ParsedBlockMeshDict.html" class="btn btn-neutral" title="PyFoam.RunDictionary.ParsedBlockMeshDict module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

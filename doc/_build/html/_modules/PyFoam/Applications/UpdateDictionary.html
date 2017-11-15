@@ -1,0 +1,494 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.UpdateDictionary &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.UpdateDictionary</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.UpdateDictionary</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application class that implements pyFoamUpdateDictionary.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.DataStructures</span> <span class="kn">import</span> <span class="n">DictProxy</span><span class="p">,</span><span class="n">TupleProxy</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+
+<span class="kn">from</span> <span class="nn">.CommonParserOptions</span> <span class="kn">import</span> <span class="n">CommonParserOptions</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.TerminalFormatter</span> <span class="kn">import</span> <span class="n">TerminalFormatter</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="nb">input</span>
+
+<span class="n">f</span><span class="o">=</span><span class="n">TerminalFormatter</span><span class="p">()</span>
+<span class="n">f</span><span class="o">.</span><span class="n">getConfigFormat</span><span class="p">(</span><span class="s2">&quot;source&quot;</span><span class="p">,</span><span class="n">shortName</span><span class="o">=</span><span class="s2">&quot;src&quot;</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">getConfigFormat</span><span class="p">(</span><span class="s2">&quot;destination&quot;</span><span class="p">,</span><span class="n">shortName</span><span class="o">=</span><span class="s2">&quot;dst&quot;</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">getConfigFormat</span><span class="p">(</span><span class="s2">&quot;difference&quot;</span><span class="p">,</span><span class="n">shortName</span><span class="o">=</span><span class="s2">&quot;diff&quot;</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">getConfigFormat</span><span class="p">(</span><span class="s2">&quot;question&quot;</span><span class="p">,</span><span class="n">shortName</span><span class="o">=</span><span class="s2">&quot;ask&quot;</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">getConfigFormat</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="UpdateDictionary"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpdateDictionary.html#PyFoam.Applications.UpdateDictionary.UpdateDictionary">[docs]</a><span class="k">class</span> <span class="nc">UpdateDictionary</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">,</span>
+                       <span class="n">CommonParserOptions</span><span class="p">):</span>
+<div class="viewcode-block" id="UpdateDictionary.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpdateDictionary.html#PyFoam.Applications.UpdateDictionary.UpdateDictionary.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Takes two dictionary and modifies the second one after the example of</span>
+<span class="s2">the first. If the dictionaries do not have the same name, it looks for</span>
+<span class="s2">the destination file by searching the equivalent place in the</span>
+<span class="s2">destination case</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] &lt;source&gt; &lt;destination-case&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UpdateDictionary.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpdateDictionary.html#PyFoam.Applications.UpdateDictionary.UpdateDictionary.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--interactive&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;interactive&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Asks the user before applying changes&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--batch&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;interactive&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t ask the user before applying changes&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--clear-unused&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;clear&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Removes all the dictionary entries that are not in the source&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--add-missing&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;add&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Add all the dictionary entries that are not in the destination&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--append-lists&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Append to lists if they are shorter than the original&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--shorten-lists&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;shorten&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Shortens lists if they are longer than the original&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--all&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do all the editing commands: clear, add, shorten and append&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--test&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Does not write the file but only prints it to the screen&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--not-equal&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;notequal&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Allow source and destination to have different names&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--verbose&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print every change that is being made&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--min-recursion&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                               <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;min&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Minimum depth of the recursive decent into dictionaries at which &#39;editing&#39; should start (default: </span><span class="si">%d</span><span class="s2">efault)&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--max-recursion&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                               <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;max&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Maximum depth of the recursive decent into dictionaries (default: </span><span class="si">%d</span><span class="s2">efault)&quot;</span><span class="p">)</span>
+
+        <span class="n">CommonParserOptions</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UpdateDictionary.ask"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpdateDictionary.html#PyFoam.Applications.UpdateDictionary.UpdateDictionary.ask">[docs]</a>    <span class="k">def</span> <span class="nf">ask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">question</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">interactive</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">ask</span><span class="p">,</span><span class="s2">&quot;QUESTION:&quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">question</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">q</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="n">answer</span><span class="o">=</span><span class="bp">None</span>
+            <span class="k">while</span> <span class="n">answer</span><span class="o">!=</span><span class="s2">&quot;y&quot;</span> <span class="ow">and</span> <span class="n">answer</span><span class="o">!=</span><span class="s2">&quot;n&quot;</span><span class="p">:</span>
+                <span class="n">answer</span><span class="o">=</span><span class="nb">input</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">reset</span><span class="o">+</span><span class="n">f</span><span class="o">.</span><span class="n">ask</span><span class="o">+</span><span class="s2">&quot;   [Y]es or [N]no ? &quot;</span><span class="o">+</span><span class="n">f</span><span class="o">.</span><span class="n">input</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">reset</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">answer</span><span class="o">==</span><span class="s2">&quot;y&quot;</span></div>
+
+<div class="viewcode-block" id="UpdateDictionary.workList"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpdateDictionary.html#PyFoam.Applications.UpdateDictionary.UpdateDictionary.workList">[docs]</a>    <span class="k">def</span> <span class="nf">workList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">source</span><span class="p">,</span><span class="n">dest</span><span class="p">,</span><span class="n">depth</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">depth</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">max</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Recursion ended&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">dest</span><span class="p">))):</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="n">dest</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="ow">in</span>  <span class="p">[</span><span class="nb">dict</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Entering dict nr.&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workDict</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">dest</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Leaving dict nr.&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="n">dest</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">,</span><span class="n">TupleProxy</span><span class="p">,</span><span class="nb">list</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Entering tuple nr.&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workList</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">dest</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Leaving tuple nr.&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">interactive</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">!=</span><span class="n">dest</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;Replace for index&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="s2">&quot;the value&quot;</span><span class="p">,</span><span class="n">dest</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="s2">&quot;with the value&quot;</span><span class="p">,</span><span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                        <span class="n">dest</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">shorten</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;Clip [&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">),</span><span class="s2">&quot;:] with the values &quot;</span><span class="p">,</span><span class="n">dest</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">):],</span><span class="s2">&quot;from the list&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Clipping&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">),</span><span class="s2">&quot;entries starting with&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">))</span>
+                <span class="n">dest</span><span class="o">=</span><span class="n">dest</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">&gt;</span><span class="nb">len</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;Append [&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">dest</span><span class="p">),</span><span class="s2">&quot;:] with the values &quot;</span><span class="p">,</span><span class="n">source</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">dest</span><span class="p">):],</span><span class="s2">&quot;to the list&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Appending&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">dest</span><span class="p">),</span><span class="s2">&quot;entries starting with&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">dest</span><span class="p">))</span>
+                <span class="n">dest</span><span class="o">+=</span><span class="n">source</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">dest</span><span class="p">):]</span></div>
+
+<div class="viewcode-block" id="UpdateDictionary.workDict"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpdateDictionary.html#PyFoam.Applications.UpdateDictionary.UpdateDictionary.workDict">[docs]</a>    <span class="k">def</span> <span class="nf">workDict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">source</span><span class="p">,</span><span class="n">dest</span><span class="p">,</span><span class="n">depth</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">depth</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">max</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Recursion ended&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">depth</span><span class="o">&gt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">min</span><span class="p">:</span>
+            <span class="n">doIt</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">doIt</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">source</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dest</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">add</span> <span class="ow">and</span> <span class="n">doIt</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;Add the key&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;with value&quot;</span><span class="p">,</span><span class="n">source</span><span class="p">[</span><span class="n">name</span><span class="p">]):</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Adding&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+                        <span class="n">dest</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">source</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">dict</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">dest</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">dict</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">]:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Entry&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;is not a dictionary in destination (but in source)&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Entering dict &quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workDict</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="n">name</span><span class="p">],</span><span class="n">dest</span><span class="p">[</span><span class="n">name</span><span class="p">],</span><span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Leaving dict &quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="n">name</span><span class="p">])</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="n">dest</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">dest</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">,</span><span class="n">TupleProxy</span><span class="p">,</span><span class="nb">list</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Entering tuple &quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workList</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="n">name</span><span class="p">],</span><span class="n">dest</span><span class="p">[</span><span class="n">name</span><span class="p">],</span><span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Leaving tuple &quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">interactive</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">source</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">!=</span><span class="n">dest</span><span class="p">[</span><span class="n">name</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;Replace for key&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;the value&quot;</span><span class="p">,</span><span class="n">dest</span><span class="p">[</span><span class="n">name</span><span class="p">],</span><span class="s2">&quot;with the value&quot;</span><span class="p">,</span><span class="n">source</span><span class="p">[</span><span class="n">name</span><span class="p">]):</span>
+                        <span class="n">dest</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">source</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Nothing done for&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clear</span> <span class="ow">and</span> <span class="n">doIt</span><span class="p">:</span>
+            <span class="n">weg</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">dest</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source</span><span class="p">:</span>
+                    <span class="n">weg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">weg</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;Remove the key&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;with the value&quot;</span><span class="p">,</span><span class="n">dest</span><span class="p">[</span><span class="n">name</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="o">*</span><span class="n">depth</span><span class="p">,</span><span class="s2">&quot;Removing&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+                    <span class="k">del</span> <span class="n">dest</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="UpdateDictionary.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpdateDictionary.html#PyFoam.Applications.UpdateDictionary.UpdateDictionary.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">sName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">dName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">all</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">shorten</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">add</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clear</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">sName</span><span class="p">,</span>
+                                       <span class="n">backup</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                       <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">debugParser</span><span class="p">,</span>
+                                       <span class="n">noBody</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">noBody</span><span class="p">,</span>
+                                       <span class="n">noHeader</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">noHeader</span><span class="p">,</span>
+                                       <span class="n">boundaryDict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">boundaryDict</span><span class="p">,</span>
+                                       <span class="n">listDict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">listDict</span><span class="p">,</span>
+                                       <span class="n">listDictWithHeader</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">listDictWithHeader</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem with file&quot;</span><span class="p">,</span><span class="n">sName</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">notequal</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sName</span><span class="p">)</span><span class="o">!=</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">dName</span><span class="p">):</span>
+            <span class="n">found</span><span class="o">=</span><span class="bp">False</span>
+            <span class="n">parts</span><span class="o">=</span><span class="n">sName</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)):</span>
+                <span class="n">tmp</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">dName</span><span class="p">]</span><span class="o">+</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):])</span>
+
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmp</span><span class="p">):</span>
+                    <span class="n">found</span><span class="o">=</span><span class="bp">True</span>
+                    <span class="n">dName</span><span class="o">=</span><span class="n">tmp</span>
+                    <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Found&quot;</span><span class="p">,</span><span class="n">dName</span><span class="p">,</span><span class="s2">&quot;and using this&quot;</span><span class="p">)</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Could not find a file named&quot;</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sName</span><span class="p">),</span><span class="s2">&quot;in&quot;</span><span class="p">,</span><span class="n">dName</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">samefile</span><span class="p">(</span><span class="n">sName</span><span class="p">,</span><span class="n">dName</span><span class="p">):</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Source&quot;</span><span class="p">,</span><span class="n">sName</span><span class="p">,</span><span class="s2">&quot;and destination&quot;</span><span class="p">,</span><span class="n">dName</span><span class="p">,</span><span class="s2">&quot;are the same&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dest</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">dName</span><span class="p">,</span>
+                                     <span class="n">backup</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                     <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">debugParser</span><span class="p">,</span>
+                                     <span class="n">noBody</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">noBody</span><span class="p">,</span>
+                                     <span class="n">noHeader</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">noHeader</span><span class="p">,</span>
+                                     <span class="n">boundaryDict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">boundaryDict</span><span class="p">,</span>
+                                     <span class="n">listDict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">listDict</span><span class="p">,</span>
+                                     <span class="n">listDictWithHeader</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">listDictWithHeader</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem with file&quot;</span><span class="p">,</span><span class="n">dName</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="n">dCase</span><span class="o">=</span><span class="n">dest</span><span class="o">.</span><span class="n">getCaseDir</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">interactive</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">boundaryDict</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">listDict</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">listDictWithHeader</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">workDict</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">content</span><span class="p">,</span><span class="n">dest</span><span class="o">.</span><span class="n">content</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">workList</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">content</span><span class="p">,</span><span class="n">dest</span><span class="o">.</span><span class="n">content</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">test</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">interactive</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">dest</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">test</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Write this file to disk&quot;</span><span class="p">):</span>
+            <span class="n">dest</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">dCase</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addToCaseLog</span><span class="p">(</span><span class="n">dCase</span><span class="p">,</span><span class="s2">&quot;Source&quot;</span><span class="p">,</span><span class="n">sName</span><span class="p">,</span><span class="s2">&quot;Destination:&quot;</span><span class="p">,</span><span class="n">dName</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

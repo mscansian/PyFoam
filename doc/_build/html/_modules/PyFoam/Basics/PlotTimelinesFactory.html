@@ -1,0 +1,296 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.PlotTimelinesFactory &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.PlotTimelinesFactory</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.PlotTimelinesFactory</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Creates subclasses of GeneralPlotTimelines&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.GnuplotTimelines</span> <span class="kn">import</span> <span class="n">GnuplotTimelines</span><span class="p">,</span><span class="n">validTerminals</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.MatplotlibTimelines</span> <span class="kn">import</span> <span class="n">MatplotlibTimelines</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.XkcdMatplotlibTimelines</span> <span class="kn">import</span> <span class="n">XkcdMatplotlibTimelines</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.QwtPlotTimelines</span> <span class="kn">import</span> <span class="n">QwtPlotTimelines</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.DummyPlotTimelines</span> <span class="kn">import</span> <span class="n">DummyPlotTimelines</span>
+
+<span class="kn">from</span> <span class="nn">.CustomPlotInfo</span> <span class="kn">import</span> <span class="n">CustomPlotInfo</span>
+
+
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span>
+
+<span class="n">lookupTable</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;gnuplot&quot;</span> <span class="p">:</span> <span class="n">GnuplotTimelines</span> <span class="p">,</span>
+                <span class="s2">&quot;matplotlib&quot;</span> <span class="p">:</span> <span class="n">MatplotlibTimelines</span><span class="p">,</span>
+                <span class="s2">&quot;xkcd&quot;</span> <span class="p">:</span> <span class="n">XkcdMatplotlibTimelines</span><span class="p">,</span>
+                <span class="s2">&quot;qwtplot&quot;</span> <span class="p">:</span> <span class="n">QwtPlotTimelines</span><span class="p">,</span>
+                <span class="s2">&quot;dummy&quot;</span> <span class="p">:</span> <span class="n">DummyPlotTimelines</span>  <span class="p">}</span>
+
+<div class="viewcode-block" id="createPlotTimelines"><a class="viewcode-back" href="../../../api/PyFoam.Basics.PlotTimelinesFactory.html#PyFoam.Basics.PlotTimelinesFactory.createPlotTimelines">[docs]</a><span class="k">def</span> <span class="nf">createPlotTimelines</span><span class="p">(</span><span class="n">timelines</span><span class="p">,</span>
+                        <span class="n">custom</span><span class="p">,</span>
+                        <span class="n">implementation</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">showWindow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                        <span class="n">registry</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates a plotting object</span>
+<span class="sd">    :param timelines: The timelines object</span>
+<span class="sd">    :type timelines: TimeLineCollection</span>
+<span class="sd">    :param custom: specifies how the block should look like</span>
+<span class="sd">    :param implementation: the implementation that should be used</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">implementation</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+        <span class="n">implementation</span><span class="o">=</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Plotting&quot;</span><span class="p">,</span><span class="s2">&quot;preferredImplementation&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">implementation</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lookupTable</span><span class="p">:</span>
+        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Requested plotting implementation&quot;</span><span class="p">,</span><span class="n">implementation</span><span class="p">,</span>
+              <span class="s2">&quot;not in list of available implementations&quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="n">lookupTable</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+    <span class="n">options</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;showWindow&quot;</span> <span class="p">:</span> <span class="n">showWindow</span><span class="p">,</span>
+        <span class="s2">&quot;registry&quot;</span>   <span class="p">:</span> <span class="n">registry</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">implementation</span><span class="o">==</span><span class="s2">&quot;gnuplot&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">gnuplotTerminal</span><span class="p">:</span>
+            <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Plotting&quot;</span><span class="p">,</span><span class="s2">&quot;gnuplot_terminal&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">gnuplotTerminal</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">validTerminals</span><span class="p">():</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Terminal&quot;</span><span class="p">,</span><span class="n">gnuplotTerminal</span><span class="p">,</span><span class="s2">&quot;not in list of valid terminals&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validTerminals</span><span class="p">()))</span>
+        <span class="n">options</span><span class="p">[</span><span class="s2">&quot;terminal&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">gnuplotTerminal</span>
+
+    <span class="k">return</span> <span class="n">lookupTable</span><span class="p">[</span><span class="n">implementation</span><span class="p">](</span><span class="n">timelines</span><span class="p">,</span>
+                                       <span class="n">custom</span><span class="p">,</span>
+                                       <span class="o">**</span><span class="n">options</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="createPlotTimelinesDirect"><a class="viewcode-back" href="../../../api/PyFoam.Basics.PlotTimelinesFactory.html#PyFoam.Basics.PlotTimelinesFactory.createPlotTimelinesDirect">[docs]</a><span class="k">def</span> <span class="nf">createPlotTimelinesDirect</span><span class="p">(</span><span class="n">name</span><span class="p">,</span>
+                              <span class="n">timelines</span><span class="p">,</span>
+                              <span class="n">persist</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">raiseit</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                              <span class="n">with_</span><span class="o">=</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span>
+                              <span class="n">alternateAxis</span><span class="o">=</span><span class="p">[],</span>
+                              <span class="n">forbidden</span><span class="o">=</span><span class="p">[],</span>
+                              <span class="n">start</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">end</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">logscale</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                              <span class="n">ylabel</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">y2label</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">implementation</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates a plot using some prefefined values</span>
+<span class="sd">    :param timelines: The timelines object</span>
+<span class="sd">    :type timelines: TimeLineCollection</span>
+<span class="sd">    :param persist: Gnuplot window persistst after run</span>
+<span class="sd">    :param raiseit: Raise the window at every plot</span>
+<span class="sd">    :param with_: how to plot the data (lines, points, steps)</span>
+<span class="sd">    :param alternateAxis: list with names that ought to appear on the alternate y-axis</span>
+<span class="sd">    :param forbidden: A list with strings. If one of those strings is found in a name, it is not plotted</span>
+<span class="sd">    :param start: First time that should be plotted. If undefined everything from the start is plotted</span>
+<span class="sd">    :param end: Last time that should be plotted. If undefined data is plotted indefinitly</span>
+<span class="sd">    :param logscale: Scale the y-axis logarithmic</span>
+<span class="sd">    :param ylabel: Label of the y-axis</span>
+<span class="sd">    :param y2label: Label of the alternate y-axis</span>
+<span class="sd">    :param implementation: the implementation that should be used</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ci</span><span class="o">=</span><span class="n">CustomPlotInfo</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">ci</span><span class="o">.</span><span class="n">persist</span><span class="o">=</span><span class="n">persist</span>
+    <span class="n">ci</span><span class="o">.</span><span class="n">raiseit</span><span class="o">=</span><span class="n">raiseit</span>
+    <span class="n">ci</span><span class="o">.</span><span class="n">with_</span><span class="o">=</span><span class="n">with_</span>
+    <span class="n">ci</span><span class="o">.</span><span class="n">alternateAxis</span><span class="o">=</span><span class="n">alternateAxis</span>
+    <span class="n">ci</span><span class="o">.</span><span class="n">forbidden</span><span class="o">=</span><span class="n">forbidden</span>
+    <span class="n">ci</span><span class="o">.</span><span class="n">start</span><span class="o">=</span><span class="n">start</span>
+    <span class="n">ci</span><span class="o">.</span><span class="n">end</span><span class="o">=</span><span class="n">end</span>
+    <span class="n">ci</span><span class="o">.</span><span class="n">logscale</span><span class="o">=</span><span class="n">logscale</span>
+    <span class="n">ci</span><span class="o">.</span><span class="n">ylabel</span><span class="o">=</span><span class="n">ylabel</span>
+    <span class="n">ci</span><span class="o">.</span><span class="n">y2label</span><span class="o">=</span><span class="n">y2label</span>
+
+    <span class="k">return</span> <span class="n">createPlotTimelines</span><span class="p">(</span><span class="n">timelines</span><span class="p">,</span><span class="n">ci</span><span class="p">,</span>
+                               <span class="n">implementation</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span>
+                               <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="n">gnuplotTerminal</span><span class="p">)</span></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

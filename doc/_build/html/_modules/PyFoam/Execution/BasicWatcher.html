@@ -1,0 +1,297 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Execution.BasicWatcher &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Execution.BasicWatcher</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Execution.BasicWatcher</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Watches the output of Foam-run&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">import</span> <span class="nn">stat</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.LineReader</span> <span class="kn">import</span> <span class="n">LineReader</span>
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">config</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<div class="viewcode-block" id="BasicWatcher"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicWatcher.html#PyFoam.Execution.BasicWatcher.BasicWatcher">[docs]</a><span class="k">class</span> <span class="nc">BasicWatcher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for watching the output of commands</span>
+
+<span class="sd">    Works like the UNIX-command &#39;tail -f &lt;file&gt;&#39;: the last lines of the file are output.</span>
+<span class="sd">    If the file grows then these lines are output as they arrive&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BasicWatcher.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicWatcher.html#PyFoam.Execution.BasicWatcher.BasicWatcher.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span>
+                 <span class="n">silent</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">tailLength</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                 <span class="n">sleep</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                 <span class="n">follow</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param filename: name of the logfile to watch</span>
+<span class="sd">        :param silent: if True no output is sent to stdout</span>
+<span class="sd">        :param tailLength: number of bytes at the end of the fail that should be output.</span>
+<span class="sd">        :param follow: if the end of the file is reached wait for further input</span>
+<span class="sd">        Because data is output on a per-line-basis</span>
+<span class="sd">        :param sleep: interval to sleep if no line is returned&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">silent</span><span class="o">=</span><span class="n">silent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tail</span><span class="o">=</span><span class="n">tailLength</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sleep</span><span class="o">=</span><span class="n">sleep</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">follow</span><span class="o">=</span><span class="n">follow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isTailing</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">):</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Error: Logfile &quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span><span class="s2">&quot;does not exist&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">=</span><span class="n">LineReader</span><span class="p">(</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;SolverOutput&quot;</span><span class="p">,</span><span class="s2">&quot;stripSpaces&quot;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="BasicWatcher.getSize"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicWatcher.html#PyFoam.Execution.BasicWatcher.BasicWatcher.getSize">[docs]</a>    <span class="k">def</span> <span class="nf">getSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:return: the current size (in bytes) of the file&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)[</span><span class="n">stat</span><span class="o">.</span><span class="n">ST_SIZE</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="BasicWatcher.start"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicWatcher.html#PyFoam.Execution.BasicWatcher.BasicWatcher.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reads the file and does the processing&quot;&quot;&quot;</span>
+
+        <span class="n">currSize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span>
+
+        <span class="n">fn</span><span class="p">,</span><span class="n">ext</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ext</span><span class="o">==</span><span class="s1">&#39;.gz&#39;</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">=</span><span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">startHandle</span><span class="p">()</span>
+
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">follow</span> <span class="ow">or</span> <span class="n">currSize</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">bytesRead</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">status</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">status</span><span class="p">:</span>
+                    <span class="n">line</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">line</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">currSize</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">bytesRead</span><span class="p">())</span><span class="o">&lt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">tail</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isTailing</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">isTailing</span><span class="o">=</span><span class="bp">True</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">timeHandle</span><span class="p">()</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">tailingHandle</span><span class="p">()</span>
+
+                        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">lineHandle</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">userSaidStop</span><span class="p">():</span>
+                        <span class="k">break</span>
+                    <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Watcher: Keyboard interrupt&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stopHandle</span><span class="p">()</span>
+
+        <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="BasicWatcher.startHandle"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicWatcher.html#PyFoam.Execution.BasicWatcher.BasicWatcher.startHandle">[docs]</a>    <span class="k">def</span> <span class="nf">startHandle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;to be called before the program is started&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BasicWatcher.stopHandle"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicWatcher.html#PyFoam.Execution.BasicWatcher.BasicWatcher.stopHandle">[docs]</a>    <span class="k">def</span> <span class="nf">stopHandle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;called after the program has stopped&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BasicWatcher.tailingHandle"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicWatcher.html#PyFoam.Execution.BasicWatcher.BasicWatcher.tailingHandle">[docs]</a>    <span class="k">def</span> <span class="nf">tailingHandle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;called when the first line is output&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BasicWatcher.lineHandle"><a class="viewcode-back" href="../../../api/PyFoam.Execution.BasicWatcher.html#PyFoam.Execution.BasicWatcher.BasicWatcher.lineHandle">[docs]</a>    <span class="k">def</span> <span class="nf">lineHandle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">line</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;called every time a new line is read&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,403 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Execution.ParallelExecution &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Execution.ParallelExecution</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Execution.ParallelExecution</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Things that are needed for convenient parallel Execution&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.Utilities</span> <span class="kn">import</span> <span class="n">Utilities</span>
+<span class="kn">from</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">import</span> <span class="n">foamMPI</span><span class="p">,</span><span class="n">oldAppConvention</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span><span class="p">,</span><span class="n">debug</span>
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">config</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">environ</span><span class="p">,</span><span class="n">system</span>
+
+<span class="kn">import</span> <span class="nn">subprocess</span>
+
+<div class="viewcode-block" id="LAMMachine"><a class="viewcode-back" href="../../../api/PyFoam.Execution.ParallelExecution.html#PyFoam.Execution.ParallelExecution.LAMMachine">[docs]</a><span class="k">class</span> <span class="nc">LAMMachine</span><span class="p">(</span><span class="n">Utilities</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrapper class for starting an stopping a LAM-Machine&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="LAMMachine.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Execution.ParallelExecution.html#PyFoam.Execution.ParallelExecution.LAMMachine.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">machines</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">nr</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param machines: Name of the file with the machine information</span>
+<span class="sd">        :param nr: Number of processes&quot;&quot;&quot;</span>
+
+        <span class="n">Utilities</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">machines</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">machines</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="k">if</span> <span class="n">machines</span><span class="o">==</span><span class="bp">None</span> <span class="ow">and</span> <span class="n">foamMPI</span><span class="p">()</span><span class="o">==</span><span class="s2">&quot;LAM&quot;</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Machinefile must be specified for LAM&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">machines</span><span class="o">==</span><span class="bp">None</span> <span class="ow">and</span> <span class="n">nr</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Either machinefile or Nr of CPUs must be specified for MPI type&quot;</span><span class="p">,</span><span class="n">foamMPI</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mFile</span><span class="o">=</span><span class="n">machines</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">procNr</span><span class="o">=</span><span class="n">nr</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">boot</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">machineOK</span><span class="p">():</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error: LAM was not started&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LAMMachine.machineOK"><a class="viewcode-back" href="../../../api/PyFoam.Execution.ParallelExecution.html#PyFoam.Execution.ParallelExecution.LAMMachine.machineOK">[docs]</a>    <span class="k">def</span> <span class="nf">machineOK</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check whether the LAM machine was properly booted&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">foamMPI</span><span class="p">()</span><span class="o">==</span><span class="s2">&quot;LAM&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpuNr</span><span class="p">()</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span></div>
+
+<div class="viewcode-block" id="LAMMachine.stop"><a class="viewcode-back" href="../../../api/PyFoam.Execution.ParallelExecution.html#PyFoam.Execution.ParallelExecution.LAMMachine.stop">[docs]</a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stops a LAM-machine (if one is running)&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">foamMPI</span><span class="p">()</span><span class="o">==</span><span class="s2">&quot;LAM&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;lamhalt -v&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LAMMachine.boot"><a class="viewcode-back" href="../../../api/PyFoam.Execution.ParallelExecution.html#PyFoam.Execution.ParallelExecution.LAMMachine.boot">[docs]</a>    <span class="k">def</span> <span class="nf">boot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Boots a LAM-machine using the machine-file&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">foamMPI</span><span class="p">()</span><span class="o">==</span><span class="s2">&quot;LAM&quot;</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;LAM is untested. Any Feedback most welcome&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;lamboot -s -v &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">mFile</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">foamMPI</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;OPENMPI&quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot; Unknown or missing MPI-Implementation: &quot;</span><span class="o">+</span><span class="n">foamMPI</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="LAMMachine.cpuNr"><a class="viewcode-back" href="../../../api/PyFoam.Execution.ParallelExecution.html#PyFoam.Execution.ParallelExecution.LAMMachine.cpuNr">[docs]</a>    <span class="k">def</span> <span class="nf">cpuNr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">foamMPI</span><span class="p">()</span><span class="o">==</span><span class="s2">&quot;LAM&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+                <span class="n">lines</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;lamnodes&quot;</span><span class="p">)</span>
+                <span class="n">nr</span><span class="o">=</span><span class="mi">0</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+                    <span class="n">tmp</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                        <span class="n">nr</span><span class="o">+=</span><span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">return</span> <span class="n">nr</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">foamMPI</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;OPENMPI&quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mFile</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mFile</span><span class="p">)</span>
+                <span class="n">l</span><span class="o">=</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">nr</span><span class="o">=</span><span class="mi">0</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+                    <span class="n">tmp</span><span class="o">=</span><span class="n">m</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                        <span class="n">nr</span><span class="o">+=</span><span class="mi">1</span>
+                    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Machinefile not valid (I think): more than one element in one line:&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Propably you wrote a line in the form &#39;node1 cpu=2&#39;, but I only understand &#39;node1</span><span class="se">\\</span><span class="s2">nnode1&#39;&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">procNr</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">nr</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">nr</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">procNr</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">procNr</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">procNr</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Can&#39;t determine Nr of CPUs without machinefile&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LAMMachine.buildMPIrun"><a class="viewcode-back" href="../../../api/PyFoam.Execution.ParallelExecution.html#PyFoam.Execution.ParallelExecution.LAMMachine.buildMPIrun">[docs]</a>    <span class="k">def</span> <span class="nf">buildMPIrun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">argv</span><span class="p">,</span><span class="n">expandApplication</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Builds a list with a working mpirun command (for that MPI-Implementation)</span>
+<span class="sd">        :param argv: the original arguments that are to be wrapped</span>
+<span class="sd">        :param expandApplication: Expand the</span>
+<span class="sd">        :return: list with the correct mpirun-command&quot;&quot;&quot;</span>
+
+        <span class="n">nr</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpuNr</span><span class="p">())</span>
+        <span class="n">mpirun</span><span class="o">=</span><span class="p">[</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MPI&quot;</span><span class="p">,</span><span class="s2">&quot;run_&quot;</span><span class="o">+</span><span class="n">foamMPI</span><span class="p">(),</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;mpirun&quot;</span><span class="p">)]</span>
+        <span class="n">mpiRunPath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mpirun</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mpiRunPath</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Could not find a path for&quot;</span><span class="p">,</span><span class="n">mpirun</span><span class="p">,</span>
+                  <span class="s2">&quot;Check configuration variable&quot;</span><span class="p">,</span><span class="s2">&quot;run_&quot;</span><span class="o">+</span><span class="n">foamMPI</span><span class="p">(),</span>
+                  <span class="s2">&quot;in section &#39;MPI&#39;&quot;</span><span class="p">)</span>
+        <span class="n">mpirun</span><span class="o">+=</span><span class="nb">eval</span><span class="p">(</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MPI&quot;</span><span class="p">,</span><span class="s2">&quot;options_&quot;</span><span class="o">+</span><span class="n">foamMPI</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;_pre&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;[]&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">foamMPI</span><span class="p">()</span><span class="o">==</span><span class="s2">&quot;LAM&quot;</span><span class="p">):</span>
+            <span class="n">mpirun</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;-np&quot;</span><span class="p">,</span><span class="n">nr</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">foamMPI</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;OPENMPI&quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">nr</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">if</span> <span class="s2">&quot;MPI_ARCH_PATH&quot;</span> <span class="ow">in</span> <span class="n">environ</span> <span class="ow">and</span> <span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s2">&quot;MPI&quot;</span><span class="p">,</span><span class="s2">&quot;OpenMPI_add_prefix&quot;</span><span class="p">):</span>
+                <span class="n">nr</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--prefix&quot;</span><span class="p">,</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;MPI_ARCH_PATH&quot;</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">procNr</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">nr</span><span class="o">+=</span><span class="p">[</span><span class="s2">&quot;--n&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">procNr</span><span class="p">)]</span>
+            <span class="n">machine</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mFile</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">machine</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--machinefile&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">mFile</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getdebug</span><span class="p">(</span><span class="s2">&quot;ParallelExecution&quot;</span><span class="p">):</span>
+                    <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Start of&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">mFile</span><span class="p">)</span>
+                    <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mFile</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+                    <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;End of&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">mFile</span><span class="p">)</span>
+            <span class="n">mpirun</span><span class="o">+=</span><span class="n">machine</span><span class="o">+</span><span class="n">nr</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot; Unknown or missing MPI-Implementation for mpirun: &quot;</span><span class="o">+</span><span class="n">foamMPI</span><span class="p">())</span>
+
+        <span class="n">mpirun</span><span class="o">+=</span><span class="nb">eval</span><span class="p">(</span><span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MPI&quot;</span><span class="p">,</span><span class="s2">&quot;options_&quot;</span><span class="o">+</span><span class="n">foamMPI</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;_post&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;[]&quot;</span><span class="p">))</span>
+
+        <span class="n">progname</span><span class="o">=</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">expandApplication</span><span class="p">:</span>
+            <span class="c1"># old implementation: stat,progname=commands.getstatusoutput(&#39;which &#39;+progname)</span>
+            <span class="n">progname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="n">progname</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">progname</span><span class="p">:</span>
+                <span class="n">progname</span><span class="o">=</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;which can not find a match for&quot;</span><span class="p">,</span><span class="n">progname</span><span class="p">,</span><span class="s2">&quot;. Hoping for the best&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">oldAppConvention</span><span class="p">():</span>
+            <span class="n">mpirun</span><span class="o">+=</span><span class="p">[</span><span class="n">progname</span><span class="p">]</span><span class="o">+</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">+</span><span class="p">[</span><span class="s2">&quot;-parallel&quot;</span><span class="p">]</span><span class="o">+</span><span class="n">argv</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mpirun</span><span class="o">+=</span><span class="p">[</span><span class="n">progname</span><span class="p">]</span><span class="o">+</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="p">[</span><span class="s2">&quot;-parallel&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">config</span><span class="p">()</span><span class="o">.</span><span class="n">getdebug</span><span class="p">(</span><span class="s2">&quot;ParallelExecution&quot;</span><span class="p">):</span>
+            <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;MPI:&quot;</span><span class="p">,</span><span class="n">foamMPI</span><span class="p">())</span>
+            <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Arguments:&quot;</span><span class="p">,</span><span class="n">mpirun</span><span class="p">)</span>
+            <span class="n">system</span><span class="p">(</span><span class="s2">&quot;which mpirun&quot;</span><span class="p">)</span>
+            <span class="n">system</span><span class="p">(</span><span class="s2">&quot;which rsh&quot;</span><span class="p">)</span>
+            <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Environment&quot;</span><span class="p">,</span><span class="n">environ</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">mpirun</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+                    <span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Transfering variable&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="s2">&quot;with value&quot;</span><span class="p">,</span><span class="n">environ</span><span class="p">[</span><span class="n">a</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">mpirun</span></div>
+
+<div class="viewcode-block" id="LAMMachine.writeMetis"><a class="viewcode-back" href="../../../api/PyFoam.Execution.ParallelExecution.html#PyFoam.Execution.ParallelExecution.LAMMachine.writeMetis">[docs]</a>    <span class="k">def</span> <span class="nf">writeMetis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sDir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the parameter-File for a metis decomposition</span>
+<span class="sd">        :param sDir: Solution directory</span>
+<span class="sd">        :type sDir: PyFoam.RunDictionary.SolutionDirectory&quot;&quot;&quot;</span>
+
+        <span class="n">params</span><span class="o">=</span><span class="s2">&quot;method metis;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeDecomposition</span><span class="p">(</span><span class="n">sDir</span><span class="p">,</span><span class="n">params</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LAMMachine.writeSimple"><a class="viewcode-back" href="../../../api/PyFoam.Execution.ParallelExecution.html#PyFoam.Execution.ParallelExecution.LAMMachine.writeSimple">[docs]</a>    <span class="k">def</span> <span class="nf">writeSimple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sDir</span><span class="p">,</span><span class="n">direction</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the parameter-File for a metis decomposition</span>
+<span class="sd">        :param sDir: Solution directory</span>
+<span class="sd">        :type sDir: PyFoam.RunDictionary.SolutionDirectory</span>
+<span class="sd">        :param direction: direction in which to decompose (0=x, 1=y, 2=z)&quot;&quot;&quot;</span>
+
+        <span class="n">params</span> <span class="o">=</span><span class="s2">&quot;method simple;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">params</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">simpleCoeffs</span><span class="se">\n</span><span class="s2">{</span><span class="se">\n\t</span><span class="s2"> n </span><span class="se">\t</span><span class="s2"> (&quot;</span>
+        <span class="k">if</span> <span class="n">direction</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">params</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpuNr</span><span class="p">())</span><span class="o">+</span><span class="s2">&quot; &quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">params</span><span class="o">+=</span><span class="s2">&quot;1 &quot;</span>
+        <span class="k">if</span> <span class="n">direction</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">params</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpuNr</span><span class="p">())</span><span class="o">+</span><span class="s2">&quot; &quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">params</span><span class="o">+=</span><span class="s2">&quot;1 &quot;</span>
+        <span class="k">if</span> <span class="n">direction</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+            <span class="n">params</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpuNr</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">params</span><span class="o">+=</span><span class="s2">&quot;1&quot;</span>
+        <span class="n">params</span><span class="o">+=</span><span class="s2">&quot;);</span><span class="se">\n\t</span><span class="s2"> delta </span><span class="se">\t</span><span class="s2"> 0.001;</span><span class="se">\n</span><span class="s2">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeDecomposition</span><span class="p">(</span><span class="n">sDir</span><span class="p">,</span><span class="n">params</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LAMMachine.writeDecomposition"><a class="viewcode-back" href="../../../api/PyFoam.Execution.ParallelExecution.html#PyFoam.Execution.ParallelExecution.LAMMachine.writeDecomposition">[docs]</a>    <span class="k">def</span> <span class="nf">writeDecomposition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sDir</span><span class="p">,</span><span class="n">par</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write parameter file for a decomposition</span>
+<span class="sd">        :param par:Parameters specific for that kind of decomposition</span>
+<span class="sd">        :type par:str</span>
+<span class="sd">        :param sDir: Solution directory</span>
+<span class="sd">        :type sDir: PyFoam.RunDictionary.SolutionDirectory&quot;&quot;&quot;</span>
+
+        <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sDir</span><span class="o">.</span><span class="n">systemDir</span><span class="p">(),</span><span class="s2">&quot;decomposeParDict&quot;</span><span class="p">),</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeDictionaryHeader</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;// * * * * * * * * * //</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;numberOfSubdomains &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpuNr</span><span class="p">())</span><span class="o">+</span><span class="s2">&quot;;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">par</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">// * * * * * * * * * //&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

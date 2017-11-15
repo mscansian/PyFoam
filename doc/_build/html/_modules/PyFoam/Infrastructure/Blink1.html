@@ -1,0 +1,336 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Infrastructure.Blink1 &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Infrastructure.Blink1</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Infrastructure.Blink1</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Support for blink(1)-devices</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">conf</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">PyFoamException</span>
+
+<div class="viewcode-block" id="Blink1"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Blink1.html#PyFoam.Infrastructure.Blink1.Blink1">[docs]</a><span class="k">class</span> <span class="nc">Blink1</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Actual class to connect to a blink-device&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Blink1.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Blink1.html#PyFoam.Infrastructure.Blink1.Blink1.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">ticColor</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructs the object. Tests for blink-device only in the beginning.</span>
+<span class="sd">        If none is found an exception is thrown&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__baseURL</span><span class="o">=</span><span class="n">conf</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Blink1&quot;</span><span class="p">,</span><span class="s2">&quot;baseurl&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__timeout</span><span class="o">=</span><span class="n">conf</span><span class="p">()</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s2">&quot;Blink1&quot;</span><span class="p">,</span><span class="s2">&quot;allowedtimeout&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__sendCommand</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">:</span>
+            <span class="n">e</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="n">PyFoamException</span><span class="p">(</span><span class="s2">&quot;No blink(1) at&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__baseURL</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;blink1_serialnums&quot;</span><span class="p">])</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PyFoamException</span><span class="p">(</span><span class="s2">&quot;Seems that no blink(1) is plugged in&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reloadPatterns</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__threads</span><span class="o">=</span><span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__tictocColor</span><span class="o">=</span><span class="n">ticColor</span> <span class="k">if</span> <span class="n">ticColor</span> <span class="k">else</span> <span class="n">conf</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Blink1&quot;</span><span class="p">,</span><span class="s2">&quot;tictoccolor&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__lastTicTime</span><span class="o">=-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__ticToc</span><span class="o">=</span><span class="bp">True</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">patterns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__patterns</span>
+
+<div class="viewcode-block" id="Blink1.ticToc"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Blink1.html#PyFoam.Infrastructure.Blink1.Blink1.ticToc">[docs]</a>    <span class="k">def</span> <span class="nf">ticToc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Alternate color between upper and lower side of the blink. Transition</span>
+<span class="sd">        time depends on the times between calls&quot;&quot;&quot;</span>
+        <span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__tictocColor</span> <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">color</span>
+        <span class="n">now</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lastTicTime</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fadeToRGB</span><span class="p">(</span><span class="n">color</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">ledn</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ticToc</span><span class="p">:</span>
+                <span class="n">ledIn</span><span class="p">,</span><span class="n">ledOut</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ledIn</span><span class="p">,</span><span class="n">ledOut</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__ticToc</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ticToc</span>
+            <span class="c1"># print(color,now-self.__lastTicTime,ledIn,ledOut)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fadeToRGB</span><span class="p">(</span><span class="n">color</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="n">now</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">__lastTicTime</span><span class="p">,</span><span class="n">ledn</span><span class="o">=</span><span class="n">ledIn</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fadeToRGB</span><span class="p">(</span><span class="s2">&quot;#000000&quot;</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="n">now</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">__lastTicTime</span><span class="p">,</span><span class="n">ledn</span><span class="o">=</span><span class="n">ledOut</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__lastTicTime</span><span class="o">=</span><span class="n">now</span></div>
+
+<div class="viewcode-block" id="Blink1.reloadPatterns"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Blink1.html#PyFoam.Infrastructure.Blink1.Blink1.reloadPatterns">[docs]</a>    <span class="k">def</span> <span class="nf">reloadPatterns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__patterns</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sendCommand</span><span class="p">(</span><span class="s2">&quot;patterns&quot;</span><span class="p">)[</span><span class="s2">&quot;patterns&quot;</span><span class="p">]:</span>
+            <span class="n">pl</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;pattern&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="n">repeat</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">pl</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">lngth</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pl</span><span class="p">[</span><span class="mi">2</span><span class="p">::</span><span class="mi">3</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__patterns</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]]</span><span class="o">=</span><span class="n">repeat</span><span class="o">*</span><span class="n">lngth</span></div>
+        <span class="c1">#        print (self.__patterns)</span>
+
+    <span class="k">def</span> <span class="nf">__sendCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">command</span><span class="p">,</span><span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sends a command&quot;&quot;&quot;</span>
+        <span class="n">r</span><span class="o">=</span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__baseURL</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="n">command</span><span class="p">,</span>
+                       <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+                       <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__timeout</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="o">==</span><span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s2">&quot;status&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">json</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">elif</span> <span class="n">json</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;unknown command&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">json</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="Blink1.fadeToRGB"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Blink1.html#PyFoam.Infrastructure.Blink1.Blink1.fadeToRGB">[docs]</a>    <span class="k">def</span> <span class="nf">fadeToRGB</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">colorString</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">ledn</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sendCommand</span><span class="p">(</span><span class="s2">&quot;fadeToRGB&quot;</span><span class="p">,</span><span class="n">rgb</span><span class="o">=</span><span class="n">colorString</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span><span class="n">ledn</span><span class="o">=</span><span class="n">ledn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Blink1.play"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Blink1.html#PyFoam.Infrastructure.Blink1.Blink1.play">[docs]</a>    <span class="k">def</span> <span class="nf">play</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">patternName</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Plays a defined pattern&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">patternName</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">patterns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reloadPatterns</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">patternName</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">patterns</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">PyFoamException</span><span class="p">(</span><span class="s2">&quot;blink(1) pattern&quot;</span><span class="p">,</span><span class="n">patternName</span><span class="p">,</span>
+                                      <span class="s2">&quot;unknown. Available:&quot;</span><span class="p">,</span>
+                                      <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patterns</span><span class="p">))</span>
+        <span class="n">response</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__sendCommand</span><span class="p">(</span><span class="s2">&quot;pattern/play&quot;</span><span class="p">,</span><span class="n">pname</span><span class="o">=</span><span class="n">patternName</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Blink1.playRepeated"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Blink1.html#PyFoam.Infrastructure.Blink1.Blink1.playRepeated">[docs]</a>    <span class="k">def</span> <span class="nf">playRepeated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">patternName</span><span class="p">,</span><span class="n">interval</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Plays a pattern at regular intervals (starts a new thread and returns</span>
+<span class="sd">        the handle)&quot;&quot;&quot;</span>
+
+        <span class="kn">import</span> <span class="nn">threading</span>
+
+        <span class="n">e</span><span class="o">=</span><span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+
+        <span class="n">interval</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">__patterns</span><span class="p">[</span><span class="n">patternName</span><span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">playPattern</span><span class="p">():</span>
+            <span class="c1"># print(&quot;Starting&quot;,patternName)</span>
+            <span class="k">while</span> <span class="n">e</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">patternName</span><span class="p">)</span>
+                <span class="c1"># print(&quot;Playing&quot;,patternName)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span>
+            <span class="c1"># print(&quot;Stopping&quot;,patternName)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fadeToRGB</span><span class="p">(</span><span class="s2">&quot;#000000&quot;</span><span class="p">)</span>
+
+        <span class="n">t</span><span class="o">=</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">playPattern</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__threads</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">t</span><span class="p">,</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">t</span></div>
+
+<div class="viewcode-block" id="Blink1.nrRepeats"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Blink1.html#PyFoam.Infrastructure.Blink1.Blink1.nrRepeats">[docs]</a>    <span class="k">def</span> <span class="nf">nrRepeats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of running threads&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__threads</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Blink1.stop"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Blink1.html#PyFoam.Infrastructure.Blink1.Blink1.stop">[docs]</a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Completely reset. Stop all threads and fade to black&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stopAllPlays</span><span class="p">()</span>
+        <span class="c1"># self.__sendCommand(&quot;pattern/stop&quot;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sendCommand</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Blink1.stopAllPlays"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Blink1.html#PyFoam.Infrastructure.Blink1.Blink1.stopAllPlays">[docs]</a>    <span class="k">def</span> <span class="nf">stopAllPlays</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stop all threads that repeatedly play patterns&quot;&quot;&quot;</span>
+        <span class="n">threads</span><span class="o">=</span><span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span><span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__threads</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stopPlay</span><span class="p">(</span><span class="n">t</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Blink1.stopPlay"><a class="viewcode-back" href="../../../api/PyFoam.Infrastructure.Blink1.html#PyFoam.Infrastructure.Blink1.Blink1.stopPlay">[docs]</a>    <span class="k">def</span> <span class="nf">stopPlay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">thread</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Using a thread handle stop a thread&quot;&quot;&quot;</span>
+        <span class="n">this</span><span class="p">,</span><span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="bp">None</span>
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span><span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__threads</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">==</span><span class="n">thread</span><span class="p">:</span>
+                <span class="n">this</span><span class="p">,</span><span class="n">event</span><span class="o">=</span><span class="n">t</span><span class="p">,</span><span class="n">e</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="n">this</span><span class="p">:</span>
+            <span class="n">event</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__threads</span><span class="o">.</span><span class="n">remove</span><span class="p">((</span><span class="n">this</span><span class="p">,</span><span class="n">event</span><span class="p">))</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

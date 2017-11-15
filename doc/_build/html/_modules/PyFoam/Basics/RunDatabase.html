@@ -1,0 +1,505 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.RunDatabase &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.RunDatabase</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.RunDatabase</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id: $</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Collects data about runs in a small SQLite database</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># don&#39;t look at it too closely. It&#39;s my first sqlite-code</span>
+
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span>
+<span class="kn">from</span> <span class="nn">.CSVCollection</span> <span class="kn">import</span> <span class="n">CSVCollection</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">iteritems</span><span class="p">,</span><span class="n">integer_types</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">u</span> <span class="k">as</span> <span class="n">uniCode</span>
+
+<div class="viewcode-block" id="RunDatabase"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RunDatabase.html#PyFoam.Basics.RunDatabase.RunDatabase">[docs]</a><span class="k">class</span> <span class="nc">RunDatabase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Database with information about runs. To be queried etc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">separator</span><span class="o">=</span><span class="s2">&quot;//&quot;</span>
+
+<div class="viewcode-block" id="RunDatabase.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RunDatabase.html#PyFoam.Basics.RunDatabase.RunDatabase.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">name</span><span class="p">,</span>
+                 <span class="n">create</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param name: name of the file</span>
+<span class="sd">        :param create: should the database be created if it does not exist&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">create</span><span class="o">==</span><span class="bp">False</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Database&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;does not exist&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">initDatabase</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">=</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">row_factory</span><span class="o">=</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span></div>
+
+<div class="viewcode-block" id="RunDatabase.initDatabase"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RunDatabase.html#PyFoam.Basics.RunDatabase.RunDatabase.initDatabase">[docs]</a>    <span class="k">def</span> <span class="nf">initDatabase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new database file&quot;&quot;&quot;</span>
+        <span class="n">db</span><span class="o">=</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">db</span><span class="p">:</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">row_factory</span><span class="o">=</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+            <span class="n">cursor</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;CREATE TABLE theRuns(runId INTEGER PRIMARY KEY, &quot;</span><span class="o">+</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">__normalize</span><span class="p">(</span><span class="s2">&quot;insertionTime&quot;</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; TIMESTAMP)&quot;</span><span class="p">)</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="RunDatabase.add"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RunDatabase.html#PyFoam.Basics.RunDatabase.RunDatabase.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a dictionary with data to the database&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__adaptDatabase</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="n">runData</span><span class="o">=</span><span class="nb">dict</span><span class="p">([(</span><span class="s2">&quot;insertionTime&quot;</span><span class="p">,</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())]</span><span class="o">+</span> \
+                <span class="p">[(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">!=</span><span class="nb">dict</span><span class="p">])</span>
+        <span class="n">runID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__addContent</span><span class="p">(</span><span class="s2">&quot;theRuns&quot;</span><span class="p">,</span><span class="n">runData</span><span class="p">)</span>
+
+        <span class="n">subtables</span><span class="o">=</span><span class="nb">dict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">==</span><span class="nb">dict</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">tn</span><span class="p">,</span><span class="n">content</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">subtables</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__addContent</span><span class="p">(</span><span class="n">tn</span><span class="o">+</span><span class="s2">&quot;Data&quot;</span><span class="p">,</span>
+                              <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__flattenDict</span><span class="p">(</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">())</span><span class="o">+</span>
+                                   <span class="p">[(</span><span class="s2">&quot;runId&quot;</span><span class="p">,</span><span class="n">runID</span><span class="p">)]))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+    <span class="n">specialChars</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;[&#39;</span><span class="p">:</span><span class="s1">&#39;bro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;]&#39;</span><span class="p">:</span><span class="s1">&#39;brc&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;{&#39;</span><span class="p">:</span><span class="s1">&#39;cro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;}&#39;</span><span class="p">:</span><span class="s1">&#39;crc&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;(&#39;</span><span class="p">:</span><span class="s1">&#39;pro&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;)&#39;</span><span class="p">:</span><span class="s1">&#39;prc&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;|&#39;</span><span class="p">:</span><span class="s1">&#39;pip&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">specialString</span><span class="o">=</span><span class="s2">&quot;_specialChar&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">s</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Normalize a column-name so that the case-insensitve column-names of SQlite</span>
+<span class="sd">        are no problem&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;runId&quot;</span><span class="p">,</span><span class="s2">&quot;dataId&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">s</span>
+        <span class="n">result</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span> <span class="ow">or</span> <span class="n">c</span><span class="o">==</span><span class="s2">&quot;_&quot;</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">c</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">RunDatabase</span><span class="o">.</span><span class="n">specialChars</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">+=</span><span class="n">RunDatabase</span><span class="o">.</span><span class="n">specialString</span><span class="o">+</span><span class="n">RunDatabase</span><span class="o">.</span><span class="n">specialChars</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">+=</span><span class="n">c</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">__denormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">s</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Denormalize the column name that was normalized by _normalize&quot;&quot;&quot;</span>
+
+        <span class="k">while</span> <span class="n">s</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">RunDatabase</span><span class="o">.</span><span class="n">specialString</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">pre</span><span class="p">,</span><span class="n">post</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">RunDatabase</span><span class="o">.</span><span class="n">specialString</span><span class="p">,</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">spec</span><span class="o">=</span><span class="n">post</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">RunDatabase</span><span class="o">.</span><span class="n">specialChars</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">spec</span><span class="o">==</span><span class="n">v</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">=</span><span class="n">pre</span><span class="o">+</span><span class="n">k</span><span class="o">+</span><span class="n">post</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No special character for encoding&quot;</span><span class="p">,</span><span class="n">spec</span><span class="p">,</span><span class="s2">&quot;found&quot;</span><span class="p">)</span>
+
+        <span class="n">result</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="n">underFound</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">underFound</span><span class="p">:</span>
+                <span class="n">underFound</span><span class="o">=</span><span class="bp">False</span>
+                <span class="n">result</span><span class="o">+=</span><span class="n">c</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">c</span><span class="o">==</span><span class="s2">&quot;_&quot;</span><span class="p">:</span>
+                <span class="n">underFound</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">+=</span><span class="n">c</span>
+
+        <span class="k">if</span> <span class="n">underFound</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;String&quot;</span><span class="p">,</span><span class="n">s</span><span class="p">,</span><span class="s2">&quot;was not correctly encoded&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">__addContent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">table</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="n">cursor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">runData</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="s2">&quot;runId&quot;</span><span class="p">:</span>
+                <span class="n">runData</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">v</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">integer_types</span><span class="o">+</span><span class="p">(</span><span class="nb">float</span><span class="p">,)):</span>
+                <span class="n">runData</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">runData</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">uniCode</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+        <span class="n">cols</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getColumns</span><span class="p">(</span><span class="n">table</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">addData</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">addData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">runData</span><span class="p">[</span><span class="n">c</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">addData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+        <span class="n">addData</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">addData</span><span class="p">)</span>
+        <span class="n">cSQL</span> <span class="o">=</span> <span class="s2">&quot;insert into &quot;</span><span class="o">+</span><span class="n">table</span><span class="o">+</span><span class="s2">&quot; (&quot;</span><span class="o">+</span> \
+               <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;&quot;&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">__normalize</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">])</span><span class="o">+</span> \
+               <span class="s2">&quot;) values (&quot;</span><span class="o">+</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;?&quot;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">addData</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;)&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Execute SQL&quot;</span><span class="p">,</span><span class="n">cSQL</span><span class="p">,</span><span class="s2">&quot;with&quot;</span><span class="p">,</span><span class="n">addData</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cSQL</span><span class="p">,</span> <span class="n">addData</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;SQL-Expression:&quot;</span><span class="p">,</span><span class="n">cSQL</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;AddData:&quot;</span><span class="p">,</span><span class="n">addData</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="n">lastrow</span><span class="o">=</span><span class="n">cursor</span><span class="o">.</span><span class="n">lastrowid</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">lastrow</span>
+
+    <span class="k">def</span> <span class="nf">__adaptDatabase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Make sure that all the required columns and tables are there&quot;&quot;&quot;</span>
+
+        <span class="n">c</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT name FROM sqlite_master WHERE type = &quot;table&quot;&#39;</span><span class="p">)</span>
+        <span class="n">tables</span><span class="o">=</span><span class="p">[</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span> <span class="p">]</span>
+
+        <span class="n">indata</span><span class="o">=</span><span class="nb">dict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">!=</span><span class="nb">dict</span><span class="p">])</span>
+        <span class="n">subtables</span><span class="o">=</span><span class="nb">dict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">==</span><span class="nb">dict</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__addColumnsToTable</span><span class="p">(</span><span class="s2">&quot;theRuns&quot;</span><span class="p">,</span><span class="n">indata</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">tn</span><span class="p">,</span><span class="n">content</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">subtables</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">tn</span><span class="o">+</span><span class="s2">&quot;Data&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Adding table&quot;</span><span class="p">,</span><span class="n">tn</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;CREATE TABLE &quot;</span><span class="o">+</span><span class="n">tn</span><span class="o">+</span><span class="s2">&quot;Data (dataId INTEGER PRIMARY KEY, runId INTEGER)&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__addColumnsToTable</span><span class="p">(</span><span class="n">tn</span><span class="o">+</span><span class="s2">&quot;Data&quot;</span><span class="p">,</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">__flattenDict</span><span class="p">(</span><span class="n">content</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__flattenDict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">oData</span><span class="p">,</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="n">data</span><span class="o">=</span><span class="p">[(</span><span class="n">prefix</span><span class="o">+</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">oData</span><span class="p">)</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">!=</span><span class="nb">dict</span><span class="p">]</span>
+        <span class="n">subtables</span><span class="o">=</span><span class="nb">dict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">oData</span><span class="p">)</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">==</span><span class="nb">dict</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span><span class="n">val</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">subtables</span><span class="p">):</span>
+            <span class="n">data</span><span class="o">+=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__flattenDict</span><span class="p">(</span><span class="n">val</span><span class="p">,</span><span class="n">prefix</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">separator</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Flattened&quot;</span><span class="p">,</span><span class="n">oData</span><span class="p">,</span><span class="s2">&quot;to&quot;</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getColumns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tablename</span><span class="p">):</span>
+        <span class="n">c</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT * from &#39;</span><span class="o">+</span><span class="n">tablename</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">desc</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">description</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">desc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;dataId&#39;</span><span class="p">,</span><span class="s1">&#39;runId&#39;</span><span class="p">]:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">desc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__denormalize</span><span class="p">(</span><span class="n">desc</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">__addColumnsToTable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">table</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getColumns</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Adding:&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;to&quot;</span><span class="p">,</span><span class="n">table</span><span class="p">,</span><span class="s2">&quot;(normalized:&quot;</span><span class="p">,</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">__normalize</span><span class="p">(</span><span class="n">k</span><span class="p">),</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">integer_types</span><span class="o">+</span><span class="p">(</span><span class="nb">float</span><span class="p">,)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE &quot;</span><span class="si">%s</span><span class="s1">&quot; ADD COLUMN &quot;</span><span class="si">%s</span><span class="s1">&quot; REAL&#39;</span> <span class="o">%</span>
+                                    <span class="p">(</span><span class="n">table</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__normalize</span><span class="p">(</span><span class="n">k</span><span class="p">)))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE &quot;</span><span class="si">%s</span><span class="s1">&quot; ADD COLUMN &quot;</span><span class="si">%s</span><span class="s1">&quot; TEXT&#39;</span> <span class="o">%</span>
+                                    <span class="p">(</span><span class="n">table</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__normalize</span><span class="p">(</span><span class="n">k</span><span class="p">)))</span>
+
+<div class="viewcode-block" id="RunDatabase.dumpToCSV"><a class="viewcode-back" href="../../../api/PyFoam.Basics.RunDatabase.html#PyFoam.Basics.RunDatabase.RunDatabase.dumpToCSV">[docs]</a>    <span class="k">def</span> <span class="nf">dumpToCSV</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">fname</span><span class="p">,</span>
+                  <span class="n">selection</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">disableRunData</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                  <span class="n">pandasFormat</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                  <span class="n">excel</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dump the contents of the database to a csv-file</span>
+<span class="sd">        :param name: the CSV-file</span>
+<span class="sd">        :param selection: list of regular expressions. Only data</span>
+<span class="sd">        entries fitting those will be added to the CSV-file (except</span>
+<span class="sd">        for the basic run). If unset all data will be written&quot;&quot;&quot;</span>
+        <span class="nb">file</span><span class="o">=</span><span class="n">CSVCollection</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+        <span class="n">runCursor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">runCursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * from theRuns&quot;</span><span class="p">)</span>
+
+        <span class="n">c</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT name FROM sqlite_master WHERE type = &quot;table&quot;&#39;</span><span class="p">)</span>
+        <span class="n">tables</span><span class="o">=</span><span class="p">[</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span> <span class="p">]</span>
+
+        <span class="n">allData</span><span class="o">=</span><span class="nb">set</span><span class="p">()</span>
+        <span class="n">writtenData</span><span class="o">=</span><span class="nb">set</span><span class="p">()</span>
+
+        <span class="n">disabledStandard</span><span class="o">=</span><span class="nb">set</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">runCursor</span><span class="p">:</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;runId&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Dumping run&quot;</span><span class="p">,</span><span class="nb">id</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="n">writeEntry</span><span class="o">=</span><span class="bp">True</span>
+                <span class="k">if</span> <span class="n">disableRunData</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">disableRunData</span><span class="p">:</span>
+                        <span class="n">exp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">exp</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__denormalize</span><span class="p">(</span><span class="n">k</span><span class="p">))</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                            <span class="n">writeEntry</span><span class="o">=</span><span class="bp">False</span>
+                            <span class="k">break</span>
+                    <span class="k">if</span> <span class="n">writeEntry</span><span class="p">:</span>
+                        <span class="nb">file</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">disabledStandard</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">t</span><span class="o">==</span><span class="s2">&quot;theRuns&quot;</span><span class="p">:</span>
+                    <span class="n">namePrefix</span><span class="o">=</span><span class="s2">&quot;runInfo&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">namePrefix</span><span class="o">=</span><span class="n">t</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+                <span class="n">dataCursor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+                <span class="n">dataCursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM &quot;</span><span class="o">+</span><span class="n">t</span><span class="o">+</span><span class="s2">&quot; WHERE runId=?&quot;</span><span class="p">,</span>
+                                   <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">),))</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">dataCursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span><span class="s2">&quot;data items found for id &quot;</span><span class="p">,</span><span class="nb">id</span><span class="p">,</span>
+                          <span class="s2">&quot;in table&quot;</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="s2">&quot;.Need exactly 1&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;dataId&quot;</span><span class="p">,</span><span class="s2">&quot;runId&quot;</span><span class="p">]:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">disabledStandard</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">namePrefix</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">separator</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">__denormalize</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                    <span class="n">allData</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">writeEntry</span><span class="o">=</span><span class="bp">True</span>
+                    <span class="k">if</span> <span class="n">selection</span><span class="p">:</span>
+                        <span class="n">writeEntry</span><span class="o">=</span><span class="bp">False</span>
+                        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">selection</span><span class="p">:</span>
+                            <span class="n">exp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">exp</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+                                <span class="n">writeEntry</span><span class="o">=</span><span class="bp">True</span>
+                                <span class="k">break</span>
+                    <span class="k">if</span> <span class="n">writeEntry</span><span class="p">:</span>
+                        <span class="n">writtenData</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                        <span class="nb">file</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">k</span><span class="p">]</span>
+
+            <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">    &quot;</span>
+            <span class="k">if</span> <span class="n">allData</span><span class="o">==</span><span class="n">writtenData</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Added all data entries:&quot;</span><span class="p">,</span><span class="n">sep</span><span class="p">,</span><span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">allData</span><span class="p">)),</span><span class="n">sep</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Added parameters:&quot;</span><span class="p">,</span><span class="n">sep</span><span class="p">,</span><span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">writtenData</span><span class="p">)),</span>
+                       <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Unwritten data:&quot;</span><span class="p">,</span><span class="n">sep</span><span class="p">,</span><span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">allData</span><span class="o">-</span><span class="n">writtenData</span><span class="p">)),</span><span class="n">sep</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">disabledStandard</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Disabled standard entries:&quot;</span><span class="p">,</span><span class="n">sep</span><span class="p">,</span><span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">disabledStandard</span><span class="p">)),</span><span class="n">sep</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="n">f</span><span class="o">=</span><span class="nb">file</span><span class="p">(</span><span class="n">pandasFormat</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">excel</span><span class="p">:</span>
+            <span class="nb">file</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># retry by forcing to numpy</span>
+            <span class="k">return</span> <span class="nb">file</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

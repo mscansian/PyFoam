@@ -1,0 +1,439 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.FoamFileGenerator &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.FoamFileGenerator</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.FoamFileGenerator</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Transform a Python data-structure into a OpenFOAM-File-Representation&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">PyFoamException</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.DataStructures</span> <span class="kn">import</span> <span class="n">Vector</span><span class="p">,</span><span class="n">Field</span><span class="p">,</span><span class="n">Dimension</span><span class="p">,</span><span class="n">TupleProxy</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">,</span><span class="n">Tensor</span><span class="p">,</span><span class="n">SymmTensor</span><span class="p">,</span><span class="n">Unparsed</span><span class="p">,</span><span class="n">UnparsedList</span><span class="p">,</span><span class="n">Codestream</span><span class="p">,</span><span class="n">DictRedirection</span><span class="p">,</span><span class="n">BinaryList</span><span class="p">,</span><span class="n">BoolProxy</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">string_types</span><span class="p">,</span><span class="n">integer_types</span>
+
+<div class="viewcode-block" id="FoamFileGenerator"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamFileGenerator.html#PyFoam.Basics.FoamFileGenerator.FoamFileGenerator">[docs]</a><span class="k">class</span> <span class="nc">FoamFileGenerator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class that generates a OpenFOAM-compatible representation of a</span>
+<span class="sd">    data-structure&quot;&quot;&quot;</span>
+
+    <span class="n">primitiveTypes</span><span class="o">=</span><span class="p">[</span><span class="n">SymmTensor</span><span class="p">,</span><span class="n">Tensor</span><span class="p">,</span><span class="n">Vector</span><span class="p">,</span><span class="n">Dimension</span><span class="p">,</span><span class="n">Field</span><span class="p">,</span><span class="n">Unparsed</span><span class="p">]</span>
+
+<div class="viewcode-block" id="FoamFileGenerator.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamFileGenerator.html#PyFoam.Basics.FoamFileGenerator.FoamFileGenerator.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">data</span><span class="p">,</span>
+                 <span class="n">header</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">longListThreshold</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                 <span class="n">useFixedType</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param data: data structure that will be turned into a</span>
+<span class="sd">        Foam-compatible file</span>
+<span class="sd">        :param header: header information that is to be prepended</span>
+<span class="sd">        :param longListThreshold: Threshold for lists before they are considered</span>
+<span class="sd">        long. This means that they are prefixed with the number of elements. If the</span>
+<span class="sd">        threshold is 0 or None then no list is considered long</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="o">=</span><span class="n">header</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">longListThreshold</span><span class="o">=</span><span class="n">longListThreshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">useFixedType</span><span class="o">=</span><span class="n">useFixedType</span></div>
+
+<div class="viewcode-block" id="FoamFileGenerator.__str__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamFileGenerator.html#PyFoam.Basics.FoamFileGenerator.FoamFileGenerator.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeString</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">__quoteString</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Quote the string if it contains illegal characters&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">val</span>
+        <span class="k">if</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span><span class="s1">&#39;&quot;&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">val</span>
+        <span class="n">quote</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="s1">r&#39;\{}/;&quot;&#39;</span><span class="p">:</span> <span class="c1"># list from word::stripInvalid</span>
+            <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">quote</span><span class="o">=</span><span class="bp">True</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="n">quote</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;&#39;&quot;</span><span class="o">+</span><span class="n">val</span><span class="o">+</span><span class="s2">&quot;&#39;&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s1">&#39;&quot;&#39;</span><span class="o">+</span><span class="n">val</span><span class="o">+</span><span class="s1">&#39;&quot;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">val</span>
+
+<div class="viewcode-block" id="FoamFileGenerator.makeString"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamFileGenerator.html#PyFoam.Basics.FoamFileGenerator.FoamFileGenerator.makeString">[docs]</a>    <span class="k">def</span> <span class="nf">makeString</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">firstLevel</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;turns the data into a string&quot;&quot;&quot;</span>
+        <span class="n">result</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;FoamFile</span><span class="se">\n</span><span class="s2">{</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">strDict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header</span><span class="p">,</span><span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">dict</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">]:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">strDict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">firstLevel</span><span class="o">=</span><span class="n">firstLevel</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">,</span><span class="n">TupleProxy</span><span class="p">]:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">strTuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">list</span><span class="p">,</span><span class="n">UnparsedList</span><span class="p">,</span><span class="n">BinaryList</span><span class="p">]:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">strList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">FoamFileGeneratorError</span><span class="p">(</span><span class="s2">&quot;&lt;None&gt; found&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">strPrimitive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="FoamFileGenerator.strPrimitive"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamFileGenerator.html#PyFoam.Basics.FoamFileGenerator.FoamFileGenerator.strPrimitive">[docs]</a>    <span class="k">def</span> <span class="nf">strPrimitive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pri</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pri</span><span class="p">)</span><span class="o">==</span><span class="nb">bool</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pri</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;yes&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;no&quot;</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">pri</span><span class="p">)</span><span class="o">==</span><span class="n">BoolProxy</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">pri</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pri</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__quoteString</span><span class="p">(</span><span class="n">pri</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pri</span><span class="p">,</span><span class="n">integer_types</span><span class="o">+</span><span class="p">(</span><span class="nb">float</span><span class="p">,)):</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">pri</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">pri</span><span class="o">.</span><span class="n">__class__</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitiveTypes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">pri</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">pri</span><span class="p">)</span><span class="o">==</span><span class="n">DictRedirection</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">pri</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;List, Dict or valid primitve expected,&quot;</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="n">pri</span><span class="p">),</span><span class="s2">&quot;found in&quot;</span><span class="p">,</span><span class="n">pri</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FoamFileGenerator.strDict"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamFileGenerator.html#PyFoam.Basics.FoamFileGenerator.FoamFileGenerator.strDict">[docs]</a>    <span class="k">def</span> <span class="nf">strDict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dic</span><span class="p">,</span><span class="n">indent</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">firstLevel</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="n">s</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span><span class="o">==</span><span class="n">DictProxy</span><span class="p">:</span>
+            <span class="n">order</span><span class="o">=</span><span class="n">dic</span><span class="o">.</span><span class="n">_order</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">order</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">dic</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">order</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">order</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">==</span><span class="n">DictRedirection</span><span class="p">:</span>
+                <span class="n">v</span><span class="o">=</span><span class="n">k</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">v</span><span class="o">=</span><span class="n">dic</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">v</span><span class="o">=</span><span class="n">dic</span><span class="o">.</span><span class="n">getRegexpValue</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+            <span class="n">end</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span><span class="o">==</span><span class="n">DictProxy</span><span class="p">:</span>
+                <span class="n">end</span><span class="o">=</span><span class="n">dic</span><span class="o">.</span><span class="n">getDecoration</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+            <span class="k">if</span> <span class="n">firstLevel</span><span class="p">:</span>
+                <span class="n">end</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+            <span class="c1"># remove trailing spaces</span>
+            <span class="n">end</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">part</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">end</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)])</span>
+
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">==</span><span class="nb">int</span><span class="p">:</span>
+                <span class="n">s</span><span class="o">+=</span><span class="n">v</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;anonymValue&quot;</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">k</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+
+            <span class="n">s</span><span class="o">+=</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="n">indent</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">==</span><span class="n">Codestream</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="n">indent</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="s2">&quot;;&quot;</span><span class="o">+</span><span class="n">end</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">__quoteString</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;;&quot;</span><span class="o">+</span><span class="n">end</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">dict</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">]:</span>
+                <span class="n">s</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="n">indent</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;{</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">s</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">strDict</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">indent</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">s</span><span class="o">+=</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="n">indent</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;}&quot;</span><span class="o">+</span><span class="n">end</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">list</span><span class="p">,</span><span class="n">UnparsedList</span><span class="p">]:</span>
+                <span class="n">s</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">s</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">strList</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">indent</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">=</span><span class="n">s</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">s</span><span class="o">+=</span><span class="s2">&quot;;&quot;</span><span class="o">+</span><span class="n">end</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,(</span><span class="nb">tuple</span><span class="p">,</span><span class="n">TupleProxy</span><span class="p">)):</span>
+                <span class="n">s</span><span class="o">+=</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">strTuple</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">indent</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;;&quot;</span><span class="o">+</span><span class="n">end</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">bool</span><span class="p">,</span><span class="n">BoolProxy</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">v</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="s2">&quot; yes;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="s2">&quot; no;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">integer_types</span><span class="o">+</span><span class="p">(</span><span class="nb">float</span><span class="p">,)):</span>
+                <span class="n">s</span><span class="o">+=</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;;&quot;</span><span class="o">+</span><span class="n">end</span>
+            <span class="k">elif</span> <span class="n">v</span><span class="o">.</span><span class="n">__class__</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitiveTypes</span><span class="p">:</span>
+                <span class="n">s</span><span class="o">+=</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;;&quot;</span><span class="o">+</span><span class="n">end</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">):</span>
+                <span class="n">s</span><span class="o">+=</span><span class="s2">&quot; /* empty */ ;&quot;</span><span class="o">+</span><span class="n">end</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">==</span><span class="n">DictRedirection</span><span class="p">:</span>
+                <span class="n">s</span><span class="o">+=</span><span class="s2">&quot;;&quot;</span><span class="o">+</span><span class="n">end</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unhandled type&quot;</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">),</span><span class="s2">&quot; for&quot;</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span></div>
+
+<div class="viewcode-block" id="FoamFileGenerator.strList"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamFileGenerator.html#PyFoam.Basics.FoamFileGenerator.FoamFileGenerator.strList">[docs]</a>    <span class="k">def</span> <span class="nf">strList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lst</span><span class="p">,</span><span class="n">indent</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">s</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span><span class="o">==</span><span class="n">UnparsedList</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">+=</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="n">indent</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot; (&quot;</span>
+            <span class="n">s</span><span class="o">+=</span><span class="n">lst</span><span class="o">.</span><span class="n">data</span>
+            <span class="k">if</span> <span class="n">lst</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">:</span>
+                <span class="n">s</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">s</span><span class="o">+=</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="n">indent</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;)</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">return</span> <span class="n">s</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span><span class="o">==</span><span class="n">BinaryList</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">+=</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="n">indent</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot; (&quot;</span>
+            <span class="n">s</span><span class="o">+=</span><span class="n">lst</span><span class="o">.</span><span class="n">data</span>
+            <span class="n">s</span><span class="o">+=</span><span class="s2">&quot;)&quot;</span>
+            <span class="k">return</span> <span class="n">s</span>
+
+        <span class="n">theLen</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">2</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lst</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">lst</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">dict</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">]):</span>
+                <span class="n">theLen</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+
+        <span class="n">isFixedType</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">useFixedType</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span><span class="o">==</span><span class="mi">9</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span><span class="o">==</span><span class="mi">6</span><span class="p">):</span>
+            <span class="n">isFixedType</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span><span class="ne">TypeError</span><span class="p">):</span>
+                    <span class="n">isFixedType</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">if</span> <span class="n">isFixedType</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">+=</span><span class="s2">&quot;(&quot;</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%g</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot;)&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">longListThreshold</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">theLen</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">longListThreshold</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="n">indent</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">theLen</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">s</span><span class="o">+=</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="n">indent</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;(</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">indent</span><span class="o">+</span><span class="mi">2</span><span class="p">))</span><span class="o">+</span><span class="n">v</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">dict</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">]:</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">indent</span><span class="o">+</span><span class="mi">2</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;{</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">strDict</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">indent</span><span class="o">+</span><span class="mi">4</span><span class="p">)</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">indent</span><span class="o">+</span><span class="mi">2</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">list</span><span class="p">,</span><span class="n">UnparsedList</span><span class="p">]:</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">strList</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">indent</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">==</span><span class="nb">tuple</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">strTuple</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">indent</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; &quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">+=</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">indent</span><span class="o">+</span><span class="mi">2</span><span class="p">))</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+            <span class="n">s</span><span class="o">+=</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="n">indent</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;)</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="k">return</span> <span class="n">s</span></div>
+
+<div class="viewcode-block" id="FoamFileGenerator.strTuple"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamFileGenerator.html#PyFoam.Basics.FoamFileGenerator.FoamFileGenerator.strTuple">[docs]</a>    <span class="k">def</span> <span class="nf">strTuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lst</span><span class="p">,</span><span class="n">indent</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">s</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+                <span class="n">s</span><span class="o">+=</span><span class="n">v</span><span class="o">+</span><span class="s2">&quot; &quot;</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">dict</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">]:</span>
+                <span class="n">s</span><span class="o">+=</span><span class="s2">&quot;{</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">s</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">strDict</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">indent</span><span class="o">+</span><span class="mi">4</span><span class="p">)</span>
+                <span class="n">s</span><span class="o">+=</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">indent</span><span class="o">+</span><span class="mi">2</span><span class="p">))</span><span class="o">+</span><span class="s2">&quot;} &quot;</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">list</span><span class="p">,</span><span class="n">UnparsedList</span><span class="p">]:</span>
+                <span class="n">s</span><span class="o">+=</span><span class="s2">&quot; &quot;</span>
+                <span class="n">s</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">strList</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">indent</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">s</span><span class="o">+=</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">*</span><span class="p">(</span><span class="n">indent</span><span class="o">+</span><span class="mi">2</span><span class="p">))</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; &quot;</span>
+
+        <span class="k">return</span> <span class="n">s</span></div></div>
+
+<div class="viewcode-block" id="makeString"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamFileGenerator.html#PyFoam.Basics.FoamFileGenerator.makeString">[docs]</a><span class="k">def</span> <span class="nf">makeString</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">FoamFileGenerator</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="FoamFileGeneratorError"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamFileGenerator.html#PyFoam.Basics.FoamFileGenerator.FoamFileGeneratorError">[docs]</a><span class="k">class</span> <span class="nc">FoamFileGeneratorError</span><span class="p">(</span><span class="n">PyFoamException</span><span class="p">):</span>
+<div class="viewcode-block" id="FoamFileGeneratorError.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.FoamFileGenerator.html#PyFoam.Basics.FoamFileGenerator.FoamFileGeneratorError.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">descr</span><span class="p">):</span>
+        <span class="n">PyFoamException</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">descr</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,934 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.Comparator module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.Applications package" href="PyFoam.Applications.html"/>
+        <link rel="next" title="PyFoam.Applications.CompareDictionary module" href="PyFoam.Applications.CompareDictionary.html"/>
+        <link rel="prev" title="PyFoam.Applications.CommonWriteAllTrigger module" href="PyFoam.Applications.CommonWriteAllTrigger.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.Applications.html">PyFoam.Applications package</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.Comparator module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.Applications.Comparator.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.Applications.Comparator">
+<span id="pyfoam-applications-comparator-module"></span><h1>PyFoam.Applications.Comparator module<a class="headerlink" href="#module-PyFoam.Applications.Comparator" title="Permalink to this headline">¶</a></h1>
+<p>Application class that implements pyFoamComparator</p>
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.BoundaryCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">BoundaryCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#BoundaryCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.BoundaryCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.FieldSetterCommand" title="PyFoam.Applications.Comparator.FieldSetterCommand"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.FieldSetterCommand</span></code></a></p>
+<p>Sets a boundary condition</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.BoundaryCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#BoundaryCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.BoundaryCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.BoundaryCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.BoundaryCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.BoundaryCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#BoundaryCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.BoundaryCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.ChangeEnvironmentCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">ChangeEnvironmentCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#ChangeEnvironmentCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.ChangeEnvironmentCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.Command" title="PyFoam.Applications.Comparator.Command"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.Command</span></code></a></p>
+<p>Changes Environment variables by executing a script-file</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.ChangeEnvironmentCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#ChangeEnvironmentCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.ChangeEnvironmentCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.ChangeEnvironmentCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.ChangeEnvironmentCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.ChangeEnvironmentCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#ChangeEnvironmentCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.ChangeEnvironmentCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.Command">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">Command</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#Command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.Command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.Command.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__init__': &lt;function Command.__init__&gt;, '__weakref__': &lt;attribute '__weakref__' of 'Command' objects&gt;, 'execute': &lt;function Command.execute&gt;, 'doIt': &lt;function Command.doIt&gt;, '__module__': 'PyFoam.Applications.Comparator', '__dict__': &lt;attribute '__dict__' of 'Command' objects&gt;, 'parallel': None, '__doc__': None})</em><a class="headerlink" href="#PyFoam.Applications.Comparator.Command.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.Command.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#Command.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.Command.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.Command.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.Command.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.Command.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Applications.Comparator.Command.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.Command.doIt">
+<code class="descname">doIt</code><span class="sig-paren">(</span><em>para</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#Command.doIt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.Command.doIt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.Command.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>vals</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#Command.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.Command.execute" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vals</strong> &#8211; Dictionary with the keywords</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A boolean whether it completed successfully and a list with results (None if no results are generated)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.Command.parallel">
+<code class="descname">parallel</code><em class="property"> = None</em><a class="headerlink" href="#PyFoam.Applications.Comparator.Command.parallel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract base class of all commands</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.CommandChain">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">CommandChain</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#CommandChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.CommandChain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Abstract base class for a number of commands</p>
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.CommandChain.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__init__': &lt;function CommandChain.__init__&gt;, '__weakref__': &lt;attribute '__weakref__' of 'CommandChain' objects&gt;, 'execute': &lt;function CommandChain.execute&gt;, '__module__': 'PyFoam.Applications.Comparator', '__dict__': &lt;attribute '__dict__' of 'CommandChain' objects&gt;, 'hasObjectOfType': &lt;function CommandChain.hasObjectOfType&gt;, '__doc__': 'Abstract base class for a number of commands'})</em><a class="headerlink" href="#PyFoam.Applications.Comparator.CommandChain.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.CommandChain.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#CommandChain.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.CommandChain.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>c</strong> &#8211; XML-Subtree that represents the chain</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.CommandChain.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.CommandChain.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.CommandChain.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Applications.Comparator.CommandChain.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.CommandChain.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#CommandChain.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.CommandChain.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes the chain
+:param para:A dictionary with the parameters
+:param log: Logfile to write to</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.CommandChain.hasObjectOfType">
+<code class="descname">hasObjectOfType</code><span class="sig-paren">(</span><em>typ</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#CommandChain.hasObjectOfType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.CommandChain.hasObjectOfType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether there is an object of a specific type</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.Comparator">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">Comparator</code><span class="sig-paren">(</span><em>args=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#Comparator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.Comparator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="PyFoam.Applications.PyFoamApplication.html#PyFoam.Applications.PyFoamApplication.PyFoamApplication" title="PyFoam.Applications.PyFoamApplication.PyFoamApplication"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.PyFoamApplication.PyFoamApplication</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.Comparator.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>args=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#Comparator.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.Comparator.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.Comparator.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.Comparator.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.Comparator.addOptions">
+<code class="descname">addOptions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#Comparator.addOptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.Comparator.addOptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.Comparator.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#Comparator.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.Comparator.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.ComparatorData">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">ComparatorData</code><span class="sig-paren">(</span><em>doc</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#ComparatorData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.ComparatorData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>The object that holds the actual data</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.ComparatorData._ComparatorData__parseBase">
+<code class="descname">_ComparatorData__parseBase</code><span class="sig-paren">(</span><em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#PyFoam.Applications.Comparator.ComparatorData._ComparatorData__parseBase" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>e</strong> &#8211; The &#8216;base&#8217;-element</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.ComparatorData.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__init__': &lt;function ComparatorData.__init__&gt;, '__weakref__': &lt;attribute '__weakref__' of 'ComparatorData' objects&gt;, '_ComparatorData__parseBase': &lt;function ComparatorData.__parseBase&gt;, '__module__': 'PyFoam.Applications.Comparator', '__doc__': ' The object that holds the actual data', '__dict__': &lt;attribute '__dict__' of 'ComparatorData' objects&gt;, '__len__': &lt;function ComparatorData.__len__&gt;, '__getitem__': &lt;function ComparatorData.__getitem__&gt;})</em><a class="headerlink" href="#PyFoam.Applications.Comparator.ComparatorData.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.ComparatorData.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>nr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#ComparatorData.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.ComparatorData.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nr</strong> &#8211; Number of the variation</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the variation</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.ComparatorData.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>doc</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#ComparatorData.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.ComparatorData.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>doc</strong> &#8211; the parsed XML-data from which the object is constructed</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.ComparatorData.__len__">
+<code class="descname">__len__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#ComparatorData.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.ComparatorData.__len__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The total number of variations</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.ComparatorData.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.ComparatorData.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.ComparatorData.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Applications.Comparator.ComparatorData.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.CopyLogCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">CopyLogCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#CopyLogCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.CopyLogCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.Command" title="PyFoam.Applications.Comparator.Command"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.Command</span></code></a></p>
+<p>Copies the log file to the results</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.CopyLogCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#CopyLogCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.CopyLogCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.CopyLogCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.CopyLogCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.CopyLogCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#CopyLogCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.CopyLogCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.DecomposeCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">DecomposeCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#DecomposeCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.DecomposeCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.Command" title="PyFoam.Applications.Comparator.Command"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.Command</span></code></a></p>
+<p>Decomposes a case and generates the LAM</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.DecomposeCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#DecomposeCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.DecomposeCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.DecomposeCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.DecomposeCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.DecomposeCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#DecomposeCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.DecomposeCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.DerivedCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">DerivedCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#DerivedCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.DerivedCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.Command" title="PyFoam.Applications.Comparator.Command"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.Command</span></code></a></p>
+<p>Derives an additional value</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.DerivedCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#DerivedCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.DerivedCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.DerivedCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.DerivedCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.DerivedCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#DerivedCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.DerivedCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.DictWriteCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">DictWriteCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#DictWriteCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.DictWriteCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.SetterCommand" title="PyFoam.Applications.Comparator.SetterCommand"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.SetterCommand</span></code></a></p>
+<p>Writes a value to a dictionary</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.DictWriteCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#DictWriteCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.DictWriteCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.DictWriteCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.DictWriteCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.DictWriteCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#DictWriteCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.DictWriteCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.DictionaryCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">DictionaryCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#DictionaryCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.DictionaryCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.Command" title="PyFoam.Applications.Comparator.Command"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.Command</span></code></a></p>
+<p>Returns values from the chains dictionaries</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.DictionaryCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#DictionaryCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.DictionaryCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.DictionaryCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.DictionaryCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.DictionaryCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#DictionaryCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.DictionaryCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.EvaluationChain">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">EvaluationChain</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#EvaluationChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.EvaluationChain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.CommandChain" title="PyFoam.Applications.Comparator.CommandChain"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.CommandChain</span></code></a></p>
+<p>Chain of evaluation commands</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.EvaluationChain.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#EvaluationChain.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.EvaluationChain.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.EvaluationChain.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.EvaluationChain.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.FieldSetterCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">FieldSetterCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#FieldSetterCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.FieldSetterCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.SetterCommand" title="PyFoam.Applications.Comparator.SetterCommand"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.SetterCommand</span></code></a></p>
+<p>Common class for commands that set values on fields</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.FieldSetterCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#FieldSetterCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.FieldSetterCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.FieldSetterCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.FieldSetterCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.FoamCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">FoamCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#FoamCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.FoamCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.Command" title="PyFoam.Applications.Comparator.Command"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.Command</span></code></a></p>
+<p>Executes a OpenFOAM-utility</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.FoamCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#FoamCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.FoamCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.FoamCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.FoamCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.FoamCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#FoamCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.FoamCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.FoamUtilityCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">FoamUtilityCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#FoamUtilityCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.FoamUtilityCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.FoamCommand" title="PyFoam.Applications.Comparator.FoamCommand"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.FoamCommand</span></code></a></p>
+<p>Executes a OpenFOAM-utility and extracts information</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.FoamUtilityCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#FoamUtilityCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.FoamUtilityCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.FoamUtilityCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.FoamUtilityCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.FoamUtilityCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#FoamUtilityCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.FoamUtilityCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.FoamVersionCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">FoamVersionCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#FoamVersionCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.FoamVersionCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.Command" title="PyFoam.Applications.Comparator.Command"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.Command</span></code></a></p>
+<p>Changes the used OpenFOAM-version</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.FoamVersionCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#FoamVersionCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.FoamVersionCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.FoamVersionCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.FoamVersionCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.FoamVersionCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#FoamVersionCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.FoamVersionCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.GenericCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">GenericCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#GenericCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.GenericCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.Command" title="PyFoam.Applications.Comparator.Command"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.Command</span></code></a></p>
+<p>Executes a shell command</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.GenericCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#GenericCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.GenericCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.GenericCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.GenericCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.GenericCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#GenericCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.GenericCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.InitialCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">InitialCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#InitialCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.InitialCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.FieldSetterCommand" title="PyFoam.Applications.Comparator.FieldSetterCommand"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.FieldSetterCommand</span></code></a></p>
+<p>Sets an initial condition</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.InitialCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#InitialCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.InitialCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.InitialCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.InitialCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.InitialCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#InitialCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.InitialCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.LastResultCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">LastResultCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#LastResultCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.LastResultCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.Command" title="PyFoam.Applications.Comparator.Command"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.Command</span></code></a></p>
+<p>Copies the result of the last time-step to the resultsd directory</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.LastResultCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#LastResultCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.LastResultCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.LastResultCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.LastResultCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.LastResultCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#LastResultCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.LastResultCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.PreparationChain">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">PreparationChain</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#PreparationChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.PreparationChain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.CommandChain" title="PyFoam.Applications.Comparator.CommandChain"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.CommandChain</span></code></a></p>
+<p>Chain of Preparation commands</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.PreparationChain.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#PreparationChain.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.PreparationChain.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.PreparationChain.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.PreparationChain.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.ReconstructCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">ReconstructCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#ReconstructCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.ReconstructCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.Command" title="PyFoam.Applications.Comparator.Command"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.Command</span></code></a></p>
+<p>Reconstructs a case and deleted the LAM</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.ReconstructCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#ReconstructCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.ReconstructCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.ReconstructCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.ReconstructCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.ReconstructCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#ReconstructCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.ReconstructCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.SetDictionaryCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">SetDictionaryCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#SetDictionaryCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.SetDictionaryCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.Command" title="PyFoam.Applications.Comparator.Command"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.Command</span></code></a></p>
+<p>Sets value in the chains dictionaries</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.SetDictionaryCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#SetDictionaryCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.SetDictionaryCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.SetDictionaryCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.SetDictionaryCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.SetDictionaryCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#SetDictionaryCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.SetDictionaryCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.SetEnvironmentCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">SetEnvironmentCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#SetEnvironmentCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.SetEnvironmentCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.Command" title="PyFoam.Applications.Comparator.Command"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.Command</span></code></a></p>
+<p>Sets an environment variable</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.SetEnvironmentCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#SetEnvironmentCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.SetEnvironmentCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.SetEnvironmentCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.SetEnvironmentCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.SetEnvironmentCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#SetEnvironmentCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.SetEnvironmentCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.SetterCommand">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">SetterCommand</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#SetterCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.SetterCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Applications.Comparator.Command" title="PyFoam.Applications.Comparator.Command"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.Comparator.Command</span></code></a></p>
+<p>Common class for commands that operate on dictionaries</p>
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.SetterCommand.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#SetterCommand.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.SetterCommand.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.SetterCommand.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.SetterCommand.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.SetterCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>para</em>, <em>log</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#SetterCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.SetterCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.Comparator.Variation">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">Variation</code><span class="sig-paren">(</span><em>e</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#Variation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.Variation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Represents one variation</p>
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.Variation.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__init__': &lt;function Variation.__init__&gt;, '__weakref__': &lt;attribute '__weakref__' of 'Variation' objects&gt;, '__str__': &lt;function Variation.__str__&gt;, '__module__': 'PyFoam.Applications.Comparator', '__doc__': 'Represents one variation', '__dict__': &lt;attribute '__dict__' of 'Variation' objects&gt;, '__len__': &lt;function Variation.__len__&gt;, '__getitem__': &lt;function Variation.__getitem__&gt;})</em><a class="headerlink" href="#PyFoam.Applications.Comparator.Variation.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.Variation.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#Variation.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.Variation.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.Variation.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>e</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#Variation.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.Variation.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>e</strong> &#8211; the XML-data from which it is created</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.Variation.__len__">
+<code class="descname">__len__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#Variation.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.Variation.__len__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">number of values</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.Variation.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.Comparator'</em><a class="headerlink" href="#PyFoam.Applications.Comparator.Variation.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.Comparator.Variation.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#Variation.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.Variation.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.Comparator.Variation.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Applications.Comparator.Variation.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Applications.Comparator.getNonEmpty">
+<code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">getNonEmpty</code><span class="sig-paren">(</span><em>e</em>, <em>name</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#getNonEmpty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.getNonEmpty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Applications.Comparator.replaceValues">
+<code class="descclassname">PyFoam.Applications.Comparator.</code><code class="descname">replaceValues</code><span class="sig-paren">(</span><em>orig</em>, <em>para</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/Comparator.html#replaceValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.Comparator.replaceValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces all strings enclosed by $$ with the parameters
+:param orig: the original string
+:param para: dictionary with the parameters</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.Applications.CompareDictionary.html" class="btn btn-neutral float-right" title="PyFoam.Applications.CompareDictionary module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.Applications.CommonWriteAllTrigger.html" class="btn btn-neutral" title="PyFoam.Applications.CommonWriteAllTrigger module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

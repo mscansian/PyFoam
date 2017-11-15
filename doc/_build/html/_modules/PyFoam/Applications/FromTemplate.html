@@ -1,0 +1,427 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.FromTemplate &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.FromTemplate</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.FromTemplate</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id: /local/openfoam/Python/PyFoam/PyFoam/Applications/FromTemplate.py 8448 2013-09-24T17:55:25.403256Z bgschaid  $</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application class that implements pyFoamFromTemplate</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.TemplateFile</span> <span class="kn">import</span> <span class="n">TemplateFile</span><span class="p">,</span><span class="n">TemplateFileOldFormat</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span>
+
+<span class="kn">from</span> <span class="nn">.CommonPickledDataInput</span> <span class="kn">import</span> <span class="n">CommonPickledDataInput</span>
+<span class="kn">from</span> <span class="nn">.CommonTemplateFormat</span> <span class="kn">import</span> <span class="n">CommonTemplateFormat</span>
+<span class="kn">from</span> <span class="nn">.CommonTemplateBehaviour</span> <span class="kn">import</span> <span class="n">CommonTemplateBehaviour</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">iteritems</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+<div class="viewcode-block" id="FromTemplate"><a class="viewcode-back" href="../../../api/PyFoam.Applications.FromTemplate.html#PyFoam.Applications.FromTemplate.FromTemplate">[docs]</a><span class="k">class</span> <span class="nc">FromTemplate</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">,</span>
+                   <span class="n">CommonPickledDataInput</span><span class="p">,</span>
+                   <span class="n">CommonTemplateBehaviour</span><span class="p">,</span>
+                   <span class="n">CommonTemplateFormat</span><span class="p">):</span>
+<div class="viewcode-block" id="FromTemplate.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.FromTemplate.html#PyFoam.Applications.FromTemplate.FromTemplate.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">parameters</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Generates a file from a template file. Usually the name of the</span>
+<span class="s2">template file is the name of the file with the extension &#39;.template&#39;</span>
+<span class="s2">(unless specified otherwise). The file is generated by replacing</span>
+<span class="s2">everything in the template file that is enclosed by $ $ with</span>
+<span class="s2">calculated expression. values are given in a Python-dictionary. Lines</span>
+<span class="s2">in the template file that start with $$ are used as definitons for</span>
+<span class="s2">intermediate expressions.</span>
+
+<span class="s2">This format is used if the two arguments are used.  If the template</span>
+<span class="s2">file and the data is specified via options then a more advanced</span>
+<span class="s2">template format that allows branches and loops is used via the</span>
+<span class="s2">template-engine pyratemp (see</span>
+<span class="s2">http://www.simple-is-better.org/template/pyratemp.html). If data is</span>
+<span class="s2">read from a pickled-input then it looks for the keys &quot;template&quot; and &quot;values&quot; and</span>
+<span class="s2">uses these.</span>
+
+<span class="s2">In the new format expressions are delimited by |- at the start and -|</span>
+<span class="s2">at the end. These defaults can be changed</span>
+
+<span class="s2">:param parameters: Dictionary with parameters (only usable</span>
+<span class="s2">when called from a script)</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] (&lt;file&gt; &lt;vals&gt;|)&quot;</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FromTemplate.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.FromTemplate.html#PyFoam.Applications.FromTemplate.FromTemplate.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">CommonPickledDataInput</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">inputs</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Inputs&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;Inputs for the templating process&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+
+        <span class="n">inputs</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--template-file&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;template&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Name of the template file. Also overwrites the standard for the old format (&lt;filename&gt;.template). If this is set to &#39;stdin&#39; then the template is read from the standard-input to allow using the pipe into it.&quot;</span><span class="p">)</span>
+        <span class="n">inputs</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--values-string&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;values&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;String with the values that are to be inserted into the template as a dictionaty in Python-format. If specified this is the first choice&quot;</span><span class="p">)</span>
+        <span class="n">inputs</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--values-dictionary&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;valuesDict&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Name of a dictionary-file in OpenFOAM-format. If this is unspecified too then values are taken from the pickled-input&quot;</span><span class="p">)</span>
+        <span class="n">inputs</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-defaults-file&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;useDefaults&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If a file with the same name as the template file but the extension &#39;.defaults&#39; is found then it is loaded before the other values are read. This option switches this off&quot;</span><span class="p">)</span>
+
+        <span class="n">outputs</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Outputs&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;Outputs of the templating process&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--stdout&quot;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;stdout&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Doesn&#39;t write to the file, but outputs the result on stdout&quot;</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--dump-used-values&quot;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;dumpUsed&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print the used parameters&quot;</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--output-file&quot;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outputFile&quot;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;File to which the output will be written. Only for the new format&quot;</span><span class="p">)</span>
+
+        <span class="n">CommonTemplateFormat</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">CommonTemplateBehaviour</span><span class="o">.</span><span class="n">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FromTemplate.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.FromTemplate.html#PyFoam.Applications.FromTemplate.FromTemplate.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">template</span><span class="o">==</span><span class="s2">&quot;stdin&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pickledFileRead</span><span class="o">==</span><span class="s2">&quot;stdin&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Can&#39;t simultanously read pickled data and the tempalte from the standard input&quot;</span><span class="p">)</span>
+
+        <span class="n">content</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">template</span><span class="o">==</span><span class="s2">&quot;stdin&quot;</span><span class="p">:</span>
+            <span class="n">content</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">data</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pickledFileRead</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">readPickledData</span><span class="p">()</span>
+        <span class="n">fName</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">())</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pickledFileRead</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;old-format mode does not work with pickled input&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outputFile</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;--output-file is not valid for the old format&quot;</span><span class="p">)</span>
+            <span class="c1"># old school implementation</span>
+            <span class="n">fName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">vals</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+                <span class="c1"># fix a problem with certain shells</span>
+                <span class="n">vals</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">template</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">template</span><span class="o">=</span><span class="n">fName</span><span class="o">+</span><span class="s2">&quot;.template&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">template</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">template</span>
+
+            <span class="k">if</span> <span class="n">content</span><span class="p">:</span>
+                <span class="n">t</span><span class="o">=</span><span class="n">TemplateFileOldFormat</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">t</span><span class="o">=</span><span class="n">TemplateFileOldFormat</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">template</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">())</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">template</span><span class="o">==</span><span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outputFile</span><span class="o">!=</span><span class="bp">None</span>  <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outputFile</span><span class="o">!=</span><span class="s2">&quot;stdin&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">template</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outputFile</span><span class="o">+</span><span class="s2">&quot;.template&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Automatically setting template to&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">template</span><span class="p">)</span>
+            <span class="n">vals</span><span class="o">=</span><span class="p">{}</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">useDefaults</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">template</span><span class="o">!=</span><span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">template</span><span class="o">!=</span><span class="s2">&quot;stdin&quot;</span><span class="p">:</span>
+                <span class="n">name</span><span class="p">,</span><span class="n">ext</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">template</span><span class="p">)</span>
+                <span class="n">defaultName</span><span class="o">=</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.defaults&quot;</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">defaultName</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Reading default values from&quot;</span><span class="p">,</span><span class="n">defaultName</span><span class="p">)</span>
+                    <span class="n">vals</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">defaultName</span><span class="p">,</span>
+                                             <span class="n">noHeader</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                             <span class="n">doMacroExpansion</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">getValueDict</span><span class="p">()</span>
+
+            <span class="n">vals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+                <span class="n">vals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">valuesDict</span><span class="p">:</span>
+                <span class="n">vals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">valuesDict</span><span class="p">,</span>
+                                                <span class="n">noHeader</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                <span class="n">doMacroExpansion</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">getValueDict</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">vals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Either specify the values with --values-string or --values-dictionary or in the pickled input data&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dumpUsed</span><span class="p">:</span>
+                <span class="n">maxLen</span><span class="o">=</span><span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">vals</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
+                <span class="n">formatString</span><span class="o">=</span><span class="s2">&quot; </span><span class="si">%%%d</span><span class="s2">s | </span><span class="si">%%</span><span class="s2">s&quot;</span> <span class="o">%</span> <span class="n">maxLen</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Used values&quot;</span><span class="p">)</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">formatString</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span><span class="s2">&quot;Value&quot;</span><span class="p">))</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="o">*</span><span class="p">(</span><span class="n">maxLen</span><span class="o">+</span><span class="mi">30</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="n">formatString</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outputFile</span><span class="p">:</span>
+                <span class="n">assignmentDebug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pickAssignmentDebug</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outputFile</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">assignmentDebug</span><span class="o">=</span><span class="bp">None</span>
+
+            <span class="k">if</span> <span class="n">content</span><span class="p">:</span>
+                <span class="n">t</span><span class="o">=</span><span class="n">TemplateFile</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span>
+                               <span class="n">tolerantRender</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">tolerantRender</span><span class="p">,</span>
+                               <span class="n">allowExec</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">allowExec</span><span class="p">,</span>
+                               <span class="n">expressionDelimiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">expressionDelimiter</span><span class="p">,</span>
+                               <span class="n">assignmentDebug</span><span class="o">=</span><span class="n">assignmentDebug</span><span class="p">,</span>
+                               <span class="n">assignmentLineStart</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">assignmentLineStart</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">t</span><span class="o">=</span><span class="n">TemplateFile</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">],</span>
+                               <span class="n">tolerantRender</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">tolerantRender</span><span class="p">,</span>
+                               <span class="n">allowExec</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">allowExec</span><span class="p">,</span>
+                               <span class="n">expressionDelimiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">expressionDelimiter</span><span class="p">,</span>
+                               <span class="n">assignmentDebug</span><span class="o">=</span><span class="n">assignmentDebug</span><span class="p">,</span>
+                               <span class="n">assignmentLineStart</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">assignmentLineStart</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">template</span><span class="p">:</span>
+                <span class="n">t</span><span class="o">=</span><span class="n">TemplateFile</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">template</span><span class="p">,</span>
+                               <span class="n">tolerantRender</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">tolerantRender</span><span class="p">,</span>
+                               <span class="n">allowExec</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">allowExec</span><span class="p">,</span>
+                               <span class="n">expressionDelimiter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">expressionDelimiter</span><span class="p">,</span>
+                               <span class="n">assignmentDebug</span><span class="o">=</span><span class="n">assignmentDebug</span><span class="p">,</span>
+                               <span class="n">assignmentLineStart</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">assignmentLineStart</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Template unspecified&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outputFile</span><span class="p">:</span>
+                <span class="n">fName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">outputFile</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Either specify 2 arguments (file and values) for old format or no arguments for the new format&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">getString</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">fName</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">t</span><span class="o">.</span><span class="n">writeToFile</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="n">vals</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">NameError</span><span class="p">,</span><span class="ne">SyntaxError</span><span class="p">):</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;While processing file&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">e</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No destination for the output specified&quot;</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

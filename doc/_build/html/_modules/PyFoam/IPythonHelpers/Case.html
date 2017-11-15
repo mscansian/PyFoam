@@ -1,0 +1,648 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.IPythonHelpers.Case &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam.IPythonHelpers" href="../IPythonHelpers.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="../IPythonHelpers.html">PyFoam.IPythonHelpers</a> &raquo;</li>
+      
+    <li>PyFoam.IPythonHelpers.Case</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.IPythonHelpers.Case</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Encapsulate a case and give convenient access to certain applications</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">docutils.core</span> <span class="kn">import</span> <span class="n">publish_parts</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.CaseReport</span> <span class="kn">import</span> <span class="n">CaseReport</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.TimelinePlot</span> <span class="kn">import</span> <span class="n">TimelinePlot</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.SamplePlot</span> <span class="kn">import</span> <span class="n">SamplePlot</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.RedoPlot</span> <span class="kn">import</span> <span class="n">RedoPlot</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">string_types</span><span class="p">,</span><span class="n">StringIO</span><span class="p">,</span><span class="n">print_</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span> <span class="k">as</span> <span class="n">pickle</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.IPythonHelpers</span> <span class="kn">import</span> <span class="n">create_code_cell</span>
+<span class="kn">from</span> <span class="nn">PyFoam.IPythonHelpers.PermanentStorage</span> <span class="kn">import</span> <span class="n">PermanentStorage</span>
+
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">HTML</span><span class="p">,</span><span class="n">display</span>
+<span class="kn">import</span> <span class="nn">ipywidgets</span> <span class="kn">as</span> <span class="nn">widgets</span>
+<span class="kn">from</span> <span class="nn">IPython</span> <span class="kn">import</span> <span class="n">get_ipython</span>
+
+<div class="viewcode-block" id="Case"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case">[docs]</a><span class="k">class</span> <span class="nc">Case</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class is initialized with a path and gives access to</span>
+<span class="sd">    reporting functions</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Case.__init__"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="nb">input</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param input: either a SolutionDirectory-instance or a string</span>
+<span class="sd">        with a pathname&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span><span class="n">SolutionDirectory</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__sol</span><span class="o">=</span><span class="nb">input</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__sol</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span>
+                                         <span class="n">paraviewLink</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                         <span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="nb">input</span><span class="p">),</span><span class="s2">&quot;not supported&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The actual solution directory&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sol</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The path to the solution&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sol</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">regions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Regions in the case&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__sol</span><span class="o">.</span><span class="n">getRegions</span><span class="p">(</span><span class="n">defaultRegion</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__callCaseReport</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">region</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Helper function that does the actual calling of CaseReport</span>
+<span class="sd">        and returning of the HTML-formatted output&quot;&quot;&quot;</span>
+        <span class="n">s</span><span class="o">=</span><span class="n">StringIO</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">region</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="o">+</span><span class="mi">1</span>
+
+        <span class="n">CaseReport</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">],</span>
+                   <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                   <span class="nb">file</span><span class="o">=</span><span class="n">s</span><span class="p">,</span>
+                   <span class="n">headingLevel</span><span class="o">=</span><span class="n">level</span><span class="p">,</span>
+                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">publish_parts</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(),</span>
+                                  <span class="n">writer_name</span><span class="o">=</span><span class="s1">&#39;html&#39;</span><span class="p">,</span>
+                                  <span class="n">settings_overrides</span><span class="o">=</span><span class="p">{</span>
+                                      <span class="s2">&quot;initial_header_level&quot;</span><span class="p">:</span><span class="n">level</span><span class="p">,</span>
+                                      <span class="s2">&quot;doctitle_xform&quot;</span><span class="p">:</span><span class="bp">False</span>
+                                  <span class="p">})[</span><span class="s1">&#39;html_body&#39;</span><span class="p">])</span>
+
+<div class="viewcode-block" id="Case.size"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.size">[docs]</a>    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">region</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__callCaseReport</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                                     <span class="n">caseSize</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Case.boundaryConditions"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.boundaryConditions">[docs]</a>    <span class="k">def</span> <span class="nf">boundaryConditions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">region</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__callCaseReport</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                                     <span class="n">shortBcReport</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Case.longBoundaryConditions"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.longBoundaryConditions">[docs]</a>    <span class="k">def</span> <span class="nf">longBoundaryConditions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">region</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__callCaseReport</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                                     <span class="n">longBcReport</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Case.dimensions"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.dimensions">[docs]</a>    <span class="k">def</span> <span class="nf">dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">region</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__callCaseReport</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                                     <span class="n">dimensions</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Case.internalField"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.internalField">[docs]</a>    <span class="k">def</span> <span class="nf">internalField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">region</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__callCaseReport</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                                     <span class="n">internalField</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Case.linearSolvers"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.linearSolvers">[docs]</a>    <span class="k">def</span> <span class="nf">linearSolvers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">region</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__callCaseReport</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                                     <span class="n">linearSolvers</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Case.relaxationFactors"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.relaxationFactors">[docs]</a>    <span class="k">def</span> <span class="nf">relaxationFactors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">region</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__callCaseReport</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                                     <span class="n">relaxationFactors</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Case.processorMatrix"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.processorMatrix">[docs]</a>    <span class="k">def</span> <span class="nf">processorMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">region</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__callCaseReport</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                                     <span class="n">processorMatrix</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Case.decomposition"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.decomposition">[docs]</a>    <span class="k">def</span> <span class="nf">decomposition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">region</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__callCaseReport</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                                     <span class="n">decomposition</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Case.timeline"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.timeline">[docs]</a>    <span class="k">def</span> <span class="nf">timeline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">directory</span><span class="p">,</span><span class="n">fieldname</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fieldname</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="n">f</span><span class="o">=</span><span class="p">[</span><span class="n">fieldname</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">=</span><span class="n">fieldname</span>
+        <span class="k">return</span> <span class="n">TimelinePlot</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">],</span>
+                            <span class="n">directoryName</span><span class="o">=</span><span class="n">directory</span><span class="p">,</span>
+                            <span class="n">fields</span><span class="o">=</span><span class="n">f</span><span class="p">,</span>
+                            <span class="n">basicMode</span><span class="o">=</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span>
+                            <span class="n">pandasData</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="s2">&quot;dataFrame&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Case.timelineInfo"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.timelineInfo">[docs]</a>    <span class="k">def</span> <span class="nf">timelineInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">directory</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">TimelinePlot</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">],</span>
+                            <span class="n">directoryName</span><span class="o">=</span><span class="n">directory</span><span class="p">,</span>
+                            <span class="n">info</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                            <span class="n">silent</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Case.sampleTime"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.sampleTime">[docs]</a>    <span class="k">def</span> <span class="nf">sampleTime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">directory</span><span class="p">,</span><span class="n">line</span><span class="p">,</span><span class="n">time</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SamplePlot</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">],</span>
+                          <span class="n">directoryName</span><span class="o">=</span><span class="n">directory</span><span class="p">,</span>
+                          <span class="n">line</span><span class="o">=</span><span class="p">[</span><span class="n">line</span><span class="p">],</span>
+                          <span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="n">time</span><span class="p">],</span>
+                          <span class="n">fuzzyTime</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;separate&quot;</span><span class="p">,</span>
+                          <span class="n">pandasData</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="s2">&quot;dataFrame&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Case.sampleField"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.sampleField">[docs]</a>    <span class="k">def</span> <span class="nf">sampleField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">directory</span><span class="p">,</span><span class="n">line</span><span class="p">,</span><span class="n">field</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SamplePlot</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">],</span>
+                          <span class="n">directoryName</span><span class="o">=</span><span class="n">directory</span><span class="p">,</span>
+                          <span class="n">line</span><span class="o">=</span><span class="p">[</span><span class="n">line</span><span class="p">],</span>
+                          <span class="n">field</span><span class="o">=</span><span class="p">[</span><span class="n">field</span><span class="p">],</span>
+                          <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;separate&quot;</span><span class="p">,</span>
+                          <span class="n">pandasData</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="s2">&quot;dataFrame&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Case.sampleInfo"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.sampleInfo">[docs]</a>    <span class="k">def</span> <span class="nf">sampleInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">directory</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SamplePlot</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">],</span>
+                          <span class="n">directoryName</span><span class="o">=</span><span class="n">directory</span><span class="p">,</span>
+                          <span class="n">info</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">silent</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Case.distributionInfo"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.distributionInfo">[docs]</a>    <span class="k">def</span> <span class="nf">distributionInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">directory</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SamplePlot</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">],</span>
+                          <span class="n">directoryName</span><span class="o">=</span><span class="n">directory</span><span class="p">,</span>
+                          <span class="n">isDistribution</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">info</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">silent</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Case.distribution"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.distribution">[docs]</a>    <span class="k">def</span> <span class="nf">distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">directory</span><span class="p">,</span><span class="n">line</span><span class="p">,</span><span class="n">time</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SamplePlot</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">],</span>
+                          <span class="n">directoryName</span><span class="o">=</span><span class="n">directory</span><span class="p">,</span>
+                          <span class="n">isDistribution</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">line</span><span class="o">=</span><span class="p">[</span><span class="n">line</span><span class="p">],</span>
+                          <span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="n">time</span><span class="p">],</span>
+                          <span class="n">fuzzyTime</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;separate&quot;</span><span class="p">,</span>
+                          <span class="n">pandasData</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="s2">&quot;dataFrame&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Case.pickledPlots"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.pickledPlots">[docs]</a>    <span class="k">def</span> <span class="nf">pickledPlots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pickleFile</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">RedoPlot</span><span class="p">(</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span><span class="n">pickleFile</span><span class="p">)],</span>
+            <span class="n">pickleFile</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+            <span class="n">pandasData</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="s2">&quot;plotData&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Case.pickledData"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.pickledData">[docs]</a>    <span class="k">def</span> <span class="nf">pickledData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pickleFile</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">Unpickler</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span><span class="n">pickleFile</span><span class="p">),</span><span class="s2">&quot;rb&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">load</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">__getObjectName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ns</span> <span class="ow">in</span> <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">all_ns_refs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">ns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="n">v</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;_&quot;</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">n</span>
+        <span class="k">return</span> <span class="s2">&quot;unknown&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__getStorageName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ns</span> <span class="ow">in</span> <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">all_ns_refs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">ns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">PermanentStorage</span><span class="p">):</span>
+                   <span class="k">return</span> <span class="n">n</span><span class="p">,</span><span class="n">v</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="Case.timelineSelector"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.timelineSelector">[docs]</a>    <span class="k">def</span> <span class="nf">timelineSelector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">directoryName</span><span class="p">):</span>
+        <span class="n">info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timelineInfo</span><span class="p">(</span><span class="n">directoryName</span><span class="p">)</span>
+        <span class="n">lst</span><span class="o">=</span><span class="p">[</span><span class="n">widgets</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;Fields:&quot;</span><span class="p">)]</span>
+        <span class="n">fieldsSelected</span><span class="o">=</span><span class="nb">set</span><span class="p">()</span>
+        <span class="n">storeButton</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Store to&quot;</span><span class="p">,</span><span class="n">disabled</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">make_field_toggle</span><span class="p">(</span><span class="n">fName</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+                    <span class="n">fieldsSelected</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">fieldsSelected</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">pass</span> <span class="c1"># this should not happen, but hey!</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fieldsSelected</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">storeButton</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="bp">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">storeButton</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">return</span> <span class="n">f</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;fields&quot;</span><span class="p">]:</span>
+            <span class="n">w</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">ToggleButton</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">w</span><span class="o">.</span><span class="n">on_trait_change</span><span class="p">(</span><span class="n">make_field_toggle</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span>
+            <span class="n">lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Fields&quot;</span><span class="p">,</span><span class="n">children</span><span class="o">=</span><span class="n">lst</span><span class="p">)</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">add_class</span><span class="p">(</span><span class="s2">&quot;hbox&quot;</span><span class="p">)</span>
+        <span class="n">varName</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Variable Name&quot;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">varname_change</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">storeButton</span><span class="o">.</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Store to &quot;</span><span class="o">+</span><span class="n">value</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">fieldsSelected</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">storeButton</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dis</span><span class="o">=</span><span class="bp">False</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+                    <span class="n">dis</span><span class="o">=</span><span class="bp">True</span>
+                <span class="n">storeButton</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="n">dis</span>
+        <span class="n">varName</span><span class="o">.</span><span class="n">on_trait_change</span><span class="p">(</span><span class="n">varname_change</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">store_clicked</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+            <span class="n">v</span><span class="o">=</span><span class="n">varName</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">f</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">fieldsSelected</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Storing&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="s2">&quot;from&quot;</span><span class="p">,</span><span class="n">directoryName</span><span class="p">,</span><span class="s2">&quot;in&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span><span class="s2">&quot;to variable&quot;</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getObjectName</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">store</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getStorageName</span><span class="p">()</span>
+            <span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.timeline(&#39;</span><span class="si">%s</span><span class="s2">&#39;,</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">directoryName</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">store</span><span class="p">:</span>
+                <span class="n">sname</span><span class="p">,</span><span class="n">sval</span><span class="o">=</span><span class="n">store</span>
+                <span class="n">create_code_cell</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">(&#39;</span><span class="si">%s</span><span class="s2">&#39;,lambda:</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">sname</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">cmd</span><span class="p">),</span>
+                    <span class="s2">&quot;below&quot;</span><span class="p">)</span>
+                <span class="n">val</span><span class="o">=</span><span class="n">sval</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="k">lambda</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">timeline</span><span class="p">(</span><span class="n">directoryName</span><span class="p">,</span><span class="n">f</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">create_code_cell</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">cmd</span><span class="p">),</span>
+                    <span class="s2">&quot;below&quot;</span><span class="p">)</span>
+                <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeline</span><span class="p">(</span><span class="n">directoryName</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">push</span><span class="p">({</span><span class="n">v</span><span class="p">:</span><span class="n">val</span><span class="p">})</span>
+            <span class="n">varName</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="n">storeButton</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="n">store_clicked</span><span class="p">)</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">fields</span><span class="p">,</span><span class="n">varName</span><span class="p">,</span><span class="n">storeButton</span><span class="p">])</span>
+        <span class="n">total</span><span class="o">.</span><span class="n">add_class</span><span class="p">(</span><span class="s2">&quot;vbox&quot;</span><span class="p">)</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">total</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Case.sampleSelector"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.sampleSelector">[docs]</a>    <span class="k">def</span> <span class="nf">sampleSelector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">directoryName</span><span class="p">):</span>
+        <span class="n">info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sampleInfo</span><span class="p">(</span><span class="n">directoryName</span><span class="p">)</span>
+        <span class="n">mode</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">ToggleButtons</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Mode&quot;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span><span class="s2">&quot;Field&quot;</span><span class="p">])</span>
+        <span class="n">field</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Field&quot;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">])</span>
+        <span class="n">time</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">])</span>
+                              <span class="c1"># ,value=info[&quot;times&quot;][-1])</span>
+        <span class="n">line</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Sample line&quot;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;lines&quot;</span><span class="p">])</span>
+        <span class="n">varName</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Variable Name&quot;</span><span class="p">)</span>
+        <span class="n">storeButton</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Store to&quot;</span><span class="p">,</span><span class="n">disabled</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">mode_changed</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">value</span><span class="o">==</span><span class="s2">&quot;Time&quot;</span><span class="p">:</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="bp">False</span>
+                <span class="n">field</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="bp">True</span>
+                <span class="n">field</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="bp">False</span>
+        <span class="n">mode</span><span class="o">.</span><span class="n">on_trait_change</span><span class="p">(</span><span class="n">mode_changed</span><span class="p">,</span><span class="s1">&#39;value&#39;</span><span class="p">)</span>
+        <span class="n">mode_changed</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">,</span><span class="n">mode</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">varname_change</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">storeButton</span><span class="o">.</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Store to &quot;</span><span class="o">+</span><span class="n">value</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">storeButton</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dis</span><span class="o">=</span><span class="bp">False</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+                    <span class="n">dis</span><span class="o">=</span><span class="bp">True</span>
+                <span class="n">storeButton</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="n">dis</span>
+        <span class="n">varName</span><span class="o">.</span><span class="n">on_trait_change</span><span class="p">(</span><span class="n">varname_change</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">store_clicked</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+            <span class="n">l</span><span class="o">=</span><span class="n">line</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">v</span><span class="o">=</span><span class="n">varName</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getObjectName</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">store</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getStorageName</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">mode</span><span class="o">.</span><span class="n">value</span><span class="o">==</span><span class="s2">&quot;Time&quot;</span><span class="p">:</span>
+                <span class="n">t</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">value</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Storing fields at t=&quot;</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="s2">&quot;on line&quot;</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="s2">&quot;from&quot;</span><span class="p">,</span><span class="n">directoryName</span><span class="p">,</span><span class="s2">&quot;in&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span><span class="s2">&quot;to variable&quot;</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+                <span class="n">cmdBase</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.sampleTime(&#39;</span><span class="si">%s</span><span class="s2">&#39;,&#39;</span><span class="si">%s</span><span class="s2">&#39;,&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">directoryName</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">t</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">store</span><span class="p">:</span>
+                    <span class="n">sname</span><span class="p">,</span><span class="n">sval</span><span class="o">=</span><span class="n">store</span>
+                    <span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">(&#39;</span><span class="si">%s</span><span class="s2">&#39;,lambda:</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">sname</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">cmdBase</span><span class="p">)</span>
+                    <span class="n">val</span><span class="o">=</span><span class="n">sval</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="k">lambda</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">sampleTime</span><span class="p">(</span><span class="n">directoryName</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">t</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">cmdBase</span><span class="p">)</span>
+                    <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sampleTime</span><span class="p">(</span><span class="n">directoryName</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">t</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">mode</span><span class="o">.</span><span class="n">value</span><span class="o">==</span><span class="s2">&quot;Field&quot;</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">=</span><span class="n">field</span><span class="o">.</span><span class="n">value</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Storing fields&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="s2">&quot; at all times on line&quot;</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="s2">&quot;from&quot;</span><span class="p">,</span><span class="n">directoryName</span><span class="p">,</span><span class="s2">&quot;in&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span><span class="s2">&quot;to variable&quot;</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+                <span class="n">cmdBase</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.sampleField(&#39;</span><span class="si">%s</span><span class="s2">&#39;,&#39;</span><span class="si">%s</span><span class="s2">&#39;,&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">directoryName</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">store</span><span class="p">:</span>
+                    <span class="n">sname</span><span class="p">,</span><span class="n">sval</span><span class="o">=</span><span class="n">store</span>
+                    <span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">(&#39;</span><span class="si">%s</span><span class="s2">&#39;,lambda:</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">sname</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">cmdBase</span><span class="p">)</span>
+                    <span class="n">val</span><span class="o">=</span><span class="n">sval</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="k">lambda</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">sampleField</span><span class="p">(</span><span class="n">directoryName</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">f</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">cmdBase</span><span class="p">)</span>
+                    <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sampleField</span><span class="p">(</span><span class="n">directoryName</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Unknown mode&quot;</span><span class="p">,</span><span class="n">mode</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="n">create_code_cell</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span><span class="s2">&quot;below&quot;</span><span class="p">)</span>
+            <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">push</span><span class="p">({</span><span class="n">v</span><span class="p">:</span><span class="n">val</span><span class="p">})</span>
+            <span class="n">varName</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="n">storeButton</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="n">store_clicked</span><span class="p">)</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">mode</span><span class="p">,</span><span class="n">line</span><span class="p">,</span><span class="n">field</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">varName</span><span class="p">,</span><span class="n">storeButton</span><span class="p">])</span>
+        <span class="n">total</span><span class="o">.</span><span class="n">add_class</span><span class="p">(</span><span class="s2">&quot;vbox&quot;</span><span class="p">)</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">total</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Case.distributionSelector"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.distributionSelector">[docs]</a>    <span class="k">def</span> <span class="nf">distributionSelector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">directoryName</span><span class="p">):</span>
+        <span class="n">info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">distributionInfo</span><span class="p">(</span><span class="n">directoryName</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">],</span><span class="n">value</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">line</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Sample line&quot;</span><span class="p">,</span><span class="n">values</span><span class="o">=</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;lines&quot;</span><span class="p">])</span>
+        <span class="n">varName</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Variable Name&quot;</span><span class="p">)</span>
+        <span class="n">storeButton</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Store to&quot;</span><span class="p">,</span><span class="n">disabled</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">varname_change</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">storeButton</span><span class="o">.</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Store to &quot;</span><span class="o">+</span><span class="n">value</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">storeButton</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dis</span><span class="o">=</span><span class="bp">False</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+                    <span class="n">dis</span><span class="o">=</span><span class="bp">True</span>
+                <span class="n">storeButton</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="n">dis</span>
+        <span class="n">varName</span><span class="o">.</span><span class="n">on_trait_change</span><span class="p">(</span><span class="n">varname_change</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">store_clicked</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+            <span class="n">l</span><span class="o">=</span><span class="n">line</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">v</span><span class="o">=</span><span class="n">varName</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getObjectName</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">store</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getStorageName</span><span class="p">()</span>
+            <span class="n">t</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Storing distribution at t=&quot;</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="s2">&quot;on line&quot;</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="s2">&quot;from&quot;</span><span class="p">,</span><span class="n">directoryName</span><span class="p">,</span><span class="s2">&quot;in&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span><span class="s2">&quot;to variable&quot;</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+            <span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.distribution(&#39;</span><span class="si">%s</span><span class="s2">&#39;,&#39;</span><span class="si">%s</span><span class="s2">&#39;,&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">directoryName</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">t</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">store</span><span class="p">:</span>
+                <span class="n">sname</span><span class="p">,</span><span class="n">sval</span><span class="o">=</span><span class="n">store</span>
+                <span class="n">create_code_cell</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">(&#39;</span><span class="si">%s</span><span class="s2">&#39;,lambda:</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">sname</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">cmd</span><span class="p">),</span>
+                    <span class="s2">&quot;below&quot;</span><span class="p">)</span>
+                <span class="n">val</span><span class="o">=</span><span class="n">sval</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="k">lambda</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="p">(</span><span class="n">directoryName</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">t</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">create_code_cell</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">cmd</span><span class="p">),</span>
+                    <span class="s2">&quot;below&quot;</span><span class="p">)</span>
+                <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="p">(</span><span class="n">directoryName</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">push</span><span class="p">({</span><span class="n">v</span><span class="p">:</span><span class="n">val</span><span class="p">})</span>
+            <span class="n">varName</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="n">storeButton</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="n">store_clicked</span><span class="p">)</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">line</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">varName</span><span class="p">,</span><span class="n">storeButton</span><span class="p">])</span>
+        <span class="n">total</span><span class="o">.</span><span class="n">add_class</span><span class="p">(</span><span class="s2">&quot;vbox&quot;</span><span class="p">)</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">total</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Case.pickledPlotSelector"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.pickledPlotSelector">[docs]</a>    <span class="k">def</span> <span class="nf">pickledPlotSelector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">pPlot</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Pickled plot file&quot;</span><span class="p">,</span>
+                                     <span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sol</span><span class="o">.</span><span class="n">pickledPlots</span><span class="p">,</span>
+                                     <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sol</span><span class="o">.</span><span class="n">pickledPlots</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">varName</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Variable Name&quot;</span><span class="p">)</span>
+        <span class="n">storeButton</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Store to&quot;</span><span class="p">,</span><span class="n">disabled</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">varname_change</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">storeButton</span><span class="o">.</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Store to &quot;</span><span class="o">+</span><span class="n">value</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">storeButton</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dis</span><span class="o">=</span><span class="bp">False</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+                    <span class="n">dis</span><span class="o">=</span><span class="bp">True</span>
+                <span class="n">storeButton</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="n">dis</span>
+        <span class="n">varName</span><span class="o">.</span><span class="n">on_trait_change</span><span class="p">(</span><span class="n">varname_change</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">store_clicked</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+            <span class="n">p</span><span class="o">=</span><span class="n">pPlot</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">v</span><span class="o">=</span><span class="n">varName</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getObjectName</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">store</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getStorageName</span><span class="p">()</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Storing Pickled Plot data from&quot;</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="s2">&quot;to variable&quot;</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+            <span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.pickledPlots(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">store</span><span class="p">:</span>
+                <span class="n">sname</span><span class="p">,</span><span class="n">sval</span><span class="o">=</span><span class="n">store</span>
+                <span class="n">create_code_cell</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">(&#39;</span><span class="si">%s</span><span class="s2">&#39;,lambda:</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">sname</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">cmd</span><span class="p">),</span>
+                    <span class="s2">&quot;below&quot;</span><span class="p">)</span>
+                <span class="n">val</span><span class="o">=</span><span class="n">sval</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="k">lambda</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">pickledPlots</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">create_code_cell</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">cmd</span><span class="p">),</span>
+                    <span class="s2">&quot;below&quot;</span><span class="p">)</span>
+                <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pickledPlots</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">push</span><span class="p">({</span><span class="n">v</span><span class="p">:</span><span class="n">val</span><span class="p">})</span>
+            <span class="n">varName</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="n">storeButton</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="n">store_clicked</span><span class="p">)</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">pPlot</span><span class="p">,</span><span class="n">varName</span><span class="p">,</span><span class="n">storeButton</span><span class="p">])</span>
+        <span class="n">total</span><span class="o">.</span><span class="n">add_class</span><span class="p">(</span><span class="s2">&quot;vbox&quot;</span><span class="p">)</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">total</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Case.pickledDataSelector"><a class="viewcode-back" href="../../../api/PyFoam.IPythonHelpers.Case.html#PyFoam.IPythonHelpers.Case.Case.pickledDataSelector">[docs]</a>    <span class="k">def</span> <span class="nf">pickledDataSelector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">pData</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Pickled data file&quot;</span><span class="p">,</span>
+                                     <span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sol</span><span class="o">.</span><span class="n">pickledData</span><span class="p">,</span>
+                                     <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sol</span><span class="o">.</span><span class="n">pickledData</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">varName</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Text</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Variable Name&quot;</span><span class="p">)</span>
+        <span class="n">storeButton</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Store to&quot;</span><span class="p">,</span><span class="n">disabled</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">varname_change</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">storeButton</span><span class="o">.</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Store to &quot;</span><span class="o">+</span><span class="n">value</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">storeButton</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dis</span><span class="o">=</span><span class="bp">False</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+                    <span class="n">dis</span><span class="o">=</span><span class="bp">True</span>
+                <span class="n">storeButton</span><span class="o">.</span><span class="n">disabled</span><span class="o">=</span><span class="n">dis</span>
+        <span class="n">varName</span><span class="o">.</span><span class="n">on_trait_change</span><span class="p">(</span><span class="n">varname_change</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">store_clicked</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+            <span class="n">p</span><span class="o">=</span><span class="n">pData</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">v</span><span class="o">=</span><span class="n">varName</span><span class="o">.</span><span class="n">value</span>
+            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getObjectName</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">store</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getStorageName</span><span class="p">()</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Storing Pickled Data from&quot;</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="s2">&quot;to variable&quot;</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+            <span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.pickledData(&#39;</span><span class="si">%s</span><span class="s2">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">store</span><span class="p">:</span>
+                <span class="n">sname</span><span class="p">,</span><span class="n">sval</span><span class="o">=</span><span class="n">store</span>
+                <span class="n">create_code_cell</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">(&#39;</span><span class="si">%s</span><span class="s2">&#39;,lambda:</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">sname</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">cmd</span><span class="p">),</span>
+                    <span class="s2">&quot;below&quot;</span><span class="p">)</span>
+                <span class="n">val</span><span class="o">=</span><span class="n">sval</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="k">lambda</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">pickledData</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">create_code_cell</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">cmd</span><span class="p">),</span>
+                    <span class="s2">&quot;below&quot;</span><span class="p">)</span>
+                <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pickledData</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">push</span><span class="p">({</span><span class="n">v</span><span class="p">:</span><span class="n">val</span><span class="p">})</span>
+            <span class="n">varName</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="n">storeButton</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="n">store_clicked</span><span class="p">)</span>
+        <span class="n">total</span><span class="o">=</span><span class="n">widgets</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">pData</span><span class="p">,</span><span class="n">varName</span><span class="p">,</span><span class="n">storeButton</span><span class="p">])</span>
+        <span class="n">total</span><span class="o">.</span><span class="n">add_class</span><span class="p">(</span><span class="s2">&quot;vbox&quot;</span><span class="p">)</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">total</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

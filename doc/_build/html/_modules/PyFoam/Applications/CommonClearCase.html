@@ -1,0 +1,260 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.CommonClearCase &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.CommonClearCase</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.CommonClearCase</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Class that implements the common functionality for clearing the cases</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<div class="viewcode-block" id="CommonClearCase"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonClearCase.html#PyFoam.Applications.CommonClearCase.CommonClearCase">[docs]</a><span class="k">class</span> <span class="nc">CommonClearCase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; The class that clears the case</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CommonClearCase.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonClearCase.html#PyFoam.Applications.CommonClearCase.CommonClearCase.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ensureGeneralOptions</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generalOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--clear-case&quot;</span><span class="p">,</span>
+                                    <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                    <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                    <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;clearCase&quot;</span><span class="p">,</span>
+                                    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Clear all timesteps except for the first before running&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generalOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--complete-clear&quot;</span><span class="p">,</span>
+                                    <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                    <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                    <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;clearComplete&quot;</span><span class="p">,</span>
+                                    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Like clear-case but removes the function-object data as well&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generalOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--pyfoam-stuff-clear&quot;</span><span class="p">,</span>
+                                    <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                    <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;pyfoam&quot;</span><span class="p">,</span>
+                                    <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Keep the PyFoam-specific directories and logfiles. Will only be used with &#39;--clear-case&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generalOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--additional-clear&quot;</span><span class="p">,</span>
+                                    <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                                    <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;additionalClear&quot;</span><span class="p">,</span>
+                                    <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                                    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Glob-pattern with additional files to be removes. Can be used more than once. Will only be used with &#39;--clear-case&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generalOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--history-clear&quot;</span><span class="p">,</span>
+                                    <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                    <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;clearHistory&quot;</span><span class="p">,</span>
+                                    <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Clear the PyFoamHistory-file. Will only be used with &#39;--clear-case&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generalOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--remove-processor-dirs&quot;</span><span class="p">,</span>
+                                    <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                    <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;removeProcessorDirs&quot;</span><span class="p">,</span>
+                                    <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Remove the whole processor directories&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generalOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--keep-postprocessing&quot;</span><span class="p">,</span>
+                                    <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                    <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;keepPostprocessing&quot;</span><span class="p">,</span>
+                                    <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Keep the directory &#39;postProcessing&#39; where functionObjects write their stuff&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generalOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--verbose-clear&quot;</span><span class="p">,</span>
+                                    <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                                    <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;verboseClear&quot;</span><span class="p">,</span>
+                                    <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print what is being cleared during clearing&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommonClearCase.clearCase"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonClearCase.html#PyFoam.Applications.CommonClearCase.CommonClearCase.clearCase">[docs]</a>    <span class="k">def</span> <span class="nf">clearCase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sol</span><span class="p">,</span><span class="n">runParallel</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">keepPostprocessing</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">additionalClear</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;postProcessing&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clearComplete</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clearCase</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clearCase</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Clearing out old timesteps ....&quot;</span><span class="p">)</span>
+            <span class="n">sol</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="n">additional</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span><span class="o">.</span><span class="n">additionalClear</span><span class="p">,</span>
+                      <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span><span class="o">.</span><span class="n">verboseClear</span><span class="p">,</span>
+                      <span class="n">processor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span><span class="o">.</span><span class="n">removeProcessorDirs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">runParallel</span><span class="p">,</span>
+                      <span class="n">pyfoam</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span><span class="o">.</span><span class="n">pyfoam</span><span class="p">,</span>
+                      <span class="n">clearHistory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span><span class="o">.</span><span class="n">clearHistory</span><span class="p">,</span>
+                      <span class="n">functionObjectData</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">clearComplete</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

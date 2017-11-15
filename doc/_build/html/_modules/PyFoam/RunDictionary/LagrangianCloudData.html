@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.RunDictionary.LagrangianCloudData &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.RunDictionary.LagrangianCloudData</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.RunDictionary.LagrangianCloudData</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Read a directory of lagrangian cloud data&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">listdir</span>
+<span class="kn">from</span> <span class="nn">.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span><span class="p">,</span><span class="n">PyFoamParserError</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">warning</span><span class="p">,</span><span class="n">error</span>
+<span class="kn">from</span> <span class="nn">.LagrangianPatchData</span> <span class="kn">import</span> <span class="n">globalId</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<span class="n">classTable</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;scalarField&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;re&quot;</span><span class="p">:</span> <span class="s1">r&#39;(\S+)&#39;</span> <span class="p">,</span>
+        <span class="s2">&quot;dtype&quot;</span> <span class="p">:</span> <span class="p">[(</span><span class="s2">&quot;val&quot;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)]</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;labelField&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;re&quot;</span><span class="p">:</span> <span class="s1">r&#39;(\S+)&#39;</span> <span class="p">,</span>
+        <span class="s2">&quot;dtype&quot;</span> <span class="p">:</span> <span class="p">[(</span><span class="s2">&quot;val&quot;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)]</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;vectorField&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;re&quot;</span> <span class="p">:</span> <span class="s1">r&#39;\((\S+)\s+(\S+)\s+(\S+)\)&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;dtype&quot;</span> <span class="p">:[(</span><span class="s2">&quot;val_&quot;</span><span class="o">+</span><span class="n">c</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="s2">&quot;xyz&quot;</span><span class="p">]</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;positions&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;re&quot;</span> <span class="p">:</span> <span class="s1">r&#39;\((\S+)\s+(\S+)\s+(\S+)\)\s+(\S+)&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;dtype&quot;</span> <span class="p">:[(</span><span class="s2">&quot;P&quot;</span><span class="o">+</span><span class="n">c</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="s2">&quot;xyz&quot;</span><span class="p">]</span><span class="o">+</span><span class="p">[(</span><span class="s2">&quot;cellI&quot;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)]</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<div class="viewcode-block" id="LagrangianCloudDataDirectory"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianCloudData.html#PyFoam.RunDictionary.LagrangianCloudData.LagrangianCloudDataDirectory">[docs]</a><span class="k">class</span> <span class="nc">LagrangianCloudDataDirectory</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read all the cloud data in a directory and put it in a Pandas dataframe&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LagrangianCloudDataDirectory.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianCloudData.html#PyFoam.RunDictionary.LagrangianCloudData.LagrangianCloudDataDirectory.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dirPath</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">dirPath</span><span class="p">)</span>
+
+        <span class="n">size</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="n">lst</span><span class="o">=</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">)</span>
+        <span class="n">posName</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;positions&quot;</span><span class="p">,</span><span class="s2">&quot;positions.gz&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+                <span class="n">lst</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+                <span class="n">posName</span><span class="o">=</span><span class="n">n</span>
+        <span class="k">if</span> <span class="n">posName</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No positions-file in&quot;</span><span class="p">,</span><span class="n">dirPath</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">[</span><span class="n">posName</span><span class="p">]</span><span class="o">+</span><span class="n">lst</span><span class="p">:</span>
+            <span class="n">fullFile</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">fullFile</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="n">nm</span><span class="p">,</span><span class="n">ext</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fullFile</span><span class="p">)</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span>
+
+            <span class="c1"># zipped version takes precedence</span>
+            <span class="k">if</span> <span class="n">ext</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fullFile</span><span class="o">+</span><span class="s2">&quot;.gz&quot;</span><span class="p">):</span>
+                    <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fullFile</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">nm</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># print(&quot;Reading&quot;,name)</span>
+                <span class="n">cont</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">fullFile</span><span class="p">,</span>
+                                         <span class="n">listDictWithHeader</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                         <span class="n">listLengthUnparsed</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                                         <span class="n">preserveComments</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;File&quot;</span><span class="p">,</span><span class="n">nm</span><span class="p">,</span><span class="s2">&quot;is not a proper Foam-file. Skipping&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ofClass</span><span class="o">=</span><span class="n">cont</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s2">&quot;class&quot;</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;File&quot;</span><span class="p">,</span><span class="n">nm</span><span class="p">,</span><span class="s2">&quot;has no &#39;class&#39; in header.Skipping&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">classTable</span><span class="p">:</span>
+                <span class="n">spec</span><span class="o">=</span><span class="n">classTable</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">ofClass</span> <span class="ow">in</span> <span class="n">classTable</span><span class="p">:</span>
+                <span class="n">spec</span><span class="o">=</span><span class="n">classTable</span><span class="p">[</span><span class="n">ofClass</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;File&quot;</span><span class="p">,</span><span class="n">nm</span><span class="p">,</span><span class="s2">&quot;has unknown class&quot;</span><span class="p">,</span><span class="n">ofClass</span><span class="p">,</span><span class="s2">&quot;.Skipping&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># print(&quot;toNumpy&quot;)</span>
+            <span class="n">parsed</span><span class="o">=</span><span class="n">cont</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">toNumpy</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s2">&quot;re&quot;</span><span class="p">],</span><span class="n">spec</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">])</span>
+            <span class="n">cont</span><span class="o">=</span><span class="bp">None</span>   <span class="c1"># Free memory</span>
+            <span class="n">parsed</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;val&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">parsed</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">size</span><span class="o">=</span><span class="n">parsed</span><span class="o">.</span><span class="n">size</span>
+            <span class="k">elif</span> <span class="n">size</span><span class="o">!=</span><span class="n">parsed</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Field&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;has different size&quot;</span><span class="p">,</span><span class="n">parsed</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="s2">&quot;than others:&quot;</span><span class="p">,</span><span class="n">size</span><span class="p">)</span>
+
+            <span class="c1"># print(&quot;to DataFrame&quot;)</span>
+            <span class="k">if</span> <span class="n">name</span><span class="o">==</span><span class="s2">&quot;positions&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">parsed</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">parsed</span><span class="p">))</span>
+
+            <span class="n">parsed</span><span class="o">=</span><span class="bp">None</span>  <span class="c1"># Free memory</span>
+
+        <span class="k">if</span> <span class="s2">&quot;origId&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">and</span> <span class="s2">&quot;origProcId&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="c1"># print(&quot;Sorting&quot;)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;globalId&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">globalId</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">origProcId</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">origId</span><span class="p">)</span>
+            <span class="c1"># self.data[&quot;globalId&quot;]=&quot;p&quot;+self.data.origProcId.apply(lambda x:&quot;%04d&quot;%x)+&quot;i&quot;+self.data.origId.apply(lambda x:&quot;%08d&quot;%x)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;globalId&quot;</span><span class="p">,</span>
+                                  <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="LagrangianCloudData"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianCloudData.html#PyFoam.RunDictionary.LagrangianCloudData.LagrangianCloudData">[docs]</a><span class="k">class</span> <span class="nc">LagrangianCloudData</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read the cloud data from a time-step (serial or parallel)&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LagrangianCloudData.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.LagrangianCloudData.html#PyFoam.RunDictionary.LagrangianCloudData.LagrangianCloudData.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">caseName</span><span class="p">,</span><span class="n">cloudName</span><span class="p">,</span><span class="n">timeName</span><span class="p">,</span><span class="n">parallel</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="n">dirs</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">if</span> <span class="n">parallel</span><span class="p">:</span>
+            <span class="n">pNums</span><span class="o">=</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="s2">&quot;processor&quot;</span><span class="p">):])</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">listdir</span><span class="p">(</span><span class="n">caseName</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;processor&quot;</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">pNums</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pNums</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No processor directories in&quot;</span><span class="p">,</span><span class="n">caseName</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pNums</span><span class="p">:</span>
+                <span class="n">tDir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">caseName</span><span class="p">,</span><span class="s2">&quot;processor&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">),</span><span class="n">timeName</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">tDir</span><span class="p">):</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No time directory&quot;</span><span class="p">,</span><span class="n">tDir</span><span class="p">)</span>
+                <span class="n">dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tDir</span><span class="p">,</span><span class="s2">&quot;lagrangian&quot;</span><span class="p">,</span><span class="n">cloudName</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tDir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">caseName</span><span class="p">,</span><span class="n">timeName</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">tDir</span><span class="p">):</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No time directory&quot;</span><span class="p">,</span><span class="n">tDir</span><span class="p">)</span>
+            <span class="n">dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tDir</span><span class="p">,</span><span class="s2">&quot;lagrangian&quot;</span><span class="p">,</span><span class="n">cloudName</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Cloud directory&quot;</span><span class="p">,</span><span class="n">d</span><span class="p">,</span><span class="s2">&quot;is missing&quot;</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dirs</span><span class="p">):</span>
+            <span class="n">d</span><span class="o">=</span><span class="n">LagrangianCloudDataDirectory</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nowCpu&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">i</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;writeTime&quot;</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">timeName</span><span class="p">)</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;globalId&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="c1"># print(&quot;Sorting&quot;)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;globalId&quot;</span><span class="p">,</span>
+                                  <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

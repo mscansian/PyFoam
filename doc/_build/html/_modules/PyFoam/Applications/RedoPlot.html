@@ -1,0 +1,523 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.RedoPlot &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.RedoPlot</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.RedoPlot</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;A test utility that ghets all the information necessary for plotting from a remote machine and writes some plots&lt;&lt;&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Applications.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">PY3</span>
+<span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">xmlrpc.client</span> <span class="kn">import</span> <span class="n">ServerProxy</span><span class="p">,</span><span class="n">Fault</span><span class="p">,</span><span class="n">ProtocolError</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">xmlrpclib</span> <span class="kn">import</span> <span class="n">ServerProxy</span><span class="p">,</span><span class="n">Fault</span><span class="p">,</span><span class="n">ProtocolError</span>
+
+<span class="kn">import</span> <span class="nn">socket</span>
+
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span> <span class="k">as</span> <span class="n">pickle</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.TimeLineCollection</span> <span class="kn">import</span> <span class="n">TimeLineCollection</span><span class="p">,</span><span class="n">TimeLinesRegistry</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.PlotTimelinesFactory</span> <span class="kn">import</span> <span class="n">createPlotTimelines</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.GeneralPlotTimelines</span> <span class="kn">import</span> <span class="n">PlotLinesRegistry</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.CustomPlotInfo</span> <span class="kn">import</span> <span class="n">CustomPlotInfo</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">iteritems</span>
+
+<div class="viewcode-block" id="RedoPlot"><a class="viewcode-back" href="../../../api/PyFoam.Applications.RedoPlot.html#PyFoam.Applications.RedoPlot.RedoPlot">[docs]</a><span class="k">class</span> <span class="nc">RedoPlot</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="RedoPlot.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.RedoPlot.html#PyFoam.Applications.RedoPlot.RedoPlot.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Either connects to a running pyFoam-Server and gets all the</span>
+<span class="s2">information for plotting or reads the relevant data from a pickle file</span>
+<span class="s2">and either displays the plot or writes the plots to file</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] (&lt;host&gt; &lt;port&gt;|&lt;pickleFile&gt;)&quot;</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                   <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RedoPlot.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.RedoPlot.html#PyFoam.Applications.RedoPlot.RedoPlot.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">mode</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                         <span class="s2">&quot;Input mode&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;How we get the data&quot;</span><span class="p">)</span>
+        <span class="n">mode</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--server&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;server&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Get the data from a FoamServer&quot;</span><span class="p">)</span>
+        <span class="n">mode</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--pickle-file&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;pickle&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Get the data from a pickle-file&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+
+        <span class="n">output</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Output&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;Output of the data&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--csv-files&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;csvFiles&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Write CSV-files instead of plotting&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--excel-files&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;excelFiles&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Write Excel-files (using pandas) instead of plotting&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--pandas-data&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;pandasData&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Pass the raw data in pandas-format&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--pandas-series&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;pandasSeries&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Pass the raw data in pandas-series&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--numpy-data&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;numpyData&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Pass the raw data in numpy&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--file-prefix&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;filePrefix&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Prefix to add to the names of the data files&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--raw-lines&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;rawLines&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Write the raw line data (not the way it is plotted)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+        <span class="n">plot</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                         <span class="s2">&quot;Plot mode&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;How the data should be plotted&quot;</span><span class="p">)</span>
+
+        <span class="n">plot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--implementation&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;matplotlib&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;implementation&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The implementation that should be used for plotting&quot;</span><span class="p">)</span>
+        <span class="n">plot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--show-window&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;showWindow&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Show the window with the plot&quot;</span><span class="p">)</span>
+        <span class="n">plot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-write-pictures&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;writePictures&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do not write picture files&quot;</span><span class="p">)</span>
+        <span class="n">plot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--picture-prefix&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;prefix&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Prefix to add to the names of the picture files&quot;</span><span class="p">)</span>
+        <span class="n">plot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--sleep-time&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;sleepTime&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;How long to wait to allow gnuplot to finish. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">plot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--insert-titles&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;insertTitles&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Add the title to the plots&quot;</span><span class="p">)</span>
+        <span class="n">plot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--start&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;start&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Start the plot at this time. If undefined starts at the beginning of the data&quot;</span><span class="p">)</span>
+        <span class="n">plot</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--end&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;End the plot at this time. If undefined ends at the end of the data&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">plot</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RedoPlot.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.RedoPlot.html#PyFoam.Applications.RedoPlot.RedoPlot.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">server</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pickle</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No mode selected&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">server</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pickle</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Both modes selected&quot;</span><span class="p">)</span>
+
+        <span class="n">doPandas</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pandasData</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pandasSeries</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">server</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">())</span><span class="o">!=</span><span class="mi">2</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Need a server and a port to be specified&quot;</span><span class="p">)</span>
+
+            <span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">port</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">=</span><span class="n">ServerProxy</span><span class="p">(</span><span class="s2">&quot;http://</span><span class="si">%s</span><span class="s2">:</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">host</span><span class="p">,</span><span class="n">port</span><span class="p">))</span>
+                <span class="n">methods</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">listMethods</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+                <span class="n">reason</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Socket error while connecting:&quot;</span><span class="p">,</span><span class="n">reason</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">ProtocolError</span><span class="p">:</span>
+                <span class="n">reason</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;XMLRPC-problem&quot;</span><span class="p">,</span><span class="n">reason</span><span class="p">)</span>
+
+            <span class="n">plotInfo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">executeCommand</span><span class="p">(</span><span class="s2">&quot;getPlots()&quot;</span><span class="p">)</span>
+            <span class="n">lineInfo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">executeCommand</span><span class="p">(</span><span class="s2">&quot;getPlotData()&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">())</span><span class="o">!=</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Only the first parameter is used&quot;</span><span class="p">)</span>
+
+            <span class="n">fName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">unpick</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">Unpickler</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot;rb&quot;</span><span class="p">))</span>
+
+            <span class="n">lineInfo</span><span class="o">=</span><span class="n">unpick</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+            <span class="n">plotInfo</span><span class="o">=</span><span class="n">unpick</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Found&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">plotInfo</span><span class="p">),</span><span class="s2">&quot;plots and&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">lineInfo</span><span class="p">),</span><span class="s2">&quot;data sets&quot;</span><span class="p">)</span>
+
+        <span class="n">registry</span><span class="o">=</span><span class="n">TimeLinesRegistry</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">nr</span><span class="p">,</span><span class="n">line</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">lineInfo</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Adding line&quot;</span><span class="p">,</span><span class="n">nr</span><span class="p">)</span>
+            <span class="n">TimeLineCollection</span><span class="p">(</span><span class="n">preloadData</span><span class="o">=</span><span class="n">line</span><span class="p">,</span><span class="n">registry</span><span class="o">=</span><span class="n">registry</span><span class="p">)</span>
+
+        <span class="n">registry</span><span class="o">.</span><span class="n">resolveSlaves</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">csvFiles</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">excelFiles</span> <span class="ow">or</span> <span class="n">doPandas</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">numpyData</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">rawLines</span><span class="p">:</span>
+            <span class="n">rawData</span><span class="o">=</span><span class="p">{}</span>
+            <span class="n">rawSeries</span><span class="o">=</span><span class="p">{}</span>
+            <span class="n">rawNumpy</span><span class="o">=</span><span class="p">{}</span>
+
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">l</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">registry</span><span class="o">.</span><span class="n">lines</span><span class="p">):</span>
+                <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">==</span><span class="nb">int</span><span class="p">:</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Line</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">k</span>
+                <span class="n">csvName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">filePrefix</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.csv&quot;</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">csvFiles</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+                        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Writing&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;to&quot;</span><span class="p">,</span><span class="n">csvName</span><span class="p">)</span>
+                    <span class="n">l</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span><span class="o">.</span><span class="n">writeCSV</span><span class="p">(</span><span class="n">csvName</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">excelFiles</span><span class="p">:</span>
+                    <span class="n">xlsName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">filePrefix</span><span class="o">+</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.xls&quot;</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+                        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Writing&quot;</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="s2">&quot;to&quot;</span><span class="p">,</span><span class="n">xlsName</span><span class="p">)</span>
+                    <span class="n">l</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">xlsName</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pandasData</span><span class="p">:</span>
+                    <span class="n">rawData</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">numpyData</span><span class="p">:</span>
+                    <span class="n">rawNumpy</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pandasSeries</span><span class="p">:</span>
+                    <span class="n">rawSeries</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span><span class="o">.</span><span class="n">getSeries</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">numpyData</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">({</span><span class="s2">&quot;rawNumpy&quot;</span><span class="p">:</span><span class="n">rawNumpy</span><span class="p">})</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pandasData</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">({</span><span class="s2">&quot;rawData&quot;</span><span class="p">:</span><span class="n">rawData</span><span class="p">})</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pandasSeries</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">({</span><span class="s2">&quot;rawSeries&quot;</span><span class="p">:</span><span class="n">rawSeries</span><span class="p">})</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">csvFiles</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">excelFiles</span><span class="p">:</span>
+                <span class="k">return</span>
+
+        <span class="n">pRegistry</span><span class="o">=</span><span class="n">PlotLinesRegistry</span><span class="p">()</span>
+
+        <span class="n">plotNumpy</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">plotData</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">plotSeries</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">p</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">plotInfo</span><span class="p">):</span>
+            <span class="n">theId</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Plotting&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">theId</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+            <span class="n">spec</span><span class="o">=</span><span class="n">CustomPlotInfo</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;spec&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">getTimes</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">getValueNames</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">csvFiles</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">excelFiles</span> <span class="ow">or</span> <span class="n">doPandas</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">numpyData</span><span class="p">:</span>
+                    <span class="n">dataSet</span><span class="o">=</span><span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">csvFiles</span><span class="p">:</span>
+                        <span class="n">dataSet</span><span class="o">.</span><span class="n">writeCSV</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">filePrefix</span><span class="o">+</span><span class="n">theId</span><span class="o">+</span><span class="s2">&quot;.csv&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">excelFiles</span><span class="p">:</span>
+                        <span class="n">dataSet</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">filePrefix</span><span class="o">+</span><span class="n">theId</span><span class="o">+</span><span class="s2">&quot;.xls&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">numpyData</span><span class="p">:</span>
+                        <span class="n">plotNumpy</span><span class="p">[</span><span class="n">theId</span><span class="p">]</span><span class="o">=</span><span class="n">dataSet</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pandasData</span><span class="p">:</span>
+                        <span class="n">plotData</span><span class="p">[</span><span class="n">theId</span><span class="p">]</span><span class="o">=</span><span class="n">dataSet</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pandasSeries</span><span class="p">:</span>
+                        <span class="n">plotSeries</span><span class="p">[</span><span class="n">theId</span><span class="p">]</span><span class="o">=</span><span class="n">dataSet</span><span class="o">.</span><span class="n">getSeries</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">start</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
+                        <span class="c1"># rewrite CustomPlotInfo one of these days</span>
+                        <span class="k">if</span> <span class="s2">&quot;start&quot;</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">getDict</span><span class="p">():</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Overriding plot start&quot;</span><span class="p">,</span><span class="n">spec</span><span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">],</span>
+                                         <span class="s2">&quot;with&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+                        <span class="n">spec</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="s2">&quot;end&quot;</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">getDict</span><span class="p">():</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Overriding plot end&quot;</span><span class="p">,</span><span class="n">spec</span><span class="p">[</span><span class="s2">&quot;end&quot;</span><span class="p">],</span>
+                                         <span class="s2">&quot;with&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
+                        <span class="n">spec</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;end&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
+
+                    <span class="n">mp</span><span class="o">=</span><span class="n">createPlotTimelines</span><span class="p">(</span><span class="n">registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]),</span>
+                                           <span class="n">spec</span><span class="p">,</span>
+                                           <span class="n">implementation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">implementation</span><span class="p">,</span>
+                                           <span class="n">showWindow</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">showWindow</span><span class="p">,</span>
+                                           <span class="n">registry</span><span class="o">=</span><span class="n">pRegistry</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">insertTitles</span><span class="p">:</span>
+                        <span class="n">mp</span><span class="o">.</span><span class="n">actualSetTitle</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;spec&quot;</span><span class="p">][</span><span class="s2">&quot;theTitle&quot;</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">writePictures</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">mp</span><span class="o">.</span><span class="n">hasData</span><span class="p">():</span>
+                            <span class="n">mp</span><span class="o">.</span><span class="n">doHardcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">prefix</span><span class="o">+</span><span class="n">theId</span><span class="p">,</span><span class="s2">&quot;png&quot;</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+                                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;has no data&quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;No data - skipping&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">csvFiles</span> <span class="ow">or</span> <span class="n">doPandas</span><span class="p">):</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">sleepTime</span><span class="p">)</span> <span class="c1"># there seems to be a timing issue with Gnuplot</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">numpyData</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">({</span><span class="s2">&quot;plotNumpy&quot;</span><span class="p">:</span><span class="n">plotNumpy</span><span class="p">})</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pandasData</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">({</span><span class="s2">&quot;plotData&quot;</span><span class="p">:</span><span class="n">plotData</span><span class="p">})</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pandasSeries</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">({</span><span class="s2">&quot;plotSeries&quot;</span><span class="p">:</span><span class="n">plotSeries</span><span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="RedoPlot.executeCommand"><a class="viewcode-back" href="../../../api/PyFoam.Applications.RedoPlot.html#PyFoam.Applications.RedoPlot.RedoPlot.executeCommand">[docs]</a>    <span class="k">def</span> <span class="nf">executeCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cmd</span><span class="p">):</span>
+        <span class="n">result</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="s2">&quot;self.server.&quot;</span><span class="o">+</span><span class="n">cmd</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">result</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span> <span class="c1"># this needed to catch the unmarschalled-None-exception</span>
+                <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">except</span> <span class="n">Fault</span><span class="p">:</span>
+            <span class="n">reason</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;XMLRPC-problem:&quot;</span><span class="p">,</span><span class="n">reason</span><span class="o">.</span><span class="n">faultString</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+            <span class="n">reason</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Problem with socket (server propably dead):&quot;</span><span class="p">,</span><span class="n">reason</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">reason</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Type error: &quot;</span><span class="p">,</span><span class="n">reason</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">except</span> <span class="ne">SyntaxError</span><span class="p">:</span>
+            <span class="n">reason</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Syntax Error in:&quot;</span><span class="p">,</span><span class="n">cmd</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

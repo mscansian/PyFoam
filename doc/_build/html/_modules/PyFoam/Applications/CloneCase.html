@@ -1,0 +1,353 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.CloneCase &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.CloneCase</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.CloneCase</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application-class that implements pyFoamCloneCase.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.GeneralVCSInterface</span> <span class="kn">import</span> <span class="n">getVCS</span>
+
+<div class="viewcode-block" id="CloneCase"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CloneCase.html#PyFoam.Applications.CloneCase.CloneCase">[docs]</a><span class="k">class</span> <span class="nc">CloneCase</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="CloneCase.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CloneCase.html#PyFoam.Applications.CloneCase.CloneCase.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Clones a case by copying the system, constant and 0-directories</span>
+
+<span class="s2">If the case is under VCS then the cloning mechanism of the VCS is used</span>
+<span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog &lt;source&gt; &lt;destination&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CloneCase.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CloneCase.html#PyFoam.Applications.CloneCase.CloneCase.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">what</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                         <span class="s2">&quot;What&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;Define what should be cloned&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">what</span><span class="p">)</span>
+
+        <span class="n">what</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--chemkin&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;chemkin&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Also copy the Chemkin-directory&quot;</span><span class="p">)</span>
+        <span class="n">what</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--add-item&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;additional&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Add a subdirectory to the list of cloned items (can be used more often than once)&quot;</span><span class="p">)</span>
+        <span class="n">what</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-pyfoam&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;dopyfoam&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t copy PyFoam-specific stuff&quot;</span><span class="p">)</span>
+        <span class="n">what</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--latest-time&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;latest&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Add the latest time-step&quot;</span><span class="p">)</span>
+
+        <span class="n">behave</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Behaviour&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">behave</span><span class="p">)</span>
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--parallel&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;parallel&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Clone the processor-directories&quot;</span><span class="p">)</span>
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--force&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;force&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Overwrite destination if it exists&quot;</span><span class="p">)</span>
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--follow-symlinks&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;followSymlinks&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Follow symlinks instead of just copying them&quot;</span><span class="p">)</span>
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-vcs&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;vcs&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do NOT use the VCS-clone mechanism if the case is under source control&quot;</span><span class="p">)</span>
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--symlink-mode&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;symlinkMode&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Clone in symbolic link mode. This means that all directories down to the level specified in &#39;symlink-level&#39; are created and populated with symbolic links to the appropriate files. Below that level a symlink to the whole directory is created. Exception are the &#39;polyMesh&#39;-directories where all files except &#39;blockMeshDict&#39; are being copied. If for certain files a copy instead of the symbolic link is wanted use &#39;pyFoamSymlinkToFile.py&#39;&quot;</span><span class="p">)</span>
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--symlink-level&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;symlinkLevel&quot;</span><span class="p">,</span>
+                          <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Level until which no symlinks to directories are created. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">behave</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--relative-symlink&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;symlinkRelative&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;With &#39;--symlink-mode&#39; make the symbolic links relative instead of absolute&quot;</span><span class="p">)</span></div>
+<div class="viewcode-block" id="CloneCase.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CloneCase.html#PyFoam.Applications.CloneCase.CloneCase.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Too many arguments:&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">2</span><span class="p">:],</span><span class="s2">&quot;can not be used&quot;</span><span class="p">)</span>
+
+        <span class="n">sName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">dName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dName</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span><span class="o">.</span><span class="n">force</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Replacing&quot;</span><span class="p">,</span><span class="n">dName</span><span class="p">,</span><span class="s2">&quot;(--force option)&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dName</span><span class="p">,</span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="s2">&quot;controlDict&quot;</span><span class="p">)):</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Destination&quot;</span><span class="p">,</span><span class="n">dName</span><span class="p">,</span><span class="s2">&quot;already existing and a Foam-Case&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dName</span><span class="p">):</span>
+                <span class="n">dName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dName</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sName</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dName</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span><span class="o">.</span><span class="n">force</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="n">dName</span><span class="p">,</span><span class="s2">&quot;already existing&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dName</span><span class="p">)):</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Directory&quot;</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dName</span><span class="p">),</span><span class="s2">&quot;does not exist. Creating&quot;</span><span class="p">)</span>
+
+        <span class="n">sol</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="n">sName</span><span class="p">,</span>
+                              <span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">paraviewLink</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                              <span class="n">addLocalConfig</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                              <span class="n">parallel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">parallel</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sol</span><span class="o">.</span><span class="n">determineVCS</span><span class="p">()</span><span class="o">!=</span><span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">vcs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">chemkin</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">additional</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">latest</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Using an unimplemented option together with VCS&quot;</span><span class="p">)</span>
+
+            <span class="n">vcsInter</span><span class="o">=</span><span class="n">getVCS</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">determineVCS</span><span class="p">(),</span>
+                            <span class="n">path</span><span class="o">=</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">vcsInter</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">dName</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span><span class="o">.</span><span class="n">chemkin</span><span class="p">:</span>
+            <span class="n">sol</span><span class="o">.</span><span class="n">addToClone</span><span class="p">(</span><span class="s2">&quot;chemkin&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span><span class="o">.</span><span class="n">dopyfoam</span><span class="p">:</span>
+            <span class="n">sol</span><span class="o">.</span><span class="n">addToClone</span><span class="p">(</span><span class="s2">&quot;customRegexp&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span><span class="o">.</span><span class="n">additional</span><span class="p">:</span>
+            <span class="n">sol</span><span class="o">.</span><span class="n">addToClone</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span><span class="o">.</span><span class="n">latest</span><span class="p">:</span>
+            <span class="n">sol</span><span class="o">.</span><span class="n">addToClone</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">getLast</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">symlinkMode</span><span class="p">:</span>
+            <span class="n">sol</span><span class="o">.</span><span class="n">symlinkCase</span><span class="p">(</span>
+                <span class="n">dName</span><span class="p">,</span>
+                <span class="n">followSymlinks</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span><span class="o">.</span><span class="n">followSymlinks</span><span class="p">,</span>
+                <span class="n">maxLevel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">symlinkLevel</span><span class="p">,</span>
+                <span class="n">relPath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">symlinkRelative</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sol</span><span class="o">.</span><span class="n">cloneCase</span><span class="p">(</span>
+                <span class="n">dName</span><span class="p">,</span>
+                <span class="n">followSymlinks</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getOptions</span><span class="p">()</span><span class="o">.</span><span class="n">followSymlinks</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addToCaseLog</span><span class="p">(</span><span class="n">dName</span><span class="p">,</span><span class="s2">&quot;Cloned to&quot;</span><span class="p">,</span><span class="n">dName</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

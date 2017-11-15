@@ -1,0 +1,1009 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.DataStructures module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.Basics package" href="PyFoam.Basics.html"/>
+        <link rel="next" title="PyFoam.Basics.DummyPlotTimelines module" href="PyFoam.Basics.DummyPlotTimelines.html"/>
+        <link rel="prev" title="PyFoam.Basics.Data2DStatistics module" href="PyFoam.Basics.Data2DStatistics.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.Basics.html">PyFoam.Basics package</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.DataStructures module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.Basics.DataStructures.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.Basics.DataStructures">
+<span id="pyfoam-basics-datastructures-module"></span><h1>PyFoam.Basics.DataStructures module<a class="headerlink" href="#module-PyFoam.Basics.DataStructures" title="Permalink to this headline">¶</a></h1>
+<p>Data structures in Foam-Files that can&#8217;t be directly represented by Python-Structures</p>
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.BinaryBlob">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">BinaryBlob</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#BinaryBlob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.BinaryBlob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Basics.DataStructures.Unparsed" title="PyFoam.Basics.DataStructures.Unparsed"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Basics.DataStructures.Unparsed</span></code></a></p>
+<p>Represents a part of the file with binary data in it</p>
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.BinaryBlob.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#BinaryBlob.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.BinaryBlob.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.BinaryBlob.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.BinaryBlob.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.BinaryList">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">BinaryList</code><span class="sig-paren">(</span><em>lngth</em>, <em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#BinaryList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.BinaryList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Basics.DataStructures.UnparsedList" title="PyFoam.Basics.DataStructures.UnparsedList"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Basics.DataStructures.UnparsedList</span></code></a></p>
+<p>A class that represents a list that is saved as binary data</p>
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.BinaryList.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>lngth</em>, <em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#BinaryList.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.BinaryList.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.BinaryList.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.BinaryList.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.BoolProxy">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">BoolProxy</code><span class="sig-paren">(</span><em>val=None</em>, <em>textual=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#BoolProxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.BoolProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Wraps a boolean parsed from a file. Optionally stores a textual
+representation</p>
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.BoolProxy.FalseStrings">
+<code class="descname">FalseStrings</code><em class="property"> = ['off', 'no', 'false', 'none', 'invalid']</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.BoolProxy.FalseStrings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.BoolProxy.TrueStrings">
+<code class="descname">TrueStrings</code><em class="property"> = ['on', 'yes', 'true']</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.BoolProxy.TrueStrings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.BoolProxy.__bool__">
+<code class="descname">__bool__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#BoolProxy.__bool__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.BoolProxy.__bool__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.BoolProxy.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__hash__': None, 'FalseStrings': ['off', 'no', 'false', 'none', 'invalid'], '__nonzero__': &lt;function BoolProxy.__nonzero__&gt;, '__module__': 'PyFoam.Basics.DataStructures', '__eq__': &lt;function BoolProxy.__eq__&gt;, '__bool__': &lt;function BoolProxy.__bool__&gt;, '__doc__': 'Wraps a boolean parsed from a file. Optionally stores a textual\n    representation\n    ', '__init__': &lt;function BoolProxy.__init__&gt;, '__repr__': &lt;function BoolProxy.__repr__&gt;, '__weakref__': &lt;attribute '__weakref__' of 'BoolProxy' objects&gt;, '__str__': &lt;function BoolProxy.__str__&gt;, 'TrueStrings': ['on', 'yes', 'true'], '__dict__': &lt;attribute '__dict__' of 'BoolProxy' objects&gt;})</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.BoolProxy.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.BoolProxy.__eq__">
+<code class="descname">__eq__</code><span class="sig-paren">(</span><em>o</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#BoolProxy.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.BoolProxy.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.BoolProxy.__hash__">
+<code class="descname">__hash__</code><em class="property"> = None</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.BoolProxy.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.BoolProxy.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>val=None</em>, <em>textual=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#BoolProxy.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.BoolProxy.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.BoolProxy.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.BoolProxy.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.BoolProxy.__nonzero__">
+<code class="descname">__nonzero__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#BoolProxy.__nonzero__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.BoolProxy.__nonzero__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.BoolProxy.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#BoolProxy.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.BoolProxy.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.BoolProxy.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#BoolProxy.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.BoolProxy.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.BoolProxy.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Basics.DataStructures.BoolProxy.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.Codestream">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">Codestream</code><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Codestream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Codestream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">str</span></code></p>
+<p>A class that encapsulates an codestream string</p>
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.Codestream.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__weakref__': &lt;attribute '__weakref__' of 'Codestream' objects&gt;, '__module__': 'PyFoam.Basics.DataStructures', '__dict__': &lt;attribute '__dict__' of 'Codestream' objects&gt;, '__str__': &lt;function Codestream.__str__&gt;, '__doc__': 'A class that encapsulates an codestream string'})</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.Codestream.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.Codestream.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.Codestream.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Codestream.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Codestream.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Codestream.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.Codestream.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Basics.DataStructures.Codestream.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.DictProxy">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">DictProxy</code><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">dict</span></code></p>
+<p>A class that acts like a dictionary, but preserves the order
+of the entries. Used to beautify the output</p>
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy._DictProxy__enforceString">
+<code class="descname">_DictProxy__enforceString</code><span class="sig-paren">(</span><em>v</em>, <em>toString</em><span class="sig-paren">)</span><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy._DictProxy__enforceString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.__contains__">
+<code class="descname">__contains__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.__contains__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.__contains__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.__deepcopy__">
+<code class="descname">__deepcopy__</code><span class="sig-paren">(</span><em>memo</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.__deepcopy__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.__deepcopy__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.__delitem__">
+<code class="descname">__delitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.__delitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.__delitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__deepcopy__': &lt;function DictProxy.__deepcopy__&gt;, 'getDecoration': &lt;function DictProxy.getDecoration&gt;, 'addDecoration': &lt;function DictProxy.addDecoration&gt;, '__module__': 'PyFoam.Basics.DataStructures', '_DictProxy__enforceString': &lt;function DictProxy.__enforceString&gt;, '__doc__': 'A class that acts like a dictionary, but preserves the order\n    of the entries. Used to beautify the output', '__delitem__': &lt;function DictProxy.__delitem__&gt;, '__contains__': &lt;function DictProxy.__contains__&gt;, 'items': &lt;function DictProxy.items&gt;, '__dict__': &lt;attribute '__dict__' of 'DictProxy' objects&gt;, '__getitem__': &lt;function DictProxy.__getitem__&gt;, '__init__': &lt;function DictProxy.__init__&gt;, 'isRegexp': &lt;function DictProxy.isRegexp&gt;, '__weakref__': &lt;attribute '__weakref__' of 'DictProxy' objects&gt;, 'iteritems': &lt;function DictProxy.iteritems&gt;, 'keys': &lt;function DictProxy.keys&gt;, 'update': &lt;function DictProxy.update&gt;, 'addRedirection': &lt;function DictProxy.addRedirection&gt;, '__setitem__': &lt;function DictProxy.__setitem__&gt;, '__iter__': &lt;function DictProxy.__iter__&gt;, 'getRegexpValue': &lt;function DictProxy.getRegexpValue&gt;, '__str__': &lt;function DictProxy.__str__&gt;})</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.__iter__">
+<code class="descname">__iter__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.__iter__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.__setitem__">
+<code class="descname">__setitem__</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.__setitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.addDecoration">
+<code class="descname">addDecoration</code><span class="sig-paren">(</span><em>key</em>, <em>text</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.addDecoration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.addDecoration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.addRedirection">
+<code class="descname">addRedirection</code><span class="sig-paren">(</span><em>redir</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.addRedirection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.addRedirection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.getDecoration">
+<code class="descname">getDecoration</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.getDecoration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.getDecoration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.getRegexpValue">
+<code class="descname">getRegexpValue</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.getRegexpValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.getRegexpValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.isRegexp">
+<code class="descname">isRegexp</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.isRegexp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.isRegexp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.items">
+<code class="descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.iteritems">
+<code class="descname">iteritems</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.iteritems"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.iteritems" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.keys">
+<code class="descname">keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictProxy.update">
+<code class="descname">update</code><span class="sig-paren">(</span><em>other=None</em>, <em>toString=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictProxy.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictProxy.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Emulate the regular update of dict</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.DictRedirection">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">DictRedirection</code><span class="sig-paren">(</span><em>fullCopy</em>, <em>reference</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictRedirection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictRedirection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>This class is in charge of handling redirections to other directories</p>
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictRedirection.__call__">
+<code class="descname">__call__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictRedirection.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictRedirection.__call__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.DictRedirection.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'getContent': &lt;function DictRedirection.getContent&gt;, '__weakref__': &lt;attribute '__weakref__' of 'DictRedirection' objects&gt;, 'keys': &lt;function DictRedirection.keys&gt;, '__module__': 'PyFoam.Basics.DataStructures', 'useAsRedirect': &lt;function DictRedirection.useAsRedirect&gt;, '__float__': &lt;function DictRedirection.__float__&gt;, '__init__': &lt;function DictRedirection.__init__&gt;, '__doc__': 'This class is in charge of handling redirections to other directories', '__str__': &lt;function DictRedirection.__str__&gt;, '__call__': &lt;function DictRedirection.__call__&gt;, '__dict__': &lt;attribute '__dict__' of 'DictRedirection' objects&gt;})</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictRedirection.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictRedirection.__float__">
+<code class="descname">__float__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictRedirection.__float__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictRedirection.__float__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictRedirection.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>fullCopy</em>, <em>reference</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictRedirection.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictRedirection.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.DictRedirection.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictRedirection.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictRedirection.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictRedirection.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictRedirection.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.DictRedirection.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictRedirection.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictRedirection.getContent">
+<code class="descname">getContent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictRedirection.getContent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictRedirection.getContent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictRedirection.keys">
+<code class="descname">keys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictRedirection.keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictRedirection.keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.DictRedirection.useAsRedirect">
+<code class="descname">useAsRedirect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#DictRedirection.useAsRedirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.DictRedirection.useAsRedirect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.Dimension">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">Dimension</code><span class="sig-paren">(</span><em>*dims</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Dimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Dimension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Basics.DataStructures.FoamDataType" title="PyFoam.Basics.DataStructures.FoamDataType"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Basics.DataStructures.FoamDataType</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Dimension.__cmp__">
+<code class="descname">__cmp__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Dimension.__cmp__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Dimension.__cmp__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Dimension.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Dimension.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Dimension.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Dimension.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>*dims</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Dimension.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Dimension.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.Dimension.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.Dimension.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Dimension.__setitem__">
+<code class="descname">__setitem__</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Dimension.__setitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Dimension.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Dimension.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Dimension.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Dimension.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.Field">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">Field</code><span class="sig-paren">(</span><em>val</em>, <em>name=None</em>, <em>length=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Basics.DataStructures.FoamDataType" title="PyFoam.Basics.DataStructures.FoamDataType"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Basics.DataStructures.FoamDataType</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Field.__cmp__">
+<code class="descname">__cmp__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Field.__cmp__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field.__cmp__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Field.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Field.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Field.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>val</em>, <em>name=None</em>, <em>length=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Field.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Field.__len__">
+<code class="descname">__len__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Field.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field.__len__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.Field.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Field.__setitem__">
+<code class="descname">__setitem__</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Field.__setitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Field.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Field.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Field.binaryString">
+<code class="descname">binaryString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Field.binaryString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field.binaryString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Field.isBinary">
+<code class="descname">isBinary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Field.isBinary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field.isBinary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Field.isUniform">
+<code class="descname">isUniform</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Field.isUniform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field.isUniform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Field.setUniform">
+<code class="descname">setUniform</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Field.setUniform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field.setUniform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Field.toNumpy">
+<code class="descname">toNumpy</code><span class="sig-paren">(</span><em>regexp</em>, <em>dtypes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Field.toNumpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field.toNumpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert to numpy-structured array (with one entry)
+&#64;param regexp: Ignored. Just for compatibility with Unparsed
+&#64;param dtypes: lsit of data types</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Field.value">
+<code class="descname">value</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Field.value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Field.value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.FixedLength">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">FixedLength</code><span class="sig-paren">(</span><em>vals</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FixedLength"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FixedLength" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Basics.DataStructures.FoamDataType" title="PyFoam.Basics.DataStructures.FoamDataType"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Basics.DataStructures.FoamDataType</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.FixedLength.__cmp__">
+<code class="descname">__cmp__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FixedLength.__cmp__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FixedLength.__cmp__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.FixedLength.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FixedLength.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FixedLength.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.FixedLength.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>vals</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FixedLength.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FixedLength.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.FixedLength.__len__">
+<code class="descname">__len__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FixedLength.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FixedLength.__len__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.FixedLength.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.FixedLength.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.FixedLength.__setitem__">
+<code class="descname">__setitem__</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FixedLength.__setitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FixedLength.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.FixedLength.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FixedLength.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FixedLength.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.FoamDataType">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">FoamDataType</code><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FoamDataType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FoamDataType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.FoamDataType.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__hash__': None, '__repr__': &lt;function FoamDataType.__repr__&gt;, '__module__': 'PyFoam.Basics.DataStructures', '__eq__': &lt;function FoamDataType.__eq__&gt;, '__ge__': &lt;function FoamDataType.__ge__&gt;, '__lt__': &lt;function FoamDataType.__lt__&gt;, '__doc__': None, '__weakref__': &lt;attribute '__weakref__' of 'FoamDataType' objects&gt;, '__ne__': &lt;function FoamDataType.__ne__&gt;, '__gt__': &lt;function FoamDataType.__gt__&gt;, '__dict__': &lt;attribute '__dict__' of 'FoamDataType' objects&gt;, '__le__': &lt;function FoamDataType.__le__&gt;})</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.FoamDataType.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.FoamDataType.__eq__">
+<code class="descname">__eq__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FoamDataType.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FoamDataType.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implementation to make __cmp__ work again in Python3</p>
+<p>Implementing this method means that these objects are not hashable.
+But that is OK</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.FoamDataType.__ge__">
+<code class="descname">__ge__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FoamDataType.__ge__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FoamDataType.__ge__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.FoamDataType.__gt__">
+<code class="descname">__gt__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FoamDataType.__gt__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FoamDataType.__gt__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.FoamDataType.__hash__">
+<code class="descname">__hash__</code><em class="property"> = None</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.FoamDataType.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.FoamDataType.__le__">
+<code class="descname">__le__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FoamDataType.__le__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FoamDataType.__le__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.FoamDataType.__lt__">
+<code class="descname">__lt__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FoamDataType.__lt__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FoamDataType.__lt__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implementation to make __cmp__ work again in Python3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.FoamDataType.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.FoamDataType.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.FoamDataType.__ne__">
+<code class="descname">__ne__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FoamDataType.__ne__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FoamDataType.__ne__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.FoamDataType.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#FoamDataType.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.FoamDataType.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.FoamDataType.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Basics.DataStructures.FoamDataType.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.SymmTensor">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">SymmTensor</code><span class="sig-paren">(</span><em>v1</em>, <em>v2</em>, <em>v3</em>, <em>v4</em>, <em>v5</em>, <em>v6</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#SymmTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.SymmTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Basics.DataStructures.FixedLength" title="PyFoam.Basics.DataStructures.FixedLength"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Basics.DataStructures.FixedLength</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.SymmTensor.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>v1</em>, <em>v2</em>, <em>v3</em>, <em>v4</em>, <em>v5</em>, <em>v6</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#SymmTensor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.SymmTensor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.SymmTensor.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.SymmTensor.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.Tensor">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">Tensor</code><span class="sig-paren">(</span><em>v1</em>, <em>v2</em>, <em>v3</em>, <em>v4</em>, <em>v5</em>, <em>v6</em>, <em>v7</em>, <em>v8</em>, <em>v9</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Tensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Tensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Basics.DataStructures.FixedLength" title="PyFoam.Basics.DataStructures.FixedLength"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Basics.DataStructures.FixedLength</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Tensor.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>v1</em>, <em>v2</em>, <em>v3</em>, <em>v4</em>, <em>v5</em>, <em>v6</em>, <em>v7</em>, <em>v8</em>, <em>v9</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Tensor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Tensor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.Tensor.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.Tensor.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.TupleProxy">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">TupleProxy</code><span class="sig-paren">(</span><em>tup=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#TupleProxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.TupleProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">list</span></code></p>
+<p>Enables Tuples to be manipulated</p>
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.TupleProxy.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__init__': &lt;function TupleProxy.__init__&gt;, '__weakref__': &lt;attribute '__weakref__' of 'TupleProxy' objects&gt;, '__module__': 'PyFoam.Basics.DataStructures', '__dict__': &lt;attribute '__dict__' of 'TupleProxy' objects&gt;, '__doc__': 'Enables Tuples to be manipulated'})</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.TupleProxy.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.TupleProxy.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>tup=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#TupleProxy.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.TupleProxy.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.TupleProxy.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.TupleProxy.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.TupleProxy.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Basics.DataStructures.TupleProxy.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.Unparsed">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">Unparsed</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Unparsed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Unparsed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A class that encapsulates an unparsed string</p>
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.Unparsed.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__hash__': &lt;function Unparsed.__hash__&gt;, '__weakref__': &lt;attribute '__weakref__' of 'Unparsed' objects&gt;, '__module__': 'PyFoam.Basics.DataStructures', '__lt__': &lt;function Unparsed.__lt__&gt;, '__doc__': 'A class that encapsulates an unparsed string', '__init__': &lt;function Unparsed.__init__&gt;, 'toNumpy': &lt;function Unparsed.toNumpy&gt;, '__str__': &lt;function Unparsed.__str__&gt;, '__dict__': &lt;attribute '__dict__' of 'Unparsed' objects&gt;})</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.Unparsed.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Unparsed.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Unparsed.__hash__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Unparsed.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Unparsed.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Unparsed.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Unparsed.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Unparsed.__lt__">
+<code class="descname">__lt__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Unparsed.__lt__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Unparsed.__lt__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.Unparsed.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.Unparsed.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Unparsed.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Unparsed.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Unparsed.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.Unparsed.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Basics.DataStructures.Unparsed.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Unparsed.toNumpy">
+<code class="descname">toNumpy</code><span class="sig-paren">(</span><em>regexp</em>, <em>dtypes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Unparsed.toNumpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Unparsed.toNumpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assume that the unparsed data contains line-wise data and transform it to a numpy-array.
+&#64;param regexp: regular expression where the groups correspond to the dtypes,
+&#64;param dtypes: list with dtypes</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.UnparsedList">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">UnparsedList</code><span class="sig-paren">(</span><em>lngth</em>, <em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#UnparsedList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.UnparsedList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A class that encapsulates a list that was not parsed for
+performance reasons</p>
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.UnparsedList.__cmp__">
+<code class="descname">__cmp__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#UnparsedList.__cmp__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.UnparsedList.__cmp__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.UnparsedList.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__hash__': None, '__weakref__': &lt;attribute '__weakref__' of 'UnparsedList' objects&gt;, '__dict__': &lt;attribute '__dict__' of 'UnparsedList' objects&gt;, '__module__': 'PyFoam.Basics.DataStructures', '__eq__': &lt;function UnparsedList.__eq__&gt;, '__lt__': &lt;function UnparsedList.__lt__&gt;, '__doc__': 'A class that encapsulates a list that was not parsed for\n    performance reasons', '__init__': &lt;function UnparsedList.__init__&gt;, 'toNumpy': &lt;function UnparsedList.toNumpy&gt;, '__cmp__': &lt;function UnparsedList.__cmp__&gt;, '__len__': &lt;function UnparsedList.__len__&gt;})</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.UnparsedList.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.UnparsedList.__eq__">
+<code class="descname">__eq__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#UnparsedList.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.UnparsedList.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.UnparsedList.__hash__">
+<code class="descname">__hash__</code><em class="property"> = None</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.UnparsedList.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.UnparsedList.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>lngth</em>, <em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#UnparsedList.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.UnparsedList.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.UnparsedList.__len__">
+<code class="descname">__len__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#UnparsedList.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.UnparsedList.__len__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.UnparsedList.__lt__">
+<code class="descname">__lt__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#UnparsedList.__lt__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.UnparsedList.__lt__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.UnparsedList.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.UnparsedList.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.UnparsedList.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Basics.DataStructures.UnparsedList.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.UnparsedList.toNumpy">
+<code class="descname">toNumpy</code><span class="sig-paren">(</span><em>regexp</em>, <em>dtypes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#UnparsedList.toNumpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.UnparsedList.toNumpy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.DataStructures.Vector">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">Vector</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#PyFoam.Basics.DataStructures.FixedLength" title="PyFoam.Basics.DataStructures.FixedLength"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Basics.DataStructures.FixedLength</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Vector.__abs__">
+<code class="descname">__abs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector.__abs__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__abs__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Vector.__add__">
+<code class="descname">__add__</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector.__add__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__add__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Vector.__div__">
+<code class="descname">__div__</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector.__div__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__div__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Vector.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.DataStructures.Vector.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.DataStructures'</em><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Vector.__mul__">
+<code class="descname">__mul__</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector.__mul__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__mul__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Vector.__neg__">
+<code class="descname">__neg__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector.__neg__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__neg__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Vector.__pos__">
+<code class="descname">__pos__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector.__pos__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__pos__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Vector.__radd__">
+<code class="descname">__radd__</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector.__radd__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__radd__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Vector.__rmul__">
+<code class="descname">__rmul__</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector.__rmul__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__rmul__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Vector.__rsub__">
+<code class="descname">__rsub__</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector.__rsub__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__rsub__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Vector.__sub__">
+<code class="descname">__sub__</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector.__sub__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__sub__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Vector.__truediv__">
+<code class="descname">__truediv__</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector.__truediv__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__truediv__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.DataStructures.Vector.__xor__">
+<code class="descname">__xor__</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#Vector.__xor__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.Vector.__xor__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Basics.DataStructures.cmp">
+<code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">cmp</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#cmp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.cmp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Basics.DataStructures.makePrimitiveString">
+<code class="descclassname">PyFoam.Basics.DataStructures.</code><code class="descname">makePrimitiveString</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/DataStructures.html#makePrimitiveString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.DataStructures.makePrimitiveString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make strings of types that might get written to a directory</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.Basics.DummyPlotTimelines.html" class="btn btn-neutral float-right" title="PyFoam.Basics.DummyPlotTimelines module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.Basics.Data2DStatistics.html" class="btn btn-neutral" title="PyFoam.Basics.Data2DStatistics module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

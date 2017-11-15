@@ -1,0 +1,262 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.ChangePython &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.ChangePython</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.ChangePython</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Execute an Application class through a different Python-interpreter</span>
+
+<span class="sd">We need to create a temporary script because pvpython does not support</span>
+<span class="sd">the usual -c optiont</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.Utilities</span> <span class="kn">import</span> <span class="n">which</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">PY3</span><span class="p">,</span><span class="n">u</span>
+
+<span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+    <span class="n">fopen</span><span class="o">=</span><span class="nb">open</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="nb">open</span> <span class="k">as</span> <span class="n">fopen</span>
+
+<span class="c1"># doDebug=True</span>
+<span class="n">doDebug</span><span class="o">=</span><span class="bp">False</span>
+
+<div class="viewcode-block" id="printDebug"><a class="viewcode-back" href="../../../api/PyFoam.Applications.ChangePython.html#PyFoam.Applications.ChangePython.printDebug">[docs]</a><span class="k">def</span> <span class="nf">printDebug</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">doDebug</span><span class="p">:</span>
+        <span class="n">print_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">environ</span> <span class="k">as</span> <span class="n">env</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">stat</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">call</span>
+
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">mkstemp</span>
+
+<div class="viewcode-block" id="changePython"><a class="viewcode-back" href="../../../api/PyFoam.Applications.ChangePython.html#PyFoam.Applications.ChangePython.changePython">[docs]</a><span class="k">def</span> <span class="nf">changePython</span><span class="p">(</span><span class="n">pythonName</span><span class="p">,</span><span class="n">appClass</span><span class="p">):</span>
+    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Executing&quot;</span><span class="p">,</span><span class="n">appClass</span><span class="p">,</span><span class="s2">&quot;with&quot;</span><span class="p">,</span><span class="n">pythonName</span><span class="p">,</span><span class="s2">&quot;trough a proxy-script&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pythonName</span><span class="p">):</span>
+        <span class="n">pyInterpreter</span><span class="o">=</span><span class="n">pythonName</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pyInterpreter</span><span class="o">=</span><span class="n">which</span><span class="p">(</span><span class="n">pythonName</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pyInterpreter</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Error: No interpreter&quot;</span><span class="p">,</span><span class="n">pythonName</span><span class="p">,</span><span class="s2">&quot;found&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">printDebug</span><span class="p">(</span><span class="s2">&quot;Using interpreter&quot;</span><span class="p">,</span><span class="n">pyInterpreter</span><span class="p">)</span>
+    <span class="n">pyFoamLocation</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">)))</span>
+    <span class="n">printDebug</span><span class="p">(</span><span class="s2">&quot;PyFoam location&quot;</span><span class="p">,</span><span class="n">pyFoamLocation</span><span class="p">,</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;PYTHONPATH&quot;</span> <span class="ow">in</span> <span class="n">env</span><span class="p">:</span>
+        <span class="n">printDebug</span><span class="p">(</span><span class="s2">&quot;PYTHONPATH:&quot;</span><span class="p">,</span><span class="n">env</span><span class="p">[</span><span class="s2">&quot;PYTHONPATH&quot;</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">printDebug</span><span class="p">(</span><span class="s2">&quot;No PYTHONPATH&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;PYTHONPATH&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">env</span><span class="p">:</span>
+        <span class="n">env</span><span class="p">[</span><span class="s2">&quot;PYTHONPATH&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">pyFoamLocation</span>
+    <span class="k">elif</span> <span class="n">pyFoamLocation</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">env</span><span class="p">[</span><span class="s2">&quot;PYTHONPATH&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">pathsep</span><span class="p">):</span>
+        <span class="n">env</span><span class="p">[</span><span class="s2">&quot;PYTHONPATH&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">pyFoamLocation</span><span class="o">+</span><span class="n">path</span><span class="o">.</span><span class="n">pathsep</span><span class="o">+</span><span class="n">env</span><span class="p">[</span><span class="s2">&quot;PYTHONPATH&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;PYTHONPATH&quot;</span> <span class="ow">in</span> <span class="n">env</span><span class="p">:</span>
+        <span class="n">printDebug</span><span class="p">(</span><span class="s2">&quot;PYTHONPATH:&quot;</span><span class="p">,</span><span class="n">env</span><span class="p">[</span><span class="s2">&quot;PYTHONPATH&quot;</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">printDebug</span><span class="p">(</span><span class="s2">&quot;No PYTHONPATH&quot;</span><span class="p">)</span>
+    <span class="n">scriptFD</span><span class="p">,</span><span class="n">scriptName</span><span class="o">=</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;pyFoam&quot;</span><span class="o">+</span><span class="n">appClass</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">printDebug</span><span class="p">(</span><span class="s2">&quot;Script file:&quot;</span><span class="p">,</span><span class="n">scriptName</span><span class="p">,</span><span class="s2">&quot;Handle&quot;</span><span class="p">,</span><span class="n">scriptFD</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">scriptName</span><span class="p">,</span><span class="n">stat</span><span class="o">.</span><span class="n">S_IXUSR</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">scriptName</span><span class="p">)</span><span class="o">.</span><span class="n">st_mode</span><span class="p">)</span>
+    <span class="n">fopen</span><span class="p">(</span><span class="n">scriptFD</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">u</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;#! </span><span class="si">%(pyInterpreter)s</span><span class="s2"></span>
+<span class="s2">from PyFoam.Applications.</span><span class="si">%(appClass)s</span><span class="s2"> import </span><span class="si">%(appClass)s</span><span class="s2"></span>
+
+<span class="si">%(appClass)s</span><span class="s2">()</span>
+<span class="s2">&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">{</span><span class="s1">&#39;appClass&#39;</span><span class="p">:</span><span class="n">appClass</span><span class="p">,</span><span class="s1">&#39;pyInterpreter&#39;</span><span class="p">:</span><span class="n">pyInterpreter</span><span class="p">}))</span>
+
+    <span class="n">ret</span><span class="o">=</span><span class="n">call</span><span class="p">([</span><span class="n">scriptName</span><span class="p">]</span><span class="o">+</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="n">printDebug</span><span class="p">(</span><span class="s2">&quot;Return code:&quot;</span><span class="p">,</span><span class="n">ret</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ret</span><span class="p">:</span>
+        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Error: Return code &quot;</span><span class="p">,</span><span class="n">ret</span><span class="p">,</span><span class="s2">&quot;executing&quot;</span><span class="p">,</span><span class="n">scriptName</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">scriptName</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

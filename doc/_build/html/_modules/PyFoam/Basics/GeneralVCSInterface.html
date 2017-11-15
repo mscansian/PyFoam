@@ -1,0 +1,374 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.GeneralVCSInterface &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.GeneralVCSInterface</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.GeneralVCSInterface</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;General interface to VCS implementations&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">notImplemented</span><span class="p">,</span><span class="n">error</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">getcwd</span><span class="p">,</span><span class="n">chdir</span>
+<span class="kn">import</span> <span class="nn">subprocess</span><span class="o">,</span><span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">exec_</span><span class="p">,</span><span class="n">PY3</span>
+
+<div class="viewcode-block" id="GeneralVCSInterface"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface">[docs]</a><span class="k">class</span> <span class="nc">GeneralVCSInterface</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This is an abstract class that implements an interface to general VCS operations&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="GeneralVCSInterface.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">path</span><span class="p">,</span>
+                 <span class="n">init</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param path: path which is supposed to be under version control</span>
+<span class="sd">        :param init: initialize the version control system here&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">init</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">=</span><span class="n">path</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getRoot</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralVCSInterface.getRoot"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface.getRoot">[docs]</a>    <span class="k">def</span> <span class="nf">getRoot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;\</span>
+<span class="sd">Returns the actual repository root for a path. Default implmentation</span>
+<span class="sd">passes through the path</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">path</span></div>
+
+<div class="viewcode-block" id="GeneralVCSInterface.executeWithOuput"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface.executeWithOuput">[docs]</a>    <span class="k">def</span> <span class="nf">executeWithOuput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cmd</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Executes a command and returns the output&quot;&quot;&quot;</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span>
+                             <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                             <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                             <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GeneralVCSInterface.doInPath"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface.doInPath">[docs]</a>    <span class="k">def</span> <span class="nf">doInPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">func</span><span class="p">,</span>
+                 <span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;\</span>
+<span class="sd">Execute a function in the root directory of the repository. Afterwards</span>
+<span class="sd">change back ot the original directory. Result of the function is returned</span>
+
+<span class="sd">:param func: the function to be executed&quot;&quot;&quot;</span>
+        <span class="n">oldDir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">=</span><span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">oldDir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="GeneralVCSInterface.getRevision"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface.getRevision">[docs]</a>    <span class="k">def</span> <span class="nf">getRevision</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the current revision number&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;commit&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralVCSInterface.commit"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface.commit">[docs]</a>    <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Commit the current state</span>
+<span class="sd">        :param msg: Commit message&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;commit&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralVCSInterface.update"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the working copy from the parent repository</span>
+<span class="sd">        :param timeout: Wait a maximum time (if the VCS supports this)&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;update&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralVCSInterface.branchName"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface.branchName">[docs]</a>    <span class="k">def</span> <span class="nf">branchName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the branch-name (or another identifying string)&quot;&quot;&quot;</span>
+
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;commit&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralVCSInterface.addPath"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface.addPath">[docs]</a>    <span class="k">def</span> <span class="nf">addPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">path</span><span class="p">,</span>
+                <span class="n">rules</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;Add the path to the repository (no commit)</span>
+<span class="sd">        :param path: the path (directory or file) to commit</span>
+<span class="sd">        :param rules: a list of tuples: first is whether to include or exclude</span>
+<span class="sd">        the regular expression that is the second member of the tuple&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;addPath&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralVCSInterface.clone"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface.clone">[docs]</a>    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+              <span class="n">dest</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clone the repository</span>
+<span class="sd">        :param dest: the path that should be clones to&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;clone&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralVCSInterface.addRegexpToIgnore"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface.addRegexpToIgnore">[docs]</a>    <span class="k">def</span> <span class="nf">addRegexpToIgnore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">expr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add to the ignore-facility of the current VCS</span>
+<span class="sd">        :param expr: a regular expression&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;addRegexpToIgnore&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralVCSInterface.addGlobToIgnore"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface.addGlobToIgnore">[docs]</a>    <span class="k">def</span> <span class="nf">addGlobToIgnore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">expr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add to the ignore-facility of the current VCS</span>
+<span class="sd">        :param expr: a glob expression&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;addGlobToIgnore&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralVCSInterface.addStandardIgnores"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.GeneralVCSInterface.addStandardIgnores">[docs]</a>    <span class="k">def</span> <span class="nf">addStandardIgnores</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add the usual ignores&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addGlobToIgnore</span><span class="p">(</span><span class="s2">&quot;*.gz&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addGlobToIgnore</span><span class="p">(</span><span class="s2">&quot;*~&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addGlobToIgnore</span><span class="p">(</span><span class="s2">&quot;*.foam&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addGlobToIgnore</span><span class="p">(</span><span class="s2">&quot;PlyParser*&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addGlobToIgnore</span><span class="p">(</span><span class="s2">&quot;PyFoam*&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addGlobToIgnore</span><span class="p">(</span><span class="s2">&quot;postProcessing&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addRegexpToIgnore</span><span class="p">(</span><span class="s2">&quot;.*</span><span class="se">\\</span><span class="s2">.logfile&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addRegexpToIgnore</span><span class="p">(</span><span class="s2">&quot;.*</span><span class="se">\\</span><span class="s2">.analyzed&quot;</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="getVCS"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.getVCS">[docs]</a><span class="k">def</span> <span class="nf">getVCS</span><span class="p">(</span><span class="n">vcs</span><span class="p">,</span>
+           <span class="n">path</span><span class="p">,</span>
+           <span class="n">init</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+           <span class="n">tolerant</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Factory to create a proper VCS-interface</span>
+<span class="sd">    :param vcs: name of the VCS-implementation</span>
+<span class="sd">    :param path: path which is under version control</span>
+<span class="sd">    :param init: whether the Version-control should be initialized here</span>
+<span class="sd">    :param tolerant: If there is no interface for the VCS in question return None&quot;&quot;&quot;</span>
+
+    <span class="n">table</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;hg&quot;</span>   <span class="p">:</span> <span class="s2">&quot;HgInterface&quot;</span> <span class="p">,</span>
+              <span class="s2">&quot;git&quot;</span>  <span class="p">:</span> <span class="s2">&quot;GitInterface&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;svn&quot;</span>  <span class="p">:</span> <span class="s2">&quot;SvnInterface&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;svk&quot;</span>  <span class="p">:</span> <span class="s2">&quot;SvkInterface&quot;</span> <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">vcs</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">table</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">tolerant</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown VCS&quot;</span><span class="p">,</span><span class="n">vcs</span><span class="p">,</span><span class="s2">&quot;. Known are&quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+    <span class="n">modName</span><span class="o">=</span><span class="n">table</span><span class="p">[</span><span class="n">vcs</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+        <span class="c1"># fix the import.</span>
+        <span class="n">dot</span><span class="o">=</span><span class="s2">&quot;.&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dot</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+    <span class="n">exec_</span><span class="p">(</span><span class="s2">&quot;from &quot;</span><span class="o">+</span><span class="n">dot</span><span class="o">+</span><span class="n">modName</span><span class="o">+</span><span class="s2">&quot; import &quot;</span><span class="o">+</span><span class="n">modName</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="n">modName</span><span class="o">+</span><span class="s2">&quot;(path,init)&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="whichVCS"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralVCSInterface.html#PyFoam.Basics.GeneralVCSInterface.whichVCS">[docs]</a><span class="k">def</span> <span class="nf">whichVCS</span><span class="p">(</span><span class="n">dpath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Diagnose which VCS a specific directory is under</span>
+
+<span class="sd">    Returns a string that is consistent with the creation table in getVCS</span>
+<span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span><span class="s2">&quot;.svn&quot;</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="s2">&quot;svn&quot;</span>
+
+    <span class="k">def</span> <span class="nf">runTest</span><span class="p">(</span><span class="n">test</span><span class="p">):</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">test</span><span class="p">,</span>
+                             <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                             <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                             <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+        <span class="n">pid</span><span class="p">,</span> <span class="n">sts</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">waitpid</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">pid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sts</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">runTest</span><span class="p">(</span><span class="s2">&quot;hg stat -q --cwd </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dpath</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;hg&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">runTest</span><span class="p">(</span><span class="s2">&quot;svk info </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dpath</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;svk&quot;</span>
+
+    <span class="n">oldDir</span><span class="o">=</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">chdir</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span>
+    <span class="n">status</span><span class="o">=</span><span class="n">runTest</span><span class="p">(</span><span class="s2">&quot;git rev-parse&quot;</span><span class="p">)</span>
+    <span class="n">chdir</span><span class="p">(</span><span class="n">oldDir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">status</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;git&quot;</span>
+
+    <span class="k">return</span> <span class="s2">&quot;&quot;</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

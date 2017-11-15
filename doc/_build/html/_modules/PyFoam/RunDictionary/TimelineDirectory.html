@@ -1,0 +1,560 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.RunDictionary.TimelineDirectory &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.RunDictionary.TimelineDirectory</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.RunDictionary.TimelineDirectory</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id:$</span>
+<span class="sd">&quot;&quot;&quot;Working with a directory of timelines</span>
+
+<span class="sd">Currently not optimal as it reads the files more often than necessary&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">listdir</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">sys.float_info</span> <span class="kn">import</span> <span class="nb">max</span> <span class="k">as</span> <span class="n">float_maximum</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># needed py python2.5</span>
+    <span class="n">float_maximum</span><span class="o">=</span><span class="mf">1e301</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.SpreadsheetData</span> <span class="kn">import</span> <span class="n">SpreadsheetData</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">PY3</span>
+
+<span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="nb">reduce</span>
+
+<div class="viewcode-block" id="TimelineDirectory"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineDirectory">[docs]</a><span class="k">class</span> <span class="nc">TimelineDirectory</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A directory of sampled times&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TimelineDirectory.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineDirectory.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">case</span><span class="p">,</span><span class="n">dirName</span><span class="o">=</span><span class="s2">&quot;probes&quot;</span><span class="p">,</span><span class="n">writeTime</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param case: The case directory</span>
+<span class="sd">        :param dirName: Name of the directory with the timelines</span>
+<span class="sd">        :param writeTime: The write time-directory where the data in question is to be plotted&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">case</span><span class="p">,</span><span class="n">dirName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeTimes</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="n">nearest</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">d</span><span class="p">)):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">v</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">writeTimes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">writeTime</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">nearest</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                            <span class="n">nearest</span><span class="o">=</span><span class="n">d</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">writeTime</span><span class="p">)</span><span class="o">-</span><span class="n">v</span><span class="p">)</span><span class="o">&lt;</span><span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">writeTime</span><span class="p">)</span><span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">nearest</span><span class="p">)):</span>
+                                <span class="n">nearest</span><span class="o">=</span><span class="n">d</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeTimes</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nearest</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">usedTime</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">writeTimes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">usedTime</span><span class="o">=</span><span class="n">nearest</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">usedTime</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vectors</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;.&#39;</span><span class="p">:</span>
+                <span class="k">continue</span> <span class="c1"># Skip dot-files</span>
+            <span class="n">tv</span><span class="o">=</span><span class="n">TimelineValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">usedTime</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tv</span><span class="o">.</span><span class="n">isValid</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">tv</span><span class="o">.</span><span class="n">isVector</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">vectors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">allPositions</span><span class="o">=</span><span class="bp">None</span></div>
+
+<div class="viewcode-block" id="TimelineDirectory.__iter__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineDirectory.__iter__">[docs]</a>    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">TimelineValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">usedTime</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimelineDirectory.__getitem__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineDirectory.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">TimelineValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">usedTime</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimelineDirectory.__contains__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineDirectory.__contains__">[docs]</a>    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span></div>
+
+<div class="viewcode-block" id="TimelineDirectory.__len__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineDirectory.__len__">[docs]</a>    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimelineDirectory.positions"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineDirectory.positions">[docs]</a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns all the found positions&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">allPositions</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">positions</span><span class="o">=</span><span class="p">[]</span>
+            <span class="n">first</span><span class="o">=</span><span class="bp">True</span>
+
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">positions</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
+                            <span class="n">positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Found positions&quot;</span><span class="p">,</span><span class="n">t</span><span class="o">.</span><span class="n">positions</span><span class="p">,</span><span class="s2">&quot;are inconsistent with previous&quot;</span><span class="p">,</span><span class="n">positions</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">positionIndex</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">positionIndex</span>
+                <span class="n">first</span><span class="o">=</span><span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allPositions</span><span class="o">=</span><span class="n">positions</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">allPositions</span></div>
+
+<div class="viewcode-block" id="TimelineDirectory.timeRange"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineDirectory.timeRange">[docs]</a>    <span class="k">def</span> <span class="nf">timeRange</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the range of possible times&quot;&quot;&quot;</span>
+        <span class="n">minTime</span><span class="o">=</span><span class="mf">1e80</span>
+        <span class="n">maxTime</span><span class="o">=-</span><span class="mf">1e80</span>
+
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">mi</span><span class="p">,</span><span class="n">ma</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">timeRange</span><span class="p">()</span>
+            <span class="n">minTime</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">mi</span><span class="p">,</span><span class="n">minTime</span><span class="p">)</span>
+            <span class="n">maxTime</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">ma</span><span class="p">,</span><span class="n">maxTime</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">minTime</span><span class="p">,</span><span class="n">maxTime</span></div>
+
+<div class="viewcode-block" id="TimelineDirectory.getDataLocation"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineDirectory.getDataLocation">[docs]</a>    <span class="k">def</span> <span class="nf">getDataLocation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">position</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">vectorMode</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get Timeline sets</span>
+<span class="sd">        :param value: name of the value. All</span>
+<span class="sd">        if unspecified</span>
+<span class="sd">        :param position: name of the position of the value. All</span>
+<span class="sd">        if unspecified&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">value</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">if</span> <span class="n">position</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">position</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span>
+
+        <span class="n">sets</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">position</span><span class="p">:</span>
+                <span class="n">fName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;positionIndex&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span>
+                <span class="n">pos</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">positionIndex</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vectors</span><span class="p">:</span>
+                    <span class="n">fName</span><span class="o">=</span><span class="s2">&quot;&lt; tr &lt;</span><span class="si">%s</span><span class="s2"> -d &#39;()&#39;&quot;</span> <span class="o">%</span><span class="n">fName</span>
+                    <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="o">*</span><span class="mi">3</span>
+                    <span class="k">if</span> <span class="n">vectorMode</span><span class="o">==</span><span class="s2">&quot;x&quot;</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                    <span class="k">elif</span> <span class="n">vectorMode</span><span class="o">==</span><span class="s2">&quot;y&quot;</span><span class="p">:</span>
+                        <span class="n">pos</span><span class="o">+=</span><span class="mi">1</span>
+                    <span class="k">elif</span> <span class="n">vectorMode</span><span class="o">==</span><span class="s2">&quot;z&quot;</span><span class="p">:</span>
+                        <span class="n">pos</span><span class="o">+=</span><span class="mi">2</span>
+                    <span class="k">elif</span> <span class="n">vectorMode</span><span class="o">==</span><span class="s2">&quot;mag&quot;</span><span class="p">:</span>
+                        <span class="n">pos</span><span class="o">+=</span><span class="mi">2</span>
+                        <span class="n">pos</span><span class="o">=</span><span class="s2">&quot;(sqrt($</span><span class="si">%d</span><span class="s2">*$</span><span class="si">%d</span><span class="s2">+$</span><span class="si">%d</span><span class="s2">*$</span><span class="si">%d</span><span class="s2">+$</span><span class="si">%d</span><span class="s2">*$</span><span class="si">%d</span><span class="s2">))&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pos</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span>
+                                                                 <span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>
+                                                                 <span class="n">pos</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span><span class="n">pos</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unsupported vector mode&quot;</span><span class="p">,</span><span class="n">vectorMode</span><span class="p">,</span><span class="s2">&quot;for&quot;</span><span class="p">,</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">sets</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fName</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">TimelineValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">usedTime</span><span class="p">)))</span>
+                <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                    <span class="c1"># seems like the file/field is not there</span>
+                    <span class="k">pass</span>
+
+        <span class="k">return</span> <span class="n">sets</span></div>
+
+<div class="viewcode-block" id="TimelineDirectory.getData"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineDirectory.getData">[docs]</a>    <span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">times</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">position</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">vectorMode</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get data that mstches the given times most closely</span>
+<span class="sd">        :param times: a list with times</span>
+<span class="sd">        :param value: name of the value. All</span>
+<span class="sd">        if unspecified</span>
+<span class="sd">        :param position: name of the position of the value. All</span>
+<span class="sd">        if unspecified</span>
+<span class="sd">        :param vectorMode: which component of the vector to use&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">value</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">if</span> <span class="n">position</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">position</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span>
+
+        <span class="n">sets</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">posIndex</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">position</span><span class="p">:</span>
+            <span class="n">posIndex</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">val</span><span class="o">=</span><span class="n">TimelineValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">usedTime</span><span class="p">)</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">val</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="n">times</span><span class="p">,</span><span class="n">vectorMode</span><span class="o">=</span><span class="n">vectorMode</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
+                <span class="n">used</span><span class="o">=</span><span class="p">[]</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">posIndex</span><span class="p">:</span>
+                    <span class="n">used</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">p</span><span class="p">])</span>
+
+                <span class="n">sets</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">v</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">used</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">sets</span></div></div>
+
+<div class="viewcode-block" id="TimelineValue"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineValue">[docs]</a><span class="k">class</span> <span class="nc">TimelineValue</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A file with one timelined value&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TimelineValue.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineValue.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sDir</span><span class="p">,</span><span class="n">val</span><span class="p">,</span><span class="n">time</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param sDir: The timeline-dir</span>
+<span class="sd">        :param val: the value</span>
+<span class="sd">        :param time: the timename&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">isValid</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="o">=</span><span class="n">val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="n">time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sDir</span><span class="p">,</span><span class="n">val</span><span class="p">)</span>
+        <span class="n">poses</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">isVector</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="n">data</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
+        <span class="n">l1</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l1</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">l1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;#&#39;</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Data file&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">,</span><span class="s2">&quot;has no description of the fields&quot;</span><span class="p">)</span>
+        <span class="n">l2</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_isProbe</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">l2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;#&#39;</span><span class="p">:</span>
+                <span class="c1"># Not a probe-file. The whole description is in the first line</span>
+                <span class="n">poses</span><span class="o">=</span><span class="n">l1</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+                <span class="n">firstData</span><span class="o">=</span><span class="n">l2</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_isProbe</span><span class="o">=</span><span class="bp">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">re</span>
+                <span class="n">newProbe</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">r&quot;# Probe [0-9]+ (\(.+ .+ .+\))&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">newProbe</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">l1</span><span class="p">):</span>
+                    <span class="n">probeStrings</span><span class="o">=</span><span class="p">[</span><span class="n">l1</span><span class="p">]</span>
+                    <span class="k">while</span> <span class="n">newProbe</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">l2</span><span class="p">):</span>
+                        <span class="n">probeStrings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l2</span><span class="p">)</span>
+                        <span class="n">l2</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                    <span class="n">probeNrString</span><span class="o">=</span><span class="n">l2</span>
+                    <span class="n">probeTimeString</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                    <span class="n">poses</span><span class="o">=</span><span class="p">[</span><span class="n">newProbe</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">l</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">probeStrings</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">probeNrString</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;#&quot;</span> <span class="ow">or</span> <span class="n">probeTimeString</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;#&quot;</span><span class="p">:</span>
+                        <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;This does not seem to be the format we were lookin for&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># probe-file so we need one more line</span>
+                    <span class="n">l3</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">l1</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+                    <span class="n">y</span><span class="o">=</span><span class="n">l2</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+                    <span class="n">z</span><span class="o">=</span><span class="n">l3</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+                        <span class="n">poses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;(</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                    <span class="n">data</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="n">firstData</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not determine the type of&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="o">=</span><span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">positionIndex</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">poses</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">firstData</span><span class="o">.</span><span class="n">split</span><span class="p">()):</span>
+            <span class="c1">#scalar</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">firstData</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]):</span>
+                <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">))</span><span class="o">&lt;</span><span class="n">float_maximum</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poses</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">positionIndex</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="mi">3</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">poses</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">firstData</span><span class="o">.</span><span class="n">split</span><span class="p">()):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">isVector</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">firstData</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">::</span><span class="mi">3</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">))</span><span class="o">&lt;</span><span class="n">float_maximum</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poses</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">positionIndex</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">,</span>
+                    <span class="s2">&quot;is an unsupported type (neither vector nor scalar). Skipping&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="o">=</span><span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isValid</span><span class="o">=</span><span class="bp">True</span></div>
+
+<div class="viewcode-block" id="TimelineValue.__repr__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineValue.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isVector</span><span class="p">:</span>
+            <span class="n">vect</span><span class="o">=</span><span class="s2">&quot; (vector)&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vect</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="s2">&quot;TimelineData of </span><span class="si">%s%s</span><span class="s2"> on </span><span class="si">%s</span><span class="s2"> at t=</span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">,</span><span class="n">vect</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimelineValue.isProbe"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineValue.isProbe">[docs]</a>    <span class="k">def</span> <span class="nf">isProbe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Is this a probe-file&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isProbe</span></div>
+
+<div class="viewcode-block" id="TimelineValue.timeRange"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineValue.timeRange">[docs]</a>    <span class="k">def</span> <span class="nf">timeRange</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Range of times&quot;&quot;&quot;</span>
+        <span class="n">lines</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">v</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;#&#39;</span><span class="p">:</span>
+                <span class="n">minRange</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">break</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">v</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">&gt;=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">maxRange</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">minRange</span><span class="p">,</span><span class="n">maxRange</span></div>
+
+<div class="viewcode-block" id="TimelineValue.getData"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineValue.getData">[docs]</a>    <span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">times</span><span class="p">,</span><span class="n">vectorMode</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the data values that are nearest to the actual times&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isVector</span> <span class="ow">and</span> <span class="n">vectorMode</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">vectorMode</span><span class="o">=</span><span class="s2">&quot;mag&quot;</span>
+
+        <span class="n">dist</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span><span class="o">*</span><span class="p">[</span><span class="mf">1e80</span><span class="p">]</span>
+        <span class="n">data</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span><span class="o">*</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">)</span><span class="o">*</span><span class="p">[</span><span class="mf">1e80</span><span class="p">]]</span>
+
+        <span class="n">lines</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">v</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;#&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">time</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">vals</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">t</span><span class="o">-</span><span class="n">time</span><span class="p">)</span><span class="o">&lt;</span><span class="n">dist</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                            <span class="n">dist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">t</span><span class="o">-</span><span class="n">time</span><span class="p">)</span>
+                            <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">vals</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="n">result</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">tmp</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isVector</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">vectorMode</span><span class="o">==</span><span class="s2">&quot;x&quot;</span><span class="p">:</span>
+                        <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">p</span><span class="p">]))</span>
+                    <span class="k">elif</span> <span class="n">vectorMode</span><span class="o">==</span><span class="s2">&quot;y&quot;</span><span class="p">:</span>
+                        <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">p</span><span class="o">+</span><span class="mi">1</span><span class="p">]))</span>
+                    <span class="k">elif</span> <span class="n">vectorMode</span><span class="o">==</span><span class="s2">&quot;z&quot;</span><span class="p">:</span>
+                        <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">p</span><span class="o">+</span><span class="mi">2</span><span class="p">]))</span>
+                    <span class="k">elif</span> <span class="n">vectorMode</span><span class="o">==</span><span class="s2">&quot;mag&quot;</span><span class="p">:</span>
+                        <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">:</span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="p">,[</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="n">p</span><span class="p">:</span><span class="n">p</span><span class="o">+</span><span class="mi">3</span><span class="p">]],</span><span class="mi">0</span><span class="p">)))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown vector mode&quot;</span><span class="p">,</span><span class="n">vectorMode</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">))</span><span class="o">&lt;</span><span class="mf">1e40</span><span class="p">:</span>
+                        <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="TimelineValue.__call__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.TimelineDirectory.html#PyFoam.RunDictionary.TimelineDirectory.TimelineValue.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the data as a SpreadsheetData-object&quot;&quot;&quot;</span>
+
+        <span class="n">lines</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">data</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">v</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;#&#39;</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">v</span><span class="p">])</span>
+        <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isVector</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">:</span>
+                <span class="n">names</span><span class="o">+=</span><span class="p">[</span><span class="n">p</span><span class="o">+</span><span class="s2">&quot; x&quot;</span><span class="p">,</span><span class="n">p</span><span class="o">+</span><span class="s2">&quot; y&quot;</span><span class="p">,</span><span class="n">p</span><span class="o">+</span><span class="s2">&quot; z&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">names</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">positions</span>
+
+        <span class="k">return</span> <span class="n">SpreadsheetData</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                               <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">,</span>
+                               <span class="n">title</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_t=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">))</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

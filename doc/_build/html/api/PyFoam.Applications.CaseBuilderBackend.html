@@ -1,0 +1,495 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.CaseBuilderBackend module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.Applications package" href="PyFoam.Applications.html"/>
+        <link rel="next" title="PyFoam.Applications.CaseReport module" href="PyFoam.Applications.CaseReport.html"/>
+        <link rel="prev" title="PyFoam.Applications.CaseBuilder module" href="PyFoam.Applications.CaseBuilder.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.Applications.html">PyFoam.Applications package</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.CaseBuilderBackend module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.Applications.CaseBuilderBackend.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.Applications.CaseBuilderBackend">
+<span id="pyfoam-applications-casebuilderbackend-module"></span><h1>PyFoam.Applications.CaseBuilderBackend module<a class="headerlink" href="#module-PyFoam.Applications.CaseBuilderBackend" title="Permalink to this headline">¶</a></h1>
+<p>Represents the actual CaseBuilder-File and other things that have to do with the Casebuilder</p>
+<dl class="class">
+<dt id="PyFoam.Applications.CaseBuilderBackend.ArgWrapper">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.CaseBuilderBackend.</code><code class="descname">ArgWrapper</code><span class="sig-paren">(</span><em>el</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#ArgWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.ArgWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Wraps the argument element for convenient access</p>
+<dl class="attribute">
+<dt id="PyFoam.Applications.CaseBuilderBackend.ArgWrapper.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__init__': &lt;function ArgWrapper.__init__&gt;, '__weakref__': &lt;attribute '__weakref__' of 'ArgWrapper' objects&gt;, '__getattr__': &lt;function ArgWrapper.__getattr__&gt;, '__module__': 'PyFoam.Applications.CaseBuilderBackend', '__dict__': &lt;attribute '__dict__' of 'ArgWrapper' objects&gt;, '__doc__': 'Wraps the argument element for convenient access'})</em><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.ArgWrapper.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.ArgWrapper.__getattr__">
+<code class="descname">__getattr__</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#ArgWrapper.__getattr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.ArgWrapper.__getattr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.ArgWrapper.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>el</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#ArgWrapper.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.ArgWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.CaseBuilderBackend.ArgWrapper.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.CaseBuilderBackend'</em><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.ArgWrapper.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.CaseBuilderBackend.ArgWrapper.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.ArgWrapper.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.CaseBuilderBackend.</code><code class="descname">CaseBuilderDescriptionList</code><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderDescriptionList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Gets a list of the case-builder files found in the current path</p>
+<dl class="attribute">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__init__': &lt;function CaseBuilderDescriptionList.__init__&gt;, '__weakref__': &lt;attribute '__weakref__' of 'CaseBuilderDescriptionList' objects&gt;, '__iter__': &lt;function CaseBuilderDescriptionList.__iter__&gt;, '__module__': 'PyFoam.Applications.CaseBuilderBackend', '__doc__': 'Gets a list of the case-builder files found in the current path', '__dict__': &lt;attribute '__dict__' of 'CaseBuilderDescriptionList' objects&gt;, '__len__': &lt;function CaseBuilderDescriptionList.__len__&gt;, '__getitem__': &lt;function CaseBuilderDescriptionList.__getitem__&gt;})</em><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>i</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderDescriptionList.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderDescriptionList.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__iter__">
+<code class="descname">__iter__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderDescriptionList.__iter__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__len__">
+<code class="descname">__len__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderDescriptionList.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__len__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.CaseBuilderBackend'</em><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderDescriptionList.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.CaseBuilderBackend.</code><code class="descname">CaseBuilderFile</code><span class="sig-paren">(</span><em>fName</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>This class reads an XML-file that describes how to build a case
+and gives information about the case and if asked to builds the actual case</p>
+<dl class="attribute">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'argumentDescriptions': &lt;function CaseBuilderFile.argumentDescriptions&gt;, 'calculateVariables': &lt;function CaseBuilderFile.calculateVariables&gt;, 'initialDir': &lt;function CaseBuilderFile.initialDir&gt;, 'description': &lt;function CaseBuilderFile.description&gt;, 'getSingleElement': &lt;function CaseBuilderFile.getSingleElement&gt;, '__dict__': &lt;attribute '__dict__' of 'CaseBuilderFile' objects&gt;, 'boundaries': &lt;function CaseBuilderFile.boundaries&gt;, 'makeBC': &lt;function CaseBuilderFile.makeBC&gt;, 'boundaryDescriptions': &lt;function CaseBuilderFile.boundaryDescriptions&gt;, 'varTree': &lt;function CaseBuilderFile.varTree&gt;, 'argumentDefaults': &lt;function CaseBuilderFile.argumentDefaults&gt;, 'name': &lt;function CaseBuilderFile.name&gt;, 'parameterTree': &lt;function CaseBuilderFile.parameterTree&gt;, 'argTree': &lt;function CaseBuilderFile.argTree&gt;, 'verifyArguments': &lt;function CaseBuilderFile.verifyArguments&gt;, '__module__': 'PyFoam.Applications.CaseBuilderBackend', 'expandVars': &lt;function CaseBuilderFile.expandVars&gt;, 'helpText': &lt;function CaseBuilderFile.helpText&gt;, '__doc__': '\nThis class reads an XML-file that describes how to build a case\nand gives information about the case and if asked to builds the actual case\n', '__init__': &lt;function CaseBuilderFile.__init__&gt;, 'argumentGroupDescription': &lt;function CaseBuilderFile.argumentGroupDescription&gt;, '__weakref__': &lt;attribute '__weakref__' of 'CaseBuilderFile' objects&gt;, 'templatePath': &lt;function CaseBuilderFile.templatePath&gt;, 'filesTree': &lt;function CaseBuilderFile.filesTree&gt;, 'buildCase': &lt;function CaseBuilderFile.buildCase&gt;, 'argumentGroups': &lt;function CaseBuilderFile.argumentGroups&gt;, 'boundaryPatterns': &lt;function CaseBuilderFile.boundaryPatterns&gt;, 'boundaryPatternDict': &lt;function CaseBuilderFile.boundaryPatternDict&gt;, 'argumentDict': &lt;function CaseBuilderFile.argumentDict&gt;, 'fieldTree': &lt;function CaseBuilderFile.fieldTree&gt;, 'boundaryTree': &lt;function CaseBuilderFile.boundaryTree&gt;, 'groupArguments': &lt;function CaseBuilderFile.groupArguments&gt;, 'arguments': &lt;function CaseBuilderFile.arguments&gt;})</em><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>fName</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fName</strong> &#8211; the XML-file that describes how to build the case</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.CaseBuilderBackend'</em><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argTree">
+<code class="descname">argTree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.argTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argTree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentDefaults">
+<code class="descname">argumentDefaults</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.argumentDefaults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentDefaults" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentDescriptions">
+<code class="descname">argumentDescriptions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.argumentDescriptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentDescriptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentDict">
+<code class="descname">argumentDict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.argumentDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentDict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentGroupDescription">
+<code class="descname">argumentGroupDescription</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.argumentGroupDescription"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentGroupDescription" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentGroups">
+<code class="descname">argumentGroups</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.argumentGroups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.argumentGroups" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.arguments">
+<code class="descname">arguments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.arguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.arguments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaries">
+<code class="descname">boundaries</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.boundaries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaries" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaryDescriptions">
+<code class="descname">boundaryDescriptions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.boundaryDescriptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaryDescriptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaryPatternDict">
+<code class="descname">boundaryPatternDict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.boundaryPatternDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaryPatternDict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaryPatterns">
+<code class="descname">boundaryPatterns</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.boundaryPatterns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaryPatterns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaryTree">
+<code class="descname">boundaryTree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.boundaryTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.boundaryTree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.buildCase">
+<code class="descname">buildCase</code><span class="sig-paren">(</span><em>cName</em>, <em>args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.buildCase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.buildCase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds the case
+:param cName: The name of the case directory
+:param args: The arguments (as a dictionary)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.calculateVariables">
+<code class="descname">calculateVariables</code><span class="sig-paren">(</span><em>_args_</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.calculateVariables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.calculateVariables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add derived variables to the argument dictionary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.description">
+<code class="descname">description</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.description"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.expandVars">
+<code class="descname">expandVars</code><span class="sig-paren">(</span><em>orig</em>, <em>keys=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.expandVars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.expandVars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.fieldTree">
+<code class="descname">fieldTree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.fieldTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.fieldTree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.filesTree">
+<code class="descname">filesTree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.filesTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.filesTree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.getSingleElement">
+<code class="descname">getSingleElement</code><span class="sig-paren">(</span><em>parent</em>, <em>name</em>, <em>optional=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.getSingleElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.getSingleElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an element and check that it is the only one
+:param parent: the parent element
+:param name: The name of the element</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.groupArguments">
+<code class="descname">groupArguments</code><span class="sig-paren">(</span><em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.groupArguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.groupArguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list with the arguments belongin to a specific group
+:param name: Name of the group. If none is given, then all the arguments
+belonging to no group are returned</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.helpText">
+<code class="descname">helpText</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.helpText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.helpText" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.initialDir">
+<code class="descname">initialDir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.initialDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.initialDir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.makeBC">
+<code class="descname">makeBC</code><span class="sig-paren">(</span><em>node</em>, <em>args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.makeBC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.makeBC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.name">
+<code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.parameterTree">
+<code class="descname">parameterTree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.parameterTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.parameterTree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.templatePath">
+<code class="descname">templatePath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.templatePath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.templatePath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.varTree">
+<code class="descname">varTree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.varTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.varTree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.verifyArguments">
+<code class="descname">verifyArguments</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/CaseBuilderBackend.html#CaseBuilderFile.verifyArguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.CaseBuilderBackend.CaseBuilderFile.verifyArguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the arguments with the provided code (if it exists)</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.Applications.CaseReport.html" class="btn btn-neutral float-right" title="PyFoam.Applications.CaseReport module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.Applications.CaseBuilder.html" class="btn btn-neutral" title="PyFoam.Applications.CaseBuilder module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

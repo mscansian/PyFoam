@@ -1,0 +1,353 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.Data2DStatistics &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.Data2DStatistics</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.Data2DStatistics</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Data structure to do some calculations on the results from</span>
+<span class="sd">SpreadSheetData-methods metrics and compare that are organized in 2</span>
+<span class="sd">dimensions&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.TableData</span> <span class="kn">import</span> <span class="n">TableData</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span>
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+
+<div class="viewcode-block" id="Data2DStatistics"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Data2DStatistics.html#PyFoam.Basics.Data2DStatistics.Data2DStatistics">[docs]</a><span class="k">class</span> <span class="nc">Data2DStatistics</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Oranize statistics about data in 2D-Tables and do basic</span>
+<span class="sd">    calculations on it&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Data2DStatistics.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Data2DStatistics.html#PyFoam.Basics.Data2DStatistics.Data2DStatistics.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">metrics</span><span class="p">,</span>
+                 <span class="n">compare</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">small</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span>
+                 <span class="n">noStrings</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">failureValue</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	:param metrics: metrics of the data</span>
+<span class="sd">        :param compare: metrics of the comparsion with another data-set</span>
+<span class="sd">        :param small: the value that is considered to be close to 0</span>
+<span class="sd">        :param noStrings: only put numbers into the tables</span>
+<span class="sd">        :param failureValue: the value to use if an evaluation fails</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__metrics</span><span class="o">=</span><span class="n">metrics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__compare</span><span class="o">=</span><span class="n">compare</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">small</span><span class="o">=</span><span class="n">small</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">noStrings</span><span class="o">=</span><span class="n">noStrings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">failureValue</span><span class="o">=</span><span class="n">failureValue</span></div>
+
+<div class="viewcode-block" id="Data2DStatistics._getLabels"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Data2DStatistics.html#PyFoam.Basics.Data2DStatistics.Data2DStatistics._getLabels">[docs]</a>    <span class="k">def</span> <span class="nf">_getLabels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a tuple with the names of the rows and the</span>
+<span class="sd">        columns. Assumes that the names for the first data-set are</span>
+<span class="sd">        valid for all&quot;&quot;&quot;</span>
+        <span class="n">colNames</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__metrics</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">rowNames</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__metrics</span><span class="p">[</span><span class="n">colNames</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">rowNames</span><span class="p">,</span><span class="n">colNames</span></div>
+
+<div class="viewcode-block" id="Data2DStatistics._makeEmptyTable"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Data2DStatistics.html#PyFoam.Basics.Data2DStatistics.Data2DStatistics._makeEmptyTable">[docs]</a>    <span class="k">def</span> <span class="nf">_makeEmptyTable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an empty table to fill the data in&quot;&quot;&quot;</span>
+        <span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getLabels</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">TableData</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Data2DStatistics._extractTable"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Data2DStatistics.html#PyFoam.Basics.Data2DStatistics.Data2DStatistics._extractTable">[docs]</a>    <span class="k">def</span> <span class="nf">_extractTable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">data</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract data and fill it into a data-table</span>
+<span class="sd">        :param name: name of the entry that should be got</span>
+<span class="sd">        :param data: the dataset. If unset then self.__metrics is used&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__metrics</span>
+
+        <span class="n">tab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_makeEmptyTable</span><span class="p">()</span>
+        <span class="n">row</span><span class="p">,</span><span class="n">col</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getLabels</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">col</span><span class="p">:</span>
+                <span class="n">tab</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">r</span><span class="p">][</span><span class="n">name</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">tab</span></div>
+
+<div class="viewcode-block" id="Data2DStatistics.names"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Data2DStatistics.html#PyFoam.Basics.Data2DStatistics.Data2DStatistics.names">[docs]</a>    <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s2">&quot;Valid data names&quot;</span>
+        <span class="n">row</span><span class="p">,</span><span class="n">col</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getLabels</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__metrics</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Data2DStatistics.compare"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Data2DStatistics.html#PyFoam.Basics.Data2DStatistics.Data2DStatistics.compare">[docs]</a>    <span class="k">def</span> <span class="nf">compare</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get a separate Data2DStatistics with the compare-data (if</span>
+<span class="sd">        present)&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__compare</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No compare data present&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Data2DStatistics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__compare</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Data2DStatistics.__getitem__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Data2DStatistics.html#PyFoam.Basics.Data2DStatistics.Data2DStatistics.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extractTable</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Data2DStatistics.func"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Data2DStatistics.html#PyFoam.Basics.Data2DStatistics.Data2DStatistics.func">[docs]</a>    <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">func</span><span class="p">,</span><span class="n">val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evaluate a function on the data</span>
+<span class="sd">        :param func: either a callable function or a string that evaluates to a callable</span>
+<span class="sd">        :param val: name of the data value to use&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Callable</span><span class="p">):</span>
+            <span class="n">f</span><span class="o">=</span><span class="n">func</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Callable</span><span class="p">):</span>
+                <span class="n">error</span><span class="p">(</span><span class="n">func</span><span class="p">,</span><span class="s2">&quot;does not evaluate to a callable&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="n">func</span><span class="p">,</span><span class="s2">&quot;is neither callable nor a string&quot;</span><span class="p">)</span>
+
+        <span class="n">tab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_makeEmptyTable</span><span class="p">()</span>
+
+        <span class="n">row</span><span class="p">,</span><span class="n">col</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getLabels</span><span class="p">()</span>
+        <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="p">[</span><span class="n">val</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">col</span><span class="p">:</span>
+                <span class="n">tab</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)]</span><span class="o">=</span><span class="n">f</span><span class="p">(</span><span class="n">data</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)])</span>
+
+        <span class="k">return</span> <span class="n">tab</span></div>
+
+<div class="viewcode-block" id="Data2DStatistics.range"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Data2DStatistics.html#PyFoam.Basics.Data2DStatistics.Data2DStatistics.range">[docs]</a>    <span class="k">def</span> <span class="nf">range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a table with the ranges of the data&quot;&quot;&quot;</span>
+        <span class="n">minD</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_extractTable</span><span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">)</span>
+        <span class="n">maxD</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_extractTable</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">)</span>
+        <span class="n">tab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_makeEmptyTable</span><span class="p">()</span>
+
+        <span class="n">row</span><span class="p">,</span><span class="n">col</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getLabels</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">col</span><span class="p">:</span>
+                <span class="n">tab</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)]</span><span class="o">=</span><span class="p">(</span><span class="n">minD</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)],</span><span class="n">maxD</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)])</span>
+
+        <span class="k">return</span> <span class="n">tab</span></div>
+
+    <span class="k">def</span> <span class="nf">__relativeErrorInternal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a table with the relative error</span>
+<span class="sd">        :param name: spcifies the name under which the error is found in the data&quot;&quot;&quot;</span>
+        <span class="n">dataRange</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">range</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__compare</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Need comparison data for relative error&quot;</span><span class="p">)</span>
+
+        <span class="n">maxError</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_extractTable</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__compare</span><span class="p">)</span>
+        <span class="n">rErr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_makeEmptyTable</span><span class="p">()</span>
+
+        <span class="n">row</span><span class="p">,</span><span class="n">col</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getLabels</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">col</span><span class="p">:</span>
+                <span class="n">rng</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])(</span><span class="n">dataRange</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)])</span>
+                <span class="n">mx</span><span class="o">=</span><span class="n">maxError</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="n">rng</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">small</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">rErr</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)]</span><span class="o">=</span><span class="n">mx</span><span class="o">/</span><span class="n">rng</span>
+                    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                        <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                        <span class="n">rErr</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">failureValue</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">failureValue</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="n">e</span>
+                <span class="k">elif</span> <span class="n">mx</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">small</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">noStrings</span><span class="p">:</span>
+                        <span class="n">rErr</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)]</span><span class="o">=</span><span class="mf">0.</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">rErr</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)]</span><span class="o">=</span><span class="s2">&quot;constant (</span><span class="si">%g</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">mx</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">noStrings</span><span class="p">:</span>
+                        <span class="n">rErr</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)]</span><span class="o">=</span><span class="mf">0.</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">rErr</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">)]</span><span class="o">=</span><span class="s2">&quot;constant ==&quot;</span>
+
+        <span class="k">return</span> <span class="n">rErr</span>
+
+<div class="viewcode-block" id="Data2DStatistics.relativeError"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Data2DStatistics.html#PyFoam.Basics.Data2DStatistics.Data2DStatistics.relativeError">[docs]</a>    <span class="k">def</span> <span class="nf">relativeError</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a table with the relative error&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__relativeErrorInternal</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Data2DStatistics.relativeAverageError"><a class="viewcode-back" href="../../../api/PyFoam.Basics.Data2DStatistics.html#PyFoam.Basics.Data2DStatistics.Data2DStatistics.relativeAverageError">[docs]</a>    <span class="k">def</span> <span class="nf">relativeAverageError</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a table with the relative average error&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__relativeErrorInternal</span><span class="p">(</span><span class="s2">&quot;wAverage&quot;</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,405 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.STLUtility &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.STLUtility</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.STLUtility</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application-class that implements pyFoamSTLUtility.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.STLFile</span> <span class="kn">import</span> <span class="n">STLFile</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.RestructuredTextHelper</span> <span class="kn">import</span> <span class="n">RestructuredTextHelper</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.FoamOptionParser</span> <span class="kn">import</span> <span class="n">Subcommand</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<div class="viewcode-block" id="STLUtility"><a class="viewcode-back" href="../../../api/PyFoam.Applications.STLUtility.html#PyFoam.Applications.STLUtility.STLUtility">[docs]</a><span class="k">class</span> <span class="nc">STLUtility</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="STLUtility.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.STLUtility.html#PyFoam.Applications.STLUtility.STLUtility.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">This utility does some basic manipulations with STL-files</span>
+<span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog COMMAND [&lt;source1.stl&gt; &lt;source2.stl&gt; ...]&quot;</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">subcommands</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="STLUtility.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.STLUtility.html#PyFoam.Applications.STLUtility.STLUtility.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Building the subcommands</span>
+        <span class="n">joinCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;join&#39;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Join STL-files into one&quot;</span><span class="p">,</span>
+                           <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;cat&quot;</span><span class="p">,),</span>
+                           <span class="n">nr</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                           <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span><span class="n">joinCmd</span><span class="p">)</span>
+
+        <span class="n">namesCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;names&#39;</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Report names of patches in the STLs&quot;</span><span class="p">,</span>
+                            <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;list&quot;</span><span class="p">,),</span>
+                            <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                            <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span>
+            <span class="n">namesCmd</span><span class="p">,</span>
+            <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog COMMAND [&lt;source.stl&gt; ... ]&quot;</span><span class="p">)</span>
+
+        <span class="n">infoCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;info&#39;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Reports about the STL-files&quot;</span><span class="p">,</span>
+                           <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;report&quot;</span><span class="p">,),</span>
+                           <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                           <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span>
+            <span class="n">infoCmd</span><span class="p">,</span>
+            <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog COMMAND [&lt;source.stl&gt; ... ]&quot;</span><span class="p">)</span>
+
+        <span class="n">removeCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;remove&#39;</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Remove patches from the STL-file&quot;</span><span class="p">,</span>
+                             <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;erase&quot;</span><span class="p">,</span><span class="s2">&quot;blank&quot;</span><span class="p">,),</span>
+                             <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                             <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span>
+            <span class="n">removeCmd</span><span class="p">,</span>
+            <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog COMMAND [&lt;source.stl&gt;]&quot;</span><span class="p">)</span>
+
+        <span class="n">mergeCmd</span><span class="o">=</span><span class="n">Subcommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;merge&#39;</span><span class="p">,</span>
+                             <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Merge patches and put them into a new patch&quot;</span><span class="p">,</span>
+                             <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;move&quot;</span><span class="p">,),</span>
+                             <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                             <span class="n">exactNr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">addSubcommand</span><span class="p">(</span><span class="n">mergeCmd</span><span class="p">)</span>
+        <span class="n">mergeCmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--new-patch-name&quot;</span><span class="p">,</span>
+                                   <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                                   <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;newName&quot;</span><span class="p">,</span>
+                                   <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                   <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Name of the patch that is added&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Add option groups to parsers</span>
+        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="p">[</span><span class="n">joinCmd</span><span class="p">,</span><span class="n">removeCmd</span><span class="p">,</span><span class="n">mergeCmd</span><span class="p">]:</span>
+            <span class="n">outOpts</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                                <span class="s2">&quot;Write Options&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;Where the resulting STL is written to&quot;</span><span class="p">)</span>
+            <span class="n">outOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--to-stdout&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;stdout&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Instead of writing to file write to stdout (used for piping into other commands)&quot;</span><span class="p">)</span>
+            <span class="n">outOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--force-write&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;forceWrite&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Force writing if the file already exists&quot;</span><span class="p">)</span>
+            <span class="n">outOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--stl-file&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;stlFile&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Write to this filename&quot;</span><span class="p">)</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">outOpts</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="p">[</span><span class="n">namesCmd</span><span class="p">,</span><span class="n">infoCmd</span><span class="p">,</span><span class="n">removeCmd</span><span class="p">,</span><span class="n">mergeCmd</span><span class="p">]:</span>
+            <span class="n">inOpts</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                               <span class="s2">&quot;Read Options&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;Which STLs are read&quot;</span><span class="p">)</span>
+            <span class="n">inOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--from-stdin&quot;</span><span class="p">,</span>
+                              <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                              <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;stdin&quot;</span><span class="p">,</span>
+                              <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                              <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Instead of reading from file read from stdin (used for piping into other commands)&quot;</span><span class="p">)</span>
+            <span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">inOpts</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="p">[</span><span class="n">removeCmd</span><span class="p">,</span><span class="n">mergeCmd</span><span class="p">]:</span>
+            <span class="n">patchOpts</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                                  <span class="s2">&quot;Patch selection&quot;</span><span class="p">,</span>
+                                  <span class="s2">&quot;Which patches to operate on&quot;</span><span class="p">)</span>
+            <span class="n">patchOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--patch-name&quot;</span><span class="p">,</span>
+                                 <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                                 <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;patchNames&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Name of the patch to work on. Can be selected more than once&quot;</span><span class="p">)</span>
+            <span class="n">patchOpts</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--select-expression&quot;</span><span class="p">,</span>
+                                 <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                                 <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;patchExpr&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                                 <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Regular expressions fitting the patches. Can be selected more than once&quot;</span><span class="p">)</span>
+
+            <span class="n">cmd</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">patchOpts</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="STLUtility.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.STLUtility.html#PyFoam.Applications.STLUtility.STLUtility.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">sources</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="s2">&quot;stdin&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stdin</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;If --from-stdin specified no arguments are allowed but we have&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">())</span>
+                <span class="n">sources</span><span class="o">=</span><span class="p">[</span><span class="n">STLFile</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">sources</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">sources</span><span class="o">=</span><span class="p">[</span><span class="n">STLFile</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;remove&quot;</span><span class="p">,</span><span class="s2">&quot;merge&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span><span class="o">!=</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Only one input allowed for&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;remove&quot;</span><span class="p">,</span><span class="s2">&quot;merge&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">patchExpr</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">patchNames</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Neither --patch-name nor --select-expression specified&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">patchExpr</span><span class="p">:</span>
+                <span class="n">expr</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">patchInfo</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">patchNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">patchNames</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No patches fit the provided regular expressions&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;remove&quot;</span><span class="p">,</span><span class="s2">&quot;join&quot;</span><span class="p">,</span><span class="s2">&quot;merge&quot;</span><span class="p">]:</span>
+            <span class="c1"># Check whether output is correct</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stdout</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stlFile</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Can&#39;t specify --to-stdout and --stl-file at the same time&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stlFile</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stlFile</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">forceWrite</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;File&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stlFile</span><span class="p">,</span><span class="s2">&quot;does allready exist. Use --force-write to overwrite&quot;</span><span class="p">)</span>
+                <span class="n">outputTo</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stlFile</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
+                <span class="n">outputTo</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Specify either --to-stdout or --stld-file&quot;</span><span class="p">)</span>
+
+        <span class="n">rst</span><span class="o">=</span><span class="n">RestructuredTextHelper</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;names&quot;</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">rst</span><span class="o">.</span><span class="n">buildHeading</span><span class="p">(</span><span class="s2">&quot;Patch names&quot;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">RestructuredTextHelper</span><span class="o">.</span><span class="n">LevelSection</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">rst</span><span class="o">.</span><span class="n">buildHeading</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">filename</span><span class="p">(),</span><span class="n">level</span><span class="o">=</span><span class="n">RestructuredTextHelper</span><span class="o">.</span><span class="n">LevelSubSection</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">patchInfo</span><span class="p">():</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;info&quot;</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">rst</span><span class="o">.</span><span class="n">buildHeading</span><span class="p">(</span><span class="s2">&quot;Patch info&quot;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">RestructuredTextHelper</span><span class="o">.</span><span class="n">LevelSection</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">rst</span><span class="o">.</span><span class="n">buildHeading</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">filename</span><span class="p">(),</span><span class="n">level</span><span class="o">=</span><span class="n">RestructuredTextHelper</span><span class="o">.</span><span class="n">LevelSubSection</span><span class="p">))</span>
+                <span class="n">tab</span><span class="o">=</span><span class="n">rst</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+                <span class="n">tab</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span><span class="s2">&quot;facets&quot;</span><span class="p">,</span><span class="s2">&quot;range in file&quot;</span><span class="p">,</span><span class="s2">&quot;bounding box&quot;</span><span class="p">]</span>
+                <span class="n">tab</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">patchInfo</span><span class="p">()):</span>
+                    <span class="n">tab</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+                    <span class="n">tab</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;facets&quot;</span><span class="p">]</span>
+                    <span class="n">tab</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)]</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">-</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">],</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;end&quot;</span><span class="p">])</span>
+                    <span class="n">tab</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">)]</span><span class="o">=</span><span class="s2">&quot;(</span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">) - (</span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span><span class="o">+</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">])</span>
+
+                <span class="n">print_</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;join&quot;</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">=</span><span class="n">STLFile</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">+=</span><span class="n">s</span>
+
+            <span class="n">result</span><span class="o">.</span><span class="n">writeTo</span><span class="p">(</span><span class="n">outputTo</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;remove&quot;</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">=</span><span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">erasePatches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">patchNames</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">writeTo</span><span class="p">(</span><span class="n">outputTo</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="o">==</span><span class="s2">&quot;merge&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">newName</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Specify --new-patch-name&quot;</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">=</span><span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">mergePatches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">patchNames</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">newName</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">writeTo</span><span class="p">(</span><span class="n">outputTo</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unimplemented subcommand&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">cmdname</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,877 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.CaseReport &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.CaseReport</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.CaseReport</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application class that implements pyFoamCasedReport.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+
+<span class="kn">from</span> <span class="nn">fnmatch</span> <span class="kn">import</span> <span class="n">fnmatch</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SolutionDirectory</span> <span class="kn">import</span> <span class="n">SolutionDirectory</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.BoundaryDict</span> <span class="kn">import</span> <span class="n">BoundaryDict</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.MeshInformation</span> <span class="kn">import</span> <span class="n">MeshInformation</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">PyFoamParserError</span><span class="p">,</span><span class="n">ParsedBoundaryDict</span><span class="p">,</span><span class="n">ParsedParameterFile</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.RestructuredTextHelper</span> <span class="kn">import</span> <span class="n">RestructuredTextHelper</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.DataStructures</span> <span class="kn">import</span> <span class="n">DictProxy</span><span class="p">,</span><span class="n">Field</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">iteritems</span><span class="p">,</span><span class="n">string_types</span>
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log10</span><span class="p">,</span><span class="n">ceil</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+<div class="viewcode-block" id="CaseReport"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseReport.html#PyFoam.Applications.CaseReport.CaseReport">[docs]</a><span class="k">class</span> <span class="nc">CaseReport</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="CaseReport.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseReport.html#PyFoam.Applications.CaseReport.CaseReport.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Produces human-readable reports about a case. Attention: the amount of</span>
+<span class="s2">information in the reports is limited. The truth is always in the</span>
+<span class="s2">dictionary-files.</span>
+
+<span class="s2">The format of the output is restructured-text so it can be run through</span>
+<span class="s2">a postprocessor like rst2tex or rst2html to produce PDF or HTML</span>
+<span class="s2">respectivly</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] &lt;casedir&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseReport.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseReport.html#PyFoam.Applications.CaseReport.CaseReport.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">report</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Reports&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;What kind of reports should be produced&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+        <span class="n">select</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Selection&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;Which data should be used for the reports&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">select</span><span class="p">)</span>
+        <span class="n">internal</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                             <span class="s2">&quot;Internal&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;Details of the parser&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">internal</span><span class="p">)</span>
+
+        <span class="n">format</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                             <span class="s2">&quot;Formatting&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;Restructured Text formatting&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">format</span><span class="p">)</span>
+
+        <span class="n">format</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--heading-level&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;headingLevel&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Default level of the headings. Valid values from 0 to 5. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+
+        <span class="n">output</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                             <span class="s2">&quot;Output&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;How Output should be generated&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--file&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;file&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Write the output to a file instead of the console&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--full-report&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print all available reports at once&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--short-bc-report&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;shortBCreport&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Gives a short overview of the boundary-conditions in the case&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--long-bc-report&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;longBCreport&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Gives a full overview of the boundary-conditions in the case&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--dimensions&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;dimensions&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Show the dimensions of the fields&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--internal-field&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;internal&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Show the internal value of the fields (the initial conditions)&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--linear-solvers&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;linearSolvers&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print the linear solvers and their tolerance&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--relaxation-factors&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;relaxationFactors&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print the relaxation factors (if there are any)&quot;</span><span class="p">)</span>
+
+        <span class="n">select</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--time&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Time to use as the basis for the reports&quot;</span><span class="p">)</span>
+
+        <span class="n">select</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--region&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;region&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do the report for a special region for multi-region cases&quot;</span><span class="p">)</span>
+
+        <span class="n">select</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--all-regions&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;allRegions&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Do the report for all regions for multi-region cases&quot;</span><span class="p">)</span>
+
+        <span class="n">select</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--parallel&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;parallel&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Get times from the processor-directories&quot;</span><span class="p">)</span>
+
+        <span class="n">internal</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--long-field-threshold&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                            <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;longlist&quot;</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Fields that are longer than this won&#39;t be parsed, but read into memory (and compared as strings). Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">internal</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-do-macro-expansion&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;doMacros&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t expand macros with $ and # in the field-files&quot;</span><span class="p">)</span>
+
+        <span class="n">internal</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--treat-binary-as-ascii&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;treatBinaryAsASCII&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Try to treat binary dictionaries as ASCII anyway&quot;</span><span class="p">)</span>
+
+        <span class="n">internal</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-treat-boundary-binary-as-ascii&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;boundaryTreatBinaryAsASCII&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If &#39;boundary&#39;-files are written as binary read them as such (default assumes that these files are ASCII whatever the header says)&quot;</span><span class="p">)</span>
+
+        <span class="n">select</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--patches&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;patches&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Patches which should be processed (pattern, can be used more than once)&quot;</span><span class="p">)</span>
+
+        <span class="n">select</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--exclude-patches&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;expatches&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Patches which should not be processed (pattern, can be used more than once)&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--processor-matrix&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;processorMatrix&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Prints the matrix how many faces from one processor interact with another&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--case-size&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;caseSize&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Report the number of cells, points and faces in the case&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--decomposition&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;decomposition&quot;</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Reports the size of the parallel decomposition&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CaseReport.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseReport.html#PyFoam.Applications.CaseReport.CaseReport.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">oldStdout</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">file</span><span class="p">:</span>
+                <span class="n">oldStdout</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">file</span><span class="p">,</span><span class="n">string_types</span><span class="p">):</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">file</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">file</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">allRegions</span><span class="p">:</span>
+                <span class="n">sol</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                                      <span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                      <span class="n">parallel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">parallel</span><span class="p">,</span>
+                                      <span class="n">paraviewLink</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sol</span><span class="o">.</span><span class="n">getRegions</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">doRegion</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">doRegion</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">region</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">oldStdout</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">=</span><span class="n">oldStdout</span></div>
+
+<div class="viewcode-block" id="CaseReport.doRegion"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CaseReport.html#PyFoam.Applications.CaseReport.CaseReport.doRegion">[docs]</a>    <span class="k">def</span> <span class="nf">doRegion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">theRegion</span><span class="p">):</span>
+        <span class="n">ReST</span><span class="o">=</span><span class="n">RestructuredTextHelper</span><span class="p">(</span><span class="n">defaultHeading</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">headingLevel</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">allRegions</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">ReST</span><span class="o">.</span><span class="n">buildHeading</span><span class="p">(</span><span class="s2">&quot;Region: &quot;</span><span class="p">,</span><span class="n">theRegion</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">headingLevel</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">sol</span><span class="o">=</span><span class="n">SolutionDirectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                              <span class="n">archive</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                              <span class="n">parallel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">parallel</span><span class="p">,</span>
+                              <span class="n">paraviewLink</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                              <span class="n">region</span><span class="o">=</span><span class="n">theRegion</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">all</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">caseSize</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">shortBCreport</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">longBCreport</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dimensions</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">internal</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">linearSolvers</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">relaxationFactors</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">processorMatrix</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">decomposition</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="n">sol</span><span class="o">.</span><span class="n">timeName</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">timeIndex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">,</span><span class="n">minTime</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;The specified time&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">,</span><span class="s2">&quot;doesn&#39;t exist in the case&quot;</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Using time t=&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">needsPolyBoundaries</span><span class="o">=</span><span class="bp">False</span>
+        <span class="n">needsInitialTime</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">longBCreport</span><span class="p">:</span>
+            <span class="n">needsPolyBoundaries</span><span class="o">=</span><span class="bp">True</span>
+            <span class="n">needsInitialTime</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">shortBCreport</span><span class="p">:</span>
+            <span class="n">needsPolyBoundaries</span><span class="o">=</span><span class="bp">True</span>
+            <span class="n">needsInitialTime</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+            <span class="n">needsInitialTime</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">internal</span><span class="p">:</span>
+            <span class="n">needsInitialTime</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">decomposition</span><span class="p">:</span>
+            <span class="n">needsPolyBoundaries</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="n">defaultProc</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">parallel</span><span class="p">:</span>
+            <span class="n">defaultProc</span><span class="o">=</span><span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">needsPolyBoundaries</span><span class="p">:</span>
+            <span class="n">proc</span><span class="o">=</span><span class="bp">None</span>
+            <span class="n">boundary</span><span class="o">=</span><span class="n">BoundaryDict</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                  <span class="n">region</span><span class="o">=</span><span class="n">theRegion</span><span class="p">,</span>
+                                  <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">,</span>
+                                  <span class="n">treatBinaryAsASCII</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">boundaryTreatBinaryAsASCII</span><span class="p">,</span>
+                                  <span class="n">processor</span><span class="o">=</span><span class="n">defaultProc</span><span class="p">)</span>
+
+            <span class="n">boundMaxLen</span><span class="o">=</span><span class="mi">0</span>
+            <span class="n">boundaryNames</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boundary</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;procBoundary&quot;</span><span class="p">)</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">boundaryNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">patches</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">tmp</span><span class="o">=</span><span class="n">boundaryNames</span>
+                <span class="n">boundaryNames</span><span class="o">=</span><span class="p">[]</span>
+                <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">tmp</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">patches</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">fnmatch</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">p</span><span class="p">):</span>
+                            <span class="n">boundaryNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+                            <span class="k">break</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">expatches</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">tmp</span><span class="o">=</span><span class="n">boundaryNames</span>
+                <span class="n">boundaryNames</span><span class="o">=</span><span class="p">[]</span>
+                <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">tmp</span><span class="p">:</span>
+                    <span class="n">keep</span><span class="o">=</span><span class="bp">True</span>
+                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">expatches</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">fnmatch</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">p</span><span class="p">):</span>
+                            <span class="n">keep</span><span class="o">=</span><span class="bp">False</span>
+                            <span class="k">break</span>
+                    <span class="k">if</span> <span class="n">keep</span><span class="p">:</span>
+                        <span class="n">boundaryNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boundaryNames</span><span class="p">:</span>
+                <span class="n">boundMaxLen</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">boundMaxLen</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+            <span class="n">boundaryNames</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">procTime</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">procTime</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span>
+
+        <span class="k">if</span> <span class="n">needsInitialTime</span><span class="p">:</span>
+            <span class="n">fields</span><span class="o">=</span><span class="p">{}</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">time</span><span class="o">=</span><span class="n">sol</span><span class="o">.</span><span class="n">timeName</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;There is no timestep in the case&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span>
+
+            <span class="n">tDir</span><span class="o">=</span><span class="n">sol</span><span class="p">[</span><span class="n">time</span><span class="p">]</span>
+
+            <span class="n">nameMaxLen</span><span class="o">=</span><span class="mi">0</span>
+
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">tDir</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">baseName</span><span class="p">()]</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">getContent</span><span class="p">(</span><span class="n">listLengthUnparsed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">longlist</span><span class="p">,</span>
+                                                      <span class="n">treatBinaryAsASCII</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">treatBinaryAsASCII</span><span class="p">,</span>
+                                                      <span class="n">doMacroExpansion</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">doMacros</span><span class="p">)</span>
+                    <span class="n">nameMaxLen</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">nameMaxLen</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">baseName</span><span class="p">()))</span>
+                <span class="k">except</span> <span class="n">PyFoamParserError</span><span class="p">:</span>
+                    <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                    <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t parse&quot;</span><span class="p">,</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;because of an error:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">,</span><span class="s2">&quot; -&gt; skipping&quot;</span><span class="p">)</span>
+
+            <span class="n">fieldNames</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">fieldNames</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">caseSize</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">ReST</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;Size of the case&quot;</span><span class="p">))</span>
+
+            <span class="n">nFaces</span><span class="o">=</span><span class="mi">0</span>
+            <span class="n">nPoints</span><span class="o">=</span><span class="mi">0</span>
+            <span class="n">nCells</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">parallel</span><span class="p">:</span>
+                <span class="n">procs</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">nrProcs</span><span class="p">()))</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Accumulated from&quot;</span><span class="p">,</span><span class="n">sol</span><span class="o">.</span><span class="n">nrProcs</span><span class="p">(),</span><span class="s2">&quot;processors&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">procs</span><span class="o">=</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">procs</span><span class="p">:</span>
+                <span class="n">info</span><span class="o">=</span><span class="n">MeshInformation</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                     <span class="n">processor</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+                                     <span class="n">region</span><span class="o">=</span><span class="n">theRegion</span><span class="p">,</span>
+                                     <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+                <span class="n">nFaces</span><span class="o">+=</span><span class="n">info</span><span class="o">.</span><span class="n">nrOfFaces</span><span class="p">()</span>
+                <span class="n">nPoints</span><span class="o">+=</span><span class="n">info</span><span class="o">.</span><span class="n">nrOfPoints</span><span class="p">()</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">nCells</span><span class="o">+=</span><span class="n">info</span><span class="o">.</span><span class="n">nrOfCells</span><span class="p">()</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="n">nCells</span><span class="o">=</span><span class="s2">&quot;Not available&quot;</span>
+            <span class="n">tab</span><span class="o">=</span><span class="n">ReST</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+            <span class="n">tab</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Faces&quot;</span><span class="p">,</span><span class="n">nFaces</span><span class="p">)</span>
+            <span class="n">tab</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Points&quot;</span><span class="p">,</span><span class="n">nPoints</span><span class="p">)</span>
+            <span class="n">tab</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Cells&quot;</span><span class="p">,</span><span class="n">nCells</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">decomposition</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">ReST</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;Decomposition&quot;</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">sol</span><span class="o">.</span><span class="n">nrProcs</span><span class="p">()</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;This case is not decomposed&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Case is decomposed for&quot;</span><span class="p">,</span><span class="n">sol</span><span class="o">.</span><span class="n">nrProcs</span><span class="p">(),</span><span class="s2">&quot;processors&quot;</span><span class="p">)</span>
+                <span class="n">print_</span><span class="p">()</span>
+
+                <span class="n">nCells</span><span class="o">=</span><span class="p">[]</span>
+                <span class="n">nFaces</span><span class="o">=</span><span class="p">[]</span>
+                <span class="n">nPoints</span><span class="o">=</span><span class="p">[]</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">sol</span><span class="o">.</span><span class="n">processorDirs</span><span class="p">():</span>
+                    <span class="n">info</span><span class="o">=</span><span class="n">MeshInformation</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                         <span class="n">processor</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+                                         <span class="n">region</span><span class="o">=</span><span class="n">theRegion</span><span class="p">,</span>
+                                         <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+                    <span class="n">nPoints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">nrOfPoints</span><span class="p">())</span>
+                    <span class="n">nFaces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">nrOfFaces</span><span class="p">())</span>
+                    <span class="n">nCells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">nrOfCells</span><span class="p">())</span>
+
+                <span class="n">digits</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">ceil</span><span class="p">(</span><span class="n">log10</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">nrProcs</span><span class="p">(),</span>
+                                          <span class="nb">max</span><span class="p">(</span><span class="n">nCells</span><span class="p">),</span>
+                                          <span class="nb">max</span><span class="p">(</span><span class="n">nFaces</span><span class="p">),</span>
+                                          <span class="nb">max</span><span class="p">(</span><span class="n">nPoints</span><span class="p">)</span>
+                                          <span class="p">))))</span><span class="o">+</span><span class="mi">2</span>
+                <span class="n">nameLen</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="s2">&quot;Points&quot;</span><span class="p">),</span><span class="n">boundMaxLen</span><span class="p">)</span>
+
+                <span class="n">tab</span><span class="o">=</span><span class="n">ReST</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+                <span class="n">tab</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;CPU&quot;</span><span class="p">]</span><span class="o">+</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">nrProcs</span><span class="p">()))</span>
+
+                <span class="n">tab</span><span class="o">.</span><span class="n">addLine</span><span class="p">()</span>
+
+                <span class="n">tab</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Points&quot;</span><span class="p">]</span><span class="o">+</span><span class="n">nPoints</span>
+                <span class="n">tab</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Faces&quot;</span><span class="p">]</span><span class="o">+</span><span class="n">nFaces</span>
+                <span class="n">tab</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Cells&quot;</span><span class="p">]</span><span class="o">+</span><span class="n">nCells</span>
+                <span class="n">tab</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+                <span class="n">nr</span><span class="o">=</span><span class="mi">3</span>
+                <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boundaryNames</span><span class="p">:</span>
+                    <span class="n">nr</span><span class="o">+=</span><span class="mi">1</span>
+                    <span class="n">tab</span><span class="p">[(</span><span class="n">nr</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span><span class="o">=</span><span class="n">b</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">processorDirs</span><span class="p">()):</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">nFaces</span><span class="o">=</span> <span class="n">ParsedBoundaryDict</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">boundaryDict</span><span class="p">(</span><span class="n">processor</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+                                                                        <span class="n">region</span><span class="o">=</span><span class="n">theRegion</span><span class="p">,</span>
+                                                                        <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">),</span>
+                                                       <span class="n">treatBinaryAsASCII</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">boundaryTreatBinaryAsASCII</span>
+                                                       <span class="p">)[</span><span class="n">b</span><span class="p">][</span><span class="s2">&quot;nFaces&quot;</span><span class="p">]</span>
+                        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                            <span class="n">nFaces</span><span class="o">=</span> <span class="n">ParsedBoundaryDict</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">boundaryDict</span><span class="p">(</span><span class="n">processor</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+                                                                        <span class="n">region</span><span class="o">=</span><span class="n">theRegion</span><span class="p">),</span>
+                                                       <span class="n">treatBinaryAsASCII</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">boundaryTreatBinaryAsASCII</span>
+                                                       <span class="p">)[</span><span class="n">b</span><span class="p">][</span><span class="s2">&quot;nFaces&quot;</span><span class="p">]</span>
+                        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                            <span class="n">nFaces</span><span class="o">=</span><span class="mi">0</span>
+
+                        <span class="n">tab</span><span class="p">[(</span><span class="n">nr</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="n">nFaces</span>
+
+                <span class="n">print_</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">longBCreport</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">ReST</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;The boundary conditions for t =&quot;</span><span class="p">,</span><span class="n">time</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boundaryNames</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">ReST</span><span class="o">.</span><span class="n">buildHeading</span><span class="p">(</span><span class="s2">&quot;Boundary: &quot;</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">headingLevel</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+                <span class="n">bound</span><span class="o">=</span><span class="n">boundary</span><span class="p">[</span><span class="n">b</span><span class="p">]</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;:Type:</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">bound</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s2">&quot;physicalType&quot;</span> <span class="ow">in</span> <span class="n">bound</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;:Physical:</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">bound</span><span class="p">[</span><span class="s2">&quot;physicalType&quot;</span><span class="p">])</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;:Faces:</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">bound</span><span class="p">[</span><span class="s2">&quot;nFaces&quot;</span><span class="p">])</span>
+                <span class="n">print_</span><span class="p">()</span>
+                <span class="n">heads</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Field&quot;</span><span class="p">,</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+                <span class="n">tab</span><span class="o">=</span><span class="n">ReST</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+                <span class="n">tab</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">heads</span>
+                <span class="n">tab</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">row</span><span class="p">,</span><span class="n">fName</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fieldNames</span><span class="p">):</span>
+                    <span class="n">tab</span><span class="p">[(</span><span class="n">row</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span><span class="o">=</span><span class="n">fName</span>
+                    <span class="n">f</span><span class="o">=</span><span class="n">fields</span><span class="p">[</span><span class="n">fName</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="s2">&quot;boundaryField&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="n">tab</span><span class="p">[(</span><span class="n">row</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="s2">&quot;Not a field file&quot;</span>
+                    <span class="k">elif</span> <span class="n">b</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;boundaryField&quot;</span><span class="p">]:</span>
+                        <span class="n">tab</span><span class="p">[(</span><span class="n">row</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="s2">&quot;MISSING !!!&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">bf</span><span class="o">=</span><span class="n">f</span><span class="p">[</span><span class="s2">&quot;boundaryField&quot;</span><span class="p">][</span><span class="n">b</span><span class="p">]</span>
+
+                        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">bf</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">col</span><span class="o">=</span><span class="n">heads</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                                <span class="n">col</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">heads</span><span class="p">)</span>
+                                <span class="n">tab</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="n">col</span><span class="p">)]</span><span class="o">=</span><span class="n">k</span>
+                                <span class="n">heads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                            <span class="n">cont</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">bf</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">bf</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="o">==</span><span class="n">Field</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">bf</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">isBinary</span><span class="p">():</span>
+                                    <span class="n">cont</span><span class="o">=</span> <span class="n">bf</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">binaryString</span><span class="p">()</span>
+
+                            <span class="k">if</span> <span class="n">cont</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                                <span class="n">tab</span><span class="p">[(</span><span class="n">row</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">col</span><span class="p">)]</span><span class="o">=</span><span class="n">cont</span><span class="p">[:</span><span class="n">cont</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)]</span><span class="o">+</span><span class="s2">&quot;...&quot;</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">tab</span><span class="p">[(</span><span class="n">row</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">col</span><span class="p">)]</span><span class="o">=</span><span class="n">cont</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">shortBCreport</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">ReST</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;Table of boundary conditions for t =&quot;</span><span class="p">,</span><span class="n">time</span><span class="p">))</span>
+
+            <span class="n">types</span><span class="o">=</span><span class="p">{}</span>
+            <span class="n">hasPhysical</span><span class="o">=</span><span class="bp">False</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boundary</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;physicalType&quot;</span> <span class="ow">in</span> <span class="n">boundary</span><span class="p">[</span><span class="n">b</span><span class="p">]:</span>
+                    <span class="n">hasPhysical</span><span class="o">=</span><span class="bp">True</span>
+
+                <span class="n">types</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+
+                <span class="k">for</span> <span class="n">fName</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">=</span><span class="n">fields</span><span class="p">[</span><span class="n">fName</span><span class="p">]</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">b</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;boundaryField&quot;</span><span class="p">]:</span>
+                            <span class="n">types</span><span class="p">[</span><span class="n">b</span><span class="p">][</span><span class="n">fName</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;MISSING&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">types</span><span class="p">[</span><span class="n">b</span><span class="p">][</span><span class="n">fName</span><span class="p">]</span><span class="o">=</span><span class="n">f</span><span class="p">[</span><span class="s2">&quot;boundaryField&quot;</span><span class="p">][</span><span class="n">b</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="n">types</span><span class="p">[</span><span class="n">b</span><span class="p">][</span><span class="n">fName</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;Not a field&quot;</span>
+
+            <span class="n">tab</span><span class="o">=</span><span class="n">ReST</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+            <span class="n">tab</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span><span class="o">+</span><span class="n">boundaryNames</span>
+            <span class="n">tab</span><span class="o">.</span><span class="n">addLine</span><span class="p">()</span>
+            <span class="n">tab</span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span><span class="o">=</span><span class="s2">&quot;Patch Type&quot;</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">boundaryNames</span><span class="p">):</span>
+                <span class="n">tab</span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="n">boundary</span><span class="p">[</span><span class="n">b</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+
+            <span class="n">nr</span><span class="o">=</span><span class="mi">2</span>
+            <span class="k">if</span> <span class="n">hasPhysical</span><span class="p">:</span>
+                <span class="n">tab</span><span class="p">[(</span><span class="n">nr</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span><span class="o">=</span><span class="s2">&quot;Physical Type&quot;</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">boundaryNames</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="s2">&quot;physicalType&quot;</span> <span class="ow">in</span> <span class="n">boundary</span><span class="p">[</span><span class="n">b</span><span class="p">]:</span>
+                        <span class="n">tab</span><span class="p">[(</span><span class="n">nr</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="n">boundary</span><span class="p">[</span><span class="n">b</span><span class="p">][</span><span class="s2">&quot;physicalType&quot;</span><span class="p">]</span>
+                <span class="n">nr</span><span class="o">+=</span><span class="mi">1</span>
+
+            <span class="n">tab</span><span class="p">[(</span><span class="n">nr</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span><span class="o">=</span><span class="s2">&quot;Length&quot;</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">boundaryNames</span><span class="p">):</span>
+                <span class="n">tab</span><span class="p">[(</span><span class="n">nr</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="n">boundary</span><span class="p">[</span><span class="n">b</span><span class="p">][</span><span class="s2">&quot;nFaces&quot;</span><span class="p">]</span>
+            <span class="n">nr</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="n">tab</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">fName</span> <span class="ow">in</span> <span class="n">fieldNames</span><span class="p">:</span>
+                <span class="n">tab</span><span class="p">[(</span><span class="n">nr</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span><span class="o">=</span><span class="n">fName</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">boundaryNames</span><span class="p">):</span>
+                    <span class="n">tab</span><span class="p">[(</span><span class="n">nr</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">=</span><span class="n">types</span><span class="p">[</span><span class="n">b</span><span class="p">][</span><span class="n">fName</span><span class="p">]</span>
+                <span class="n">nr</span><span class="o">+=</span><span class="mi">1</span>
+
+            <span class="n">print_</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">ReST</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;Dimensions of fields for t =&quot;</span><span class="p">,</span><span class="n">time</span><span class="p">))</span>
+
+            <span class="n">tab</span><span class="o">=</span><span class="n">ReST</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+            <span class="n">tab</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;[ kg m s K mol A cd ]&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">tab</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">fName</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fieldNames</span><span class="p">):</span>
+                <span class="n">f</span><span class="o">=</span><span class="n">fields</span><span class="p">[</span><span class="n">fName</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">dim</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">dim</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;-&quot;</span><span class="p">]</span><span class="o">*</span><span class="mi">7</span>
+                <span class="n">tab</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="n">fName</span><span class="p">]</span><span class="o">+</span><span class="n">dim</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">internal</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">ReST</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;Internal value of fields for t =&quot;</span><span class="p">,</span><span class="n">time</span><span class="p">))</span>
+
+            <span class="n">tab</span><span class="o">=</span><span class="n">ReST</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+            <span class="n">tab</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span><span class="s2">&quot;Value&quot;</span><span class="p">]</span>
+            <span class="n">tab</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">fName</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fieldNames</span><span class="p">):</span>
+                <span class="n">f</span><span class="o">=</span><span class="n">fields</span><span class="p">[</span><span class="n">fName</span><span class="p">]</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;internalField&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isBinary</span><span class="p">():</span>
+                        <span class="n">val</span><span class="o">=</span><span class="n">f</span><span class="p">[</span><span class="s2">&quot;internalField&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">binaryString</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">cont</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s2">&quot;internalField&quot;</span><span class="p">])</span>
+                        <span class="k">if</span> <span class="n">cont</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                            <span class="n">val</span><span class="o">=</span><span class="n">cont</span><span class="p">[:</span><span class="n">cont</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)]</span><span class="o">+</span><span class="s2">&quot;...&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">val</span><span class="o">=</span><span class="n">cont</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">val</span><span class="o">=</span><span class="s2">&quot;Not a field file&quot;</span>
+                <span class="n">tab</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="n">fName</span><span class="p">,</span><span class="n">val</span><span class="p">]</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">processorMatrix</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">ReST</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;Processor matrix&quot;</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">sol</span><span class="o">.</span><span class="n">nrProcs</span><span class="p">()</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;This case is not decomposed&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">matrix</span><span class="o">=</span><span class="p">[</span> <span class="p">[</span><span class="mi">0</span><span class="p">,]</span><span class="o">*</span><span class="n">sol</span><span class="o">.</span><span class="n">nrProcs</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">nrProcs</span><span class="p">())]</span>
+
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">processorDirs</span><span class="p">()):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">bound</span><span class="o">=</span><span class="n">ParsedBoundaryDict</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">boundaryDict</span><span class="p">(</span><span class="n">processor</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+                                                                  <span class="n">region</span><span class="o">=</span><span class="n">theRegion</span><span class="p">,</span>
+                                                                  <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+                                                 <span class="p">,</span><span class="n">treatBinaryAsASCII</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">boundaryTreatBinaryAsASCII</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                        <span class="n">bound</span><span class="o">=</span><span class="n">ParsedBoundaryDict</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">boundaryDict</span><span class="p">(</span><span class="n">processor</span><span class="o">=</span><span class="n">p</span><span class="p">,</span>
+                                                                  <span class="n">treatBinaryAsASCII</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">boundaryTreatBinaryAsASCII</span><span class="p">,</span>
+                                                                  <span class="n">region</span><span class="o">=</span><span class="n">theRegion</span><span class="p">)</span>
+                                                 <span class="p">,</span><span class="n">treatBinaryAsASCII</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">boundaryTreatBinaryAsASCII</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">nrProcs</span><span class="p">()):</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;procBoundary</span><span class="si">%d</span><span class="s2">to</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+                        <span class="n">name2</span><span class="o">=</span><span class="s2">&quot;procBoundary</span><span class="si">%d</span><span class="s2">to</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">bound</span><span class="p">:</span>
+                            <span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">bound</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;nFaces&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">name2</span> <span class="ow">in</span> <span class="n">bound</span><span class="p">:</span>
+                            <span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">bound</span><span class="p">[</span><span class="n">name2</span><span class="p">][</span><span class="s2">&quot;nFaces&quot;</span><span class="p">]</span>
+
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Matrix of processor interactions (faces)&quot;</span><span class="p">)</span>
+                <span class="n">print_</span><span class="p">()</span>
+
+                <span class="n">tab</span><span class="o">=</span><span class="n">ReST</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+                <span class="n">tab</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;CPU&quot;</span><span class="p">]</span><span class="o">+</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">nrProcs</span><span class="p">()))</span>
+                <span class="n">tab</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">matrix</span><span class="p">):</span>
+                    <span class="n">tab</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+                <span class="n">print_</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">linearSolvers</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">ReST</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;Linear Solvers&quot;</span><span class="p">))</span>
+
+            <span class="n">linTable</span><span class="o">=</span><span class="n">ReST</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+
+            <span class="n">fvSol</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">systemDir</span><span class="p">(),</span><span class="s2">&quot;fvSolution&quot;</span><span class="p">),</span>
+                                      <span class="n">treatBinaryAsASCII</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">treatBinaryAsASCII</span><span class="p">)</span>
+            <span class="n">allInfo</span><span class="o">=</span><span class="p">{}</span>
+            <span class="k">for</span> <span class="n">sName</span> <span class="ow">in</span> <span class="n">fvSol</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">]:</span>
+                <span class="n">raw</span><span class="o">=</span><span class="n">fvSol</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">][</span><span class="n">sName</span><span class="p">]</span>
+                <span class="n">info</span><span class="o">=</span><span class="p">{}</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">dict</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">]:</span>
+                    <span class="c1"># fvSolution format in 1.7</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;solver&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">raw</span><span class="p">[</span><span class="s2">&quot;solver&quot;</span><span class="p">]</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;solver&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;&lt;none&gt;&quot;</span>
+                    <span class="n">solverData</span><span class="o">=</span><span class="n">raw</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">info</span><span class="p">[</span><span class="s2">&quot;solver&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">raw</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">solverData</span><span class="o">=</span><span class="n">raw</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">solverData</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">dict</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">]:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;tolerance&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">solverData</span><span class="p">[</span><span class="s2">&quot;tolerance&quot;</span><span class="p">]</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;tolerance&quot;</span><span class="p">]</span><span class="o">=</span><span class="mf">1.</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;relTol&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">solverData</span><span class="p">[</span><span class="s2">&quot;relTol&quot;</span><span class="p">]</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;relTol&quot;</span><span class="p">]</span><span class="o">=</span><span class="mf">0.</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># the old (pre-1.5) fvSolution-format</span>
+                    <span class="n">info</span><span class="p">[</span><span class="s2">&quot;tolerance&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">solverData</span>
+                    <span class="n">info</span><span class="p">[</span><span class="s2">&quot;relTol&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">raw</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+                <span class="n">allInfo</span><span class="p">[</span><span class="n">sName</span><span class="p">]</span><span class="o">=</span><span class="n">info</span>
+
+            <span class="n">linTable</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span><span class="s2">&quot;Solver&quot;</span><span class="p">,</span><span class="s2">&quot;Abs. Tolerance&quot;</span><span class="p">,</span><span class="s2">&quot;Relative Tol.&quot;</span><span class="p">]</span>
+            <span class="n">linTable</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+            <span class="n">nr</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">i</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">allInfo</span><span class="p">):</span>
+                <span class="n">nr</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="n">linTable</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">i</span><span class="p">[</span><span class="s2">&quot;solver&quot;</span><span class="p">],</span><span class="n">i</span><span class="p">[</span><span class="s2">&quot;tolerance&quot;</span><span class="p">],</span><span class="n">i</span><span class="p">[</span><span class="s2">&quot;relTol&quot;</span><span class="p">])</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">linTable</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">relaxationFactors</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">ReST</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;Relaxation&quot;</span><span class="p">))</span>
+
+            <span class="n">fvSol</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">systemDir</span><span class="p">(),</span><span class="s2">&quot;fvSolution&quot;</span><span class="p">),</span>
+                                      <span class="n">treatBinaryAsASCII</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">treatBinaryAsASCII</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;relaxationFactors&quot;</span> <span class="ow">in</span> <span class="n">fvSol</span><span class="p">:</span>
+                <span class="n">relax</span><span class="o">=</span><span class="n">fvSol</span><span class="p">[</span><span class="s2">&quot;relaxationFactors&quot;</span><span class="p">]</span>
+                <span class="n">tab</span><span class="o">=</span><span class="n">ReST</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+                <span class="n">tab</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span><span class="s2">&quot;Factor&quot;</span><span class="p">]</span>
+                <span class="n">tab</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="n">head</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">nr</span><span class="o">=</span><span class="mi">0</span>
+                <span class="k">if</span> <span class="s2">&quot;fields&quot;</span> <span class="ow">in</span> <span class="n">relax</span> <span class="ow">or</span> <span class="s2">&quot;equations&quot;</span> <span class="ow">in</span> <span class="n">relax</span><span class="p">:</span>
+                    <span class="c1"># New syntax</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;fields&quot;</span><span class="p">,</span><span class="s2">&quot;equations&quot;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">relax</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">f</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">relax</span><span class="p">[</span><span class="n">k</span><span class="p">]):</span>
+                                <span class="n">nr</span><span class="o">+=</span><span class="mi">1</span>
+                                <span class="n">tab</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="s2">&quot;: &quot;</span><span class="o">+</span><span class="n">n</span><span class="p">,</span><span class="n">f</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">f</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">relax</span><span class="p">):</span>
+                        <span class="n">nr</span><span class="o">+=</span><span class="mi">1</span>
+                        <span class="n">tab</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="p">,</span><span class="n">f</span><span class="p">]</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;No relaxation factors defined for this case&quot;</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

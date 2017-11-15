@@ -1,0 +1,402 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.STLFile &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.STLFile</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.STLFile</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Read a STL file and do simple manipulations&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="nb">next</span> <span class="k">as</span> <span class="n">iterNext</span>
+
+<div class="viewcode-block" id="STLFile"><a class="viewcode-back" href="../../../api/PyFoam.Basics.STLFile.html#PyFoam.Basics.STLFile.STLFile">[docs]</a><span class="k">class</span> <span class="nc">STLFile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Store a complete STL-file and do simple manipulations with it&quot;&quot;&quot;</span>
+
+    <span class="n">noName</span><span class="o">=</span><span class="s2">&quot;&lt;no name given&gt;&quot;</span>
+
+<div class="viewcode-block" id="STLFile.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.STLFile.html#PyFoam.Basics.STLFile.STLFile.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	:param fName: filename of the STL-file. If None then an empty file is created</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fp</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">):</span>
+            <span class="c1"># seems to be a filehandle</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fp</span><span class="o">=</span><span class="n">fName</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="s1">&#39;name&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="o">=</span><span class="n">fName</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="o">=</span><span class="s2">&quot;&lt;filehandle&gt;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="o">=</span><span class="n">fName</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fp</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fName</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="o">=</span><span class="p">[</span><span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="o">=</span><span class="p">[</span><span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fp</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">resetInfo</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="STLFile.resetInfo"><a class="viewcode-back" href="../../../api/PyFoam.Basics.STLFile.html#PyFoam.Basics.STLFile.STLFile.resetInfo">[docs]</a>    <span class="k">def</span> <span class="nf">resetInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set cached info to nothing&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_patchInfo</span><span class="o">=</span><span class="bp">None</span></div>
+
+<div class="viewcode-block" id="STLFile.filename"><a class="viewcode-back" href="../../../api/PyFoam.Basics.STLFile.html#PyFoam.Basics.STLFile.STLFile.filename">[docs]</a>    <span class="k">def</span> <span class="nf">filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The filename (without the full patch)&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&lt;no filename given&gt;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="STLFile.expectedToken"><a class="viewcode-back" href="../../../api/PyFoam.Basics.STLFile.html#PyFoam.Basics.STLFile.STLFile.expectedToken">[docs]</a>    <span class="k">def</span> <span class="nf">expectedToken</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">token</span><span class="p">,</span><span class="n">i</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">token</span><span class="p">)</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39; expected in line </span><span class="si">%d</span><span class="s2"> of </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">token</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="STLFile.erasePatches"><a class="viewcode-back" href="../../../api/PyFoam.Basics.STLFile.html#PyFoam.Basics.STLFile.STLFile.erasePatches">[docs]</a>    <span class="k">def</span> <span class="nf">erasePatches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">patchNames</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Erase the patches in the list&quot;&quot;&quot;</span>
+        <span class="n">processed</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="n">keep</span><span class="o">=</span><span class="bp">True</span>
+        <span class="n">currentName</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="p">:</span>
+            <span class="n">nextState</span><span class="o">=</span><span class="n">keep</span>
+            <span class="n">parts</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;endsolid&quot;</span><span class="p">:</span>
+                    <span class="n">nextState</span><span class="o">=</span><span class="bp">True</span>
+                    <span class="k">if</span> <span class="n">currentName</span><span class="o">!=</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Patch name&quot;</span><span class="p">,</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="s2">&quot;Expected&quot;</span><span class="p">,</span><span class="n">currentName</span><span class="p">)</span>
+                    <span class="n">currentName</span><span class="o">=</span><span class="bp">None</span>
+                <span class="k">elif</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;solid&quot;</span><span class="p">:</span>
+                    <span class="n">currentName</span><span class="o">=</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">currentName</span> <span class="ow">in</span> <span class="n">patchNames</span><span class="p">:</span>
+                        <span class="n">keep</span><span class="o">=</span><span class="bp">False</span>
+                        <span class="n">nextState</span><span class="o">=</span><span class="bp">False</span>
+            <span class="k">if</span> <span class="n">keep</span><span class="p">:</span>
+                <span class="n">processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+            <span class="n">keep</span><span class="o">=</span><span class="n">nextState</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="o">=</span><span class="n">processed</span></div>
+
+<div class="viewcode-block" id="STLFile.mergePatches"><a class="viewcode-back" href="../../../api/PyFoam.Basics.STLFile.html#PyFoam.Basics.STLFile.STLFile.mergePatches">[docs]</a>    <span class="k">def</span> <span class="nf">mergePatches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">patchNames</span><span class="p">,</span><span class="n">targetPatchName</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Merge the patches in the list and put them into a new patch&quot;&quot;&quot;</span>
+
+        <span class="n">processed</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">saved</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="n">keep</span><span class="o">=</span><span class="bp">True</span>
+        <span class="n">currentName</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="p">:</span>
+            <span class="n">nextState</span><span class="o">=</span><span class="n">keep</span>
+            <span class="n">parts</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;endsolid&quot;</span><span class="p">:</span>
+                    <span class="n">nextState</span><span class="o">=</span><span class="bp">True</span>
+                    <span class="k">if</span> <span class="n">currentName</span><span class="o">!=</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Patch name&quot;</span><span class="p">,</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="s2">&quot;Expected&quot;</span><span class="p">,</span><span class="n">currentName</span><span class="p">)</span>
+                    <span class="n">currentName</span><span class="o">=</span><span class="bp">None</span>
+                <span class="k">elif</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;solid&quot;</span><span class="p">:</span>
+                    <span class="n">currentName</span><span class="o">=</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">currentName</span> <span class="ow">in</span> <span class="n">patchNames</span><span class="p">:</span>
+                        <span class="n">keep</span><span class="o">=</span><span class="bp">False</span>
+                        <span class="n">nextState</span><span class="o">=</span><span class="bp">False</span>
+            <span class="k">if</span> <span class="n">keep</span><span class="p">:</span>
+                <span class="n">processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;solid&quot;</span><span class="p">,</span><span class="s2">&quot;endsolid&quot;</span><span class="p">]:</span>
+                    <span class="n">saved</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+            <span class="n">keep</span><span class="o">=</span><span class="n">nextState</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="o">=</span><span class="n">processed</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;solid &quot;</span><span class="o">+</span><span class="n">targetPatchName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="o">+=</span><span class="n">saved</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;endsolid &quot;</span><span class="o">+</span><span class="n">targetPatchName</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="STLFile.patchInfo"><a class="viewcode-back" href="../../../api/PyFoam.Basics.STLFile.html#PyFoam.Basics.STLFile.STLFile.patchInfo">[docs]</a>    <span class="k">def</span> <span class="nf">patchInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get info about the patches. A list of dictionaries with the relevant information&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_patchInfo</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_patchInfo</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_patchInfo</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="n">newPatch</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="n">e</span><span class="o">=</span><span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="p">)</span>
+
+        <span class="n">goOn</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">while</span> <span class="n">goOn</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">i</span><span class="p">,</span><span class="n">l</span><span class="o">=</span><span class="n">iterNext</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">newPatch</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">expectedToken</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="s2">&quot;solid&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">info</span><span class="o">=</span><span class="p">{}</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">())</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
+                        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">noName</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">info</span><span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+                    <span class="n">info</span><span class="p">[</span><span class="s2">&quot;facets&quot;</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+                    <span class="n">info</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mf">1e100</span><span class="p">]</span><span class="o">*</span><span class="mi">3</span>
+                    <span class="n">info</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1e100</span><span class="p">]</span><span class="o">*</span><span class="mi">3</span>
+                    <span class="n">newPatch</span><span class="o">=</span><span class="bp">False</span>
+                <span class="k">elif</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;endsolid&quot;</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">info</span><span class="p">[</span><span class="s2">&quot;end&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_patchInfo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+                    <span class="n">newPatch</span><span class="o">=</span><span class="bp">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">expectedToken</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="s2">&quot;facet normal&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">i</span><span class="p">,</span><span class="n">l</span><span class="o">=</span><span class="n">iterNext</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">expectedToken</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="s2">&quot;outer loop&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                        <span class="n">i</span><span class="p">,</span><span class="n">l</span><span class="o">=</span><span class="n">iterNext</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">expectedToken</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="s2">&quot;vertex&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+                        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">],</span>
+                                                         <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]])]</span>
+                        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">],</span>
+                                                         <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]])]</span>
+                    <span class="n">i</span><span class="p">,</span><span class="n">l</span><span class="o">=</span><span class="n">iterNext</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">expectedToken</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="s2">&quot;endloop&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">i</span><span class="p">,</span><span class="n">l</span><span class="o">=</span><span class="n">iterNext</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">expectedToken</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="s2">&quot;endfacet&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">info</span><span class="p">[</span><span class="s2">&quot;facets&quot;</span><span class="p">]</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+                <span class="n">goOn</span><span class="o">=</span><span class="bp">False</span>
+
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">newPatch</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;File&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">(),</span><span class="s2">&quot;seems to be incomplete&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_patchInfo</span></div>
+
+<div class="viewcode-block" id="STLFile.writeTo"><a class="viewcode-back" href="../../../api/PyFoam.Basics.STLFile.html#PyFoam.Basics.STLFile.STLFile.writeTo">[docs]</a>    <span class="k">def</span> <span class="nf">writeTo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write to a file&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span> <span class="s1">&#39;write&#39;</span><span class="p">):</span>
+            <span class="n">f</span><span class="o">=</span><span class="n">fName</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="STLFile.__iter__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.STLFile.html#PyFoam.Basics.STLFile.STLFile.__iter__">[docs]</a>    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">l</span></div>
+
+<div class="viewcode-block" id="STLFile.__iadd__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.STLFile.html#PyFoam.Basics.STLFile.STLFile.__iadd__">[docs]</a>    <span class="k">def</span> <span class="nf">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resetInfo</span><span class="p">()</span>
+
+        <span class="n">fName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">filename</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">moreThanOne</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">patchInfo</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">1</span>
+
+        <span class="n">nr</span><span class="o">=</span><span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">other</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;solid&quot;</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span> <span class="ow">or</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;endsolid&quot;</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">parts</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">l</span><span class="o">=</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="n">fName</span>
+                    <span class="k">if</span> <span class="n">moreThanOne</span><span class="p">:</span>
+                        <span class="n">l</span><span class="o">+=</span><span class="s2">&quot;_</span><span class="si">%04d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">nr</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">l</span><span class="o">=</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot; </span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+                <span class="k">if</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;solid&quot;</span><span class="p">:</span>
+                    <span class="n">nr</span><span class="o">+=</span><span class="mi">1</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_contents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

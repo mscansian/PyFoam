@@ -1,0 +1,406 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.UpgradeDictionariesTo20 module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.Applications package" href="PyFoam.Applications.html"/>
+        <link rel="next" title="PyFoam.Applications.UtilityRunnerApp module" href="PyFoam.Applications.UtilityRunnerApp.html"/>
+        <link rel="prev" title="PyFoam.Applications.UpgradeDictionariesTo17 module" href="PyFoam.Applications.UpgradeDictionariesTo17.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.Applications.html">PyFoam.Applications package</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.UpgradeDictionariesTo20 module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.Applications.UpgradeDictionariesTo20.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.Applications.UpgradeDictionariesTo20">
+<span id="pyfoam-applications-upgradedictionariesto20-module"></span><h1>PyFoam.Applications.UpgradeDictionariesTo20 module<a class="headerlink" href="#module-PyFoam.Applications.UpgradeDictionariesTo20" title="Permalink to this headline">¶</a></h1>
+<p>Application class that implements pyFoamUpgradeDictionariesTo20</p>
+<dl class="class">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.UpgradeDictionariesTo20.</code><code class="descname">BlockMeshUpgradeInfo</code><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#BlockMeshUpgradeInfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo" title="PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#BlockMeshUpgradeInfo.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.UpgradeDictionariesTo20'</em><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.checkUpgrade">
+<code class="descname">checkUpgrade</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#BlockMeshUpgradeInfo.checkUpgrade"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.checkUpgrade" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.location">
+<code class="descname">location</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#BlockMeshUpgradeInfo.location"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.location" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.manipulate">
+<code class="descname">manipulate</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#BlockMeshUpgradeInfo.manipulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.manipulate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.name">
+<code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#BlockMeshUpgradeInfo.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.BlockMeshUpgradeInfo.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.UpgradeDictionariesTo20.</code><code class="descname">ReactionFileUpgradeInfo</code><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ReactionFileUpgradeInfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo" title="PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ReactionFileUpgradeInfo.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.UpgradeDictionariesTo20'</em><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.checkUpgrade">
+<code class="descname">checkUpgrade</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ReactionFileUpgradeInfo.checkUpgrade"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.checkUpgrade" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.location">
+<code class="descname">location</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ReactionFileUpgradeInfo.location"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.location" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.makeCoeffList">
+<code class="descname">makeCoeffList</code><span class="sig-paren">(</span><em>raw</em>, <em>default</em>, <em>specNames</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ReactionFileUpgradeInfo.makeCoeffList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.makeCoeffList" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.manipulate">
+<code class="descname">manipulate</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ReactionFileUpgradeInfo.manipulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.manipulate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.name">
+<code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ReactionFileUpgradeInfo.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ReactionFileUpgradeInfo.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.UpgradeDictionariesTo20.</code><code class="descname">ThermophysicalDataUpgradeInfo</code><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ThermophysicalDataUpgradeInfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo" title="PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ThermophysicalDataUpgradeInfo.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.UpgradeDictionariesTo20'</em><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.checkUpgrade">
+<code class="descname">checkUpgrade</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ThermophysicalDataUpgradeInfo.checkUpgrade"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.checkUpgrade" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.location">
+<code class="descname">location</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ThermophysicalDataUpgradeInfo.location"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.location" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.manipulate">
+<code class="descname">manipulate</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ThermophysicalDataUpgradeInfo.manipulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.manipulate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.name">
+<code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ThermophysicalDataUpgradeInfo.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalDataUpgradeInfo.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.UpgradeDictionariesTo20.</code><code class="descname">ThermophysicalUpgradeInfo</code><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ThermophysicalUpgradeInfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo" title="PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ThermophysicalUpgradeInfo.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.UpgradeDictionariesTo20'</em><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.analyzeThermoType">
+<code class="descname">analyzeThermoType</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ThermophysicalUpgradeInfo.analyzeThermoType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.analyzeThermoType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.checkUpgrade">
+<code class="descname">checkUpgrade</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ThermophysicalUpgradeInfo.checkUpgrade"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.checkUpgrade" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.location">
+<code class="descname">location</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ThermophysicalUpgradeInfo.location"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.location" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.manipulate">
+<code class="descname">manipulate</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ThermophysicalUpgradeInfo.manipulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.manipulate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.name">
+<code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#ThermophysicalUpgradeInfo.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.ThermophysicalUpgradeInfo.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.UpgradeDictionariesTo20">
+<em class="property">class </em><code class="descclassname">PyFoam.Applications.UpgradeDictionariesTo20.</code><code class="descname">UpgradeDictionariesTo20</code><span class="sig-paren">(</span><em>args=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#UpgradeDictionariesTo20"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.UpgradeDictionariesTo20" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.UpgradeDictionariesTo17" title="PyFoam.Applications.UpgradeDictionariesTo17.UpgradeDictionariesTo17"><code class="xref py py-class docutils literal"><span class="pre">PyFoam.Applications.UpgradeDictionariesTo17.UpgradeDictionariesTo17</span></code></a></p>
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.UpgradeDictionariesTo20.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>args=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#UpgradeDictionariesTo20.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.UpgradeDictionariesTo20.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.UpgradeDictionariesTo20.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Applications.UpgradeDictionariesTo20'</em><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.UpgradeDictionariesTo20.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Applications.UpgradeDictionariesTo20.UpgradeDictionariesTo20.addDicts">
+<code class="descname">addDicts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Applications/UpgradeDictionariesTo20.html#UpgradeDictionariesTo20.addDicts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Applications.UpgradeDictionariesTo20.UpgradeDictionariesTo20.addDicts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.Applications.UtilityRunnerApp.html" class="btn btn-neutral float-right" title="PyFoam.Applications.UtilityRunnerApp module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.Applications.UpgradeDictionariesTo17.html" class="btn btn-neutral" title="PyFoam.Applications.UpgradeDictionariesTo17 module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

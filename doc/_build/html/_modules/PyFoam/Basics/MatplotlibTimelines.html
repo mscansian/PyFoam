@@ -1,0 +1,407 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.MatplotlibTimelines &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.MatplotlibTimelines</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.MatplotlibTimelines</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Plots a collection of timelines&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">warning</span><span class="p">,</span><span class="n">error</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.CustomPlotInfo</span> <span class="kn">import</span> <span class="n">readCustomPlotInfo</span><span class="p">,</span><span class="n">CustomPlotInfo</span>
+
+<span class="kn">from</span> <span class="nn">.GeneralPlotTimelines</span> <span class="kn">import</span> <span class="n">GeneralPlotTimelines</span>
+
+<span class="kn">from</span> <span class="nn">platform</span> <span class="kn">import</span> <span class="n">uname</span>
+
+<span class="n">firstTimeImport</span><span class="o">=</span><span class="bp">True</span>
+
+<div class="viewcode-block" id="MatplotlibTimelines"><a class="viewcode-back" href="../../../api/PyFoam.Basics.MatplotlibTimelines.html#PyFoam.Basics.MatplotlibTimelines.MatplotlibTimelines">[docs]</a><span class="k">class</span> <span class="nc">MatplotlibTimelines</span><span class="p">(</span><span class="n">GeneralPlotTimelines</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class opens a matplotlib window and plots a timelines-collection in it&quot;&quot;&quot;</span>
+
+    <span class="n">figureNr</span><span class="o">=</span><span class="mi">1</span>
+
+<div class="viewcode-block" id="MatplotlibTimelines.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.MatplotlibTimelines.html#PyFoam.Basics.MatplotlibTimelines.MatplotlibTimelines.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">timelines</span><span class="p">,</span>
+                 <span class="n">custom</span><span class="p">,</span>
+                 <span class="n">showWindow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">registry</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param timelines: The timelines object</span>
+<span class="sd">        :type timelines: TimeLineCollection</span>
+<span class="sd">        :param custom: A CustomplotInfo-object. Values in this object usually override the</span>
+<span class="sd">        other options</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">hasSubplotHost</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">global</span> <span class="n">plt</span><span class="p">,</span><span class="n">matplotlib</span><span class="p">,</span><span class="n">firstTimeImport</span><span class="p">,</span><span class="n">SubplotHost</span>
+            <span class="kn">import</span> <span class="nn">matplotlib</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">showWindow</span> <span class="ow">and</span> <span class="n">firstTimeImport</span><span class="p">:</span>
+<span class="c1">#                matplotlib.use(&quot;MacOSX&quot;)</span>
+                <span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;agg&quot;</span><span class="p">)</span>
+                <span class="n">firstTimeImport</span><span class="o">=</span><span class="bp">False</span>
+            <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">mpl_toolkits.axes_grid.parasite_axes</span> <span class="kn">import</span> <span class="n">SubplotHost</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hasSubplotHost</span><span class="o">=</span><span class="bp">False</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Matplotlib-Version does not support SubplotHost&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Matplotlib not installed.&quot;</span><span class="p">)</span>
+
+        <span class="n">GeneralPlotTimelines</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">timelines</span><span class="p">,</span><span class="n">custom</span><span class="p">,</span><span class="n">showWindow</span><span class="o">=</span><span class="n">showWindow</span><span class="p">,</span><span class="n">registry</span><span class="o">=</span><span class="n">registry</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">figNr</span><span class="o">=</span><span class="n">MatplotlibTimelines</span><span class="o">.</span><span class="n">figureNr</span>
+        <span class="n">MatplotlibTimelines</span><span class="o">.</span><span class="n">figureNr</span><span class="o">+=</span><span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ylabel2</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">xlabel</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setXLabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">xlabel</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">ylabel</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setYLabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">ylabel</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">y2label</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setYLabel2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">y2label</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">axis1</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axis2</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setTitle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">theTitle</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">with_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">with_</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span><span class="s1">&#39;points&#39;</span><span class="p">,</span><span class="s1">&#39;dots&#39;</span><span class="p">,</span><span class="s1">&#39;steps&#39;</span><span class="p">,</span><span class="s1">&#39;linespoints&#39;</span><span class="p">]:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;&#39;with&#39;-style&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">with_</span><span class="p">,</span><span class="s2">&quot;not implemented, using &#39;lines&#39;&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">with_</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">redo</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MatplotlibTimelines.buildData"><a class="viewcode-back" href="../../../api/PyFoam.Basics.MatplotlibTimelines.html#PyFoam.Basics.MatplotlibTimelines.MatplotlibTimelines.buildData">[docs]</a>    <span class="k">def</span> <span class="nf">buildData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">times</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">lastValid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build the implementation specific data</span>
+<span class="sd">        :param times: The vector of times for which data exists</span>
+<span class="sd">        :param name: the name under which the data is stored in the timeline</span>
+<span class="sd">        :param title: the title under which this will be displayed&quot;&quot;&quot;</span>
+
+        <span class="n">a</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">axis1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">testAlternate</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">a</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">axis2</span>
+        <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">getValues</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">tm</span><span class="o">=</span><span class="n">times</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tm</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">lastValid</span><span class="p">:</span>
+            <span class="n">tm</span><span class="o">=</span><span class="n">tm</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">plotIt</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">logscale</span> <span class="ow">and</span> <span class="nb">min</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">plotIt</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">start</span><span class="o">!=</span><span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">end</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">start</span>
+            <span class="n">end</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">end</span>
+            <span class="k">if</span> <span class="n">start</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">start</span><span class="o">=</span><span class="n">tm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">end</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">end</span><span class="o">=</span><span class="n">tm</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axis1</span><span class="o">.</span><span class="n">set_xbound</span><span class="p">(</span><span class="n">lower</span><span class="o">=</span><span class="n">start</span><span class="p">,</span><span class="n">upper</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axis1</span><span class="o">.</span><span class="n">set_autoscalex_on</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">axis2</span><span class="o">.</span><span class="n">set_xbound</span><span class="p">(</span><span class="n">lower</span><span class="o">=</span><span class="n">start</span><span class="p">,</span><span class="n">upper</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">axis2</span><span class="o">.</span><span class="n">set_autoscalex_on</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="n">drawstyle</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+        <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+        <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_</span><span class="o">==</span><span class="s1">&#39;lines&#39;</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_</span><span class="o">==</span><span class="s1">&#39;steps&#39;</span><span class="p">:</span>
+            <span class="n">drawstyle</span><span class="o">=</span><span class="s1">&#39;steps&#39;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_</span><span class="o">==</span><span class="s1">&#39;points&#39;</span><span class="p">:</span>
+            <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+            <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;*&#39;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_</span><span class="o">==</span><span class="s1">&#39;dots&#39;</span><span class="p">:</span>
+            <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+            <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_</span><span class="o">==</span><span class="s1">&#39;linespoints&#39;</span><span class="p">:</span>
+            <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;*&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;&#39;with&#39;-style&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">with_</span><span class="p">,</span><span class="s2">&quot;not implemented, using &#39;lines&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">plotIt</span><span class="p">:</span>
+            <span class="n">a</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">tm</span><span class="p">,</span>
+                   <span class="n">data</span><span class="p">,</span>
+                   <span class="n">label</span><span class="o">=</span><span class="n">title</span><span class="p">,</span>
+                   <span class="n">drawstyle</span><span class="o">=</span><span class="n">drawstyle</span><span class="p">,</span>
+                   <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span>
+                   <span class="n">linestyle</span><span class="o">=</span><span class="n">linestyle</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MatplotlibTimelines.preparePlot"><a class="viewcode-back" href="../../../api/PyFoam.Basics.MatplotlibTimelines.html#PyFoam.Basics.MatplotlibTimelines.MatplotlibTimelines.preparePlot">[docs]</a>    <span class="k">def</span> <span class="nf">preparePlot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prepare the plotting window&quot;&quot;&quot;</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">hot</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figNr</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="c1"># this is black magic that makes the legend work with two axes</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasSubplotHost</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axis1</span><span class="o">=</span><span class="n">SubplotHost</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="p">,</span><span class="mi">111</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axis1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axis1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xlabel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">axis1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ylabel</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alternate</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axis2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">axis1</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axis2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ylabel2</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">logscale</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">axis1</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis2</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">axis2</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="MatplotlibTimelines.doReplot"><a class="viewcode-back" href="../../../api/PyFoam.Basics.MatplotlibTimelines.html#PyFoam.Basics.MatplotlibTimelines.MatplotlibTimelines.doReplot">[docs]</a>    <span class="k">def</span> <span class="nf">doReplot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Replot the whole data&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasSubplotHost</span><span class="p">:</span>
+            <span class="n">l</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">axis1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fancybox</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">l</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fancybox</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="c1">#         l.get_frame().set_fill(False)</span>
+        <span class="k">if</span> <span class="n">l</span><span class="p">:</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">get_frame</span><span class="p">()</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="mf">0.7</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">get_texts</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_size</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span></div>
+        <span class="c1">#  plt.show()</span>
+
+<div class="viewcode-block" id="MatplotlibTimelines.actualSetTitle"><a class="viewcode-back" href="../../../api/PyFoam.Basics.MatplotlibTimelines.html#PyFoam.Basics.MatplotlibTimelines.MatplotlibTimelines.actualSetTitle">[docs]</a>    <span class="k">def</span> <span class="nf">actualSetTitle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the title&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="o">=</span><span class="n">title</span></div>
+
+<div class="viewcode-block" id="MatplotlibTimelines.setXLabel"><a class="viewcode-back" href="../../../api/PyFoam.Basics.MatplotlibTimelines.html#PyFoam.Basics.MatplotlibTimelines.MatplotlibTimelines.setXLabel">[docs]</a>    <span class="k">def</span> <span class="nf">setXLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the label on the X-Axis&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">xlabel</span><span class="o">=</span><span class="n">title</span></div>
+
+<div class="viewcode-block" id="MatplotlibTimelines.setYLabel"><a class="viewcode-back" href="../../../api/PyFoam.Basics.MatplotlibTimelines.html#PyFoam.Basics.MatplotlibTimelines.MatplotlibTimelines.setYLabel">[docs]</a>    <span class="k">def</span> <span class="nf">setYLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the label on the first Y-Axis&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ylabel</span><span class="o">=</span><span class="n">title</span></div>
+
+<div class="viewcode-block" id="MatplotlibTimelines.setYLabel2"><a class="viewcode-back" href="../../../api/PyFoam.Basics.MatplotlibTimelines.html#PyFoam.Basics.MatplotlibTimelines.MatplotlibTimelines.setYLabel2">[docs]</a>    <span class="k">def</span> <span class="nf">setYLabel2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the label on the second Y-Axis&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ylabel2</span><span class="o">=</span><span class="n">title</span></div>
+
+<div class="viewcode-block" id="MatplotlibTimelines.doHardcopy"><a class="viewcode-back" href="../../../api/PyFoam.Basics.MatplotlibTimelines.html#PyFoam.Basics.MatplotlibTimelines.MatplotlibTimelines.doHardcopy">[docs]</a>    <span class="k">def</span> <span class="nf">doHardcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span><span class="n">form</span><span class="p">,</span><span class="n">termOpts</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the contents of the plot to disk</span>
+<span class="sd">        :param filename: Name of the file without type extension</span>
+<span class="sd">        :param form: String describing the format&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">form</span><span class="p">,</span><span class="n">format</span><span class="o">=</span><span class="n">form</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,383 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.GeneralPlotTimelines &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.GeneralPlotTimelines</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.GeneralPlotTimelines</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Plots a collection of timelines. General superclass for te other implementations&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.CustomPlotInfo</span> <span class="kn">import</span> <span class="n">readCustomPlotInfo</span><span class="p">,</span><span class="n">CustomPlotInfo</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">notImplemented</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">iteritems</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+
+<div class="viewcode-block" id="PlotLinesRegistry"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.PlotLinesRegistry">[docs]</a><span class="k">class</span> <span class="nc">PlotLinesRegistry</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Collects references to GeneralPlotLines objects&quot;&quot;&quot;</span>
+
+    <span class="n">nr</span><span class="o">=</span><span class="mi">1</span>
+
+<div class="viewcode-block" id="PlotLinesRegistry.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.PlotLinesRegistry.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plots</span><span class="o">=</span><span class="p">{}</span></div>
+
+<div class="viewcode-block" id="PlotLinesRegistry.clear"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.PlotLinesRegistry.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">PlotLinesRegistry</span><span class="o">.</span><span class="n">nr</span><span class="o">=</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plots</span><span class="o">=</span><span class="p">{}</span></div>
+
+<div class="viewcode-block" id="PlotLinesRegistry.add"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.PlotLinesRegistry.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">plot</span><span class="p">):</span>
+        <span class="n">nr</span><span class="o">=</span><span class="n">PlotLinesRegistry</span><span class="o">.</span><span class="n">nr</span>
+        <span class="n">PlotLinesRegistry</span><span class="o">.</span><span class="n">nr</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plots</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span><span class="o">=</span><span class="n">plot</span>
+
+        <span class="k">return</span> <span class="n">nr</span></div>
+
+<div class="viewcode-block" id="PlotLinesRegistry.prepareForTransfer"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.PlotLinesRegistry.prepareForTransfer">[docs]</a>    <span class="k">def</span> <span class="nf">prepareForTransfer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Makes sure that the data about the plots is to be transfered via XMLRPC&quot;&quot;&quot;</span>
+        <span class="n">lst</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">p</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plots</span><span class="p">):</span>
+            <span class="n">lst</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span><span class="o">=</span><span class="p">{</span> <span class="s2">&quot;nr&quot;</span>   <span class="p">:</span> <span class="n">i</span><span class="p">,</span>
+                     <span class="s2">&quot;spec&quot;</span> <span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">getDict</span><span class="p">(),</span>
+                     <span class="s2">&quot;id&quot;</span>   <span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                     <span class="s2">&quot;data&quot;</span> <span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">lineNr</span> <span class="p">}</span>
+        <span class="k">return</span> <span class="n">lst</span></div></div>
+
+<span class="n">_allPlots</span><span class="o">=</span><span class="n">PlotLinesRegistry</span><span class="p">()</span>
+
+<div class="viewcode-block" id="allPlots"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.allPlots">[docs]</a><span class="k">def</span> <span class="nf">allPlots</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">_allPlots</span></div>
+
+
+<div class="viewcode-block" id="GeneralPlotTimelines"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines">[docs]</a><span class="k">class</span> <span class="nc">GeneralPlotTimelines</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class defines the interface for specific implementations of plotting</span>
+
+<span class="sd">    This class is moedelled after the Gnuplot-class from the Gnuplot-package&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="GeneralPlotTimelines.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">timelines</span><span class="p">,</span>
+                 <span class="n">custom</span><span class="p">,</span>
+                 <span class="n">showWindow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">registry</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param timelines: The timelines object</span>
+<span class="sd">        :type timelines: TimeLineCollection</span>
+<span class="sd">        :param custom: A CustomplotInfo-object. Values in this object usually override the</span>
+<span class="sd">        other options</span>
+<span class="sd">        :param showWindow: whether or not to show a window. Doesn&#39;t affect all implementations</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">timelines</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">=</span><span class="n">custom</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">alternate</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span><span class="s2">&quot;alternateAxis&quot;</span><span class="p">,[])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forbidden</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span><span class="s2">&quot;forbidden&quot;</span><span class="p">,[])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">showWindow</span><span class="o">=</span><span class="n">showWindow</span>
+
+        <span class="k">if</span> <span class="n">registry</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">registry</span><span class="o">=</span><span class="n">allPlots</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="o">=</span><span class="n">registry</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralPlotTimelines.testAlternate"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.testAlternate">[docs]</a>    <span class="k">def</span> <span class="nf">testAlternate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alternate</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;_slave&quot;</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">r&quot;.+_slave[0-9]*&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">testAlternate</span><span class="p">(</span><span class="n">name</span><span class="p">[:</span><span class="n">name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;_slave&quot;</span><span class="p">)])</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alternate</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="bp">True</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="c1"># python 2 has no fullmatch</span>
+                    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;(?:&quot;</span> <span class="o">+</span> <span class="n">a</span> <span class="o">+</span> <span class="s2">r&quot;)\Z&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="bp">True</span>
+
+            <span class="k">except</span> <span class="n">re</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="GeneralPlotTimelines.getNames"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.getNames">[docs]</a>    <span class="k">def</span> <span class="nf">getNames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the names of the data items&quot;&quot;&quot;</span>
+        <span class="n">names</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">tmp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">getValueNames</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tmp</span><span class="p">:</span>
+            <span class="n">addIt</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forbidden</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">addIt</span><span class="o">=</span><span class="bp">False</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">addIt</span><span class="p">:</span>
+                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">names</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralPlotTimelines.hasTimes"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.hasTimes">[docs]</a>    <span class="k">def</span> <span class="nf">hasTimes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check whether this timeline contains any timesteps&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">getTimes</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span></div>
+
+<div class="viewcode-block" id="GeneralPlotTimelines.hasData"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.hasData">[docs]</a>    <span class="k">def</span> <span class="nf">hasData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check whether there is any plotable data&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasTimes</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getNames</span><span class="p">())</span><span class="o">&gt;</span><span class="mi">0</span></div>
+
+<div class="viewcode-block" id="GeneralPlotTimelines.redo"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.redo">[docs]</a>    <span class="k">def</span> <span class="nf">redo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Replot the timelines&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasData</span><span class="p">():</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">preparePlot</span><span class="p">()</span>
+
+        <span class="n">names</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getNames</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">n</span>
+
+            <span class="k">if</span> <span class="n">title</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;_slave&quot;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">[:</span> <span class="n">title</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;_slave&quot;</span><span class="p">)]</span>
+                <span class="n">slaveNr</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="n">n</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;_slave&quot;</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="s2">&quot;_slave&quot;</span><span class="p">):])</span>
+                <span class="n">lastValid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">slaves</span><span class="p">[</span><span class="n">slaveNr</span><span class="p">]</span><span class="o">.</span><span class="n">lastValid</span><span class="p">[</span><span class="n">title</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lastValid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">lastValid</span><span class="p">[</span><span class="n">title</span><span class="p">]</span>
+            <span class="n">times</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">getTimes</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">buildData</span><span class="p">(</span><span class="n">times</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">lastValid</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doReplot</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GeneralPlotTimelines.buildData"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.buildData">[docs]</a>    <span class="k">def</span> <span class="nf">buildData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">times</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">lastValid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build the implementation specific data</span>
+<span class="sd">        :param times: The vector of times for which data exists</span>
+<span class="sd">        :param name: the name under which the data is stored in the timeline</span>
+<span class="sd">        :param title: the title under which this will be displayed</span>
+<span class="sd">        :param lastValid: wether the last data entry is valid&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;buildData&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralPlotTimelines.preparePlot"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.preparePlot">[docs]</a>    <span class="k">def</span> <span class="nf">preparePlot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prepare the plotting window&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;preparePlot&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GeneralPlotTimelines.doReplot"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.doReplot">[docs]</a>    <span class="k">def</span> <span class="nf">doReplot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Replot the whole data&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;doReplot&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralPlotTimelines.actualSetTitle"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.actualSetTitle">[docs]</a>    <span class="k">def</span> <span class="nf">actualSetTitle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the title&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;actualSetTitle&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralPlotTimelines.setTitle"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.setTitle">[docs]</a>    <span class="k">def</span> <span class="nf">setTitle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the title&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actualSetTitle</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">theTitle</span><span class="o">=</span><span class="n">title</span></div>
+
+<div class="viewcode-block" id="GeneralPlotTimelines.setYLabel"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.setYLabel">[docs]</a>    <span class="k">def</span> <span class="nf">setYLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the label on the first Y-Axis&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;setYLabel&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralPlotTimelines.setYLabel2"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.setYLabel2">[docs]</a>    <span class="k">def</span> <span class="nf">setYLabel2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the label on the second Y-Axis&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;setYLabel2&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralPlotTimelines.doHardcopy"><a class="viewcode-back" href="../../../api/PyFoam.Basics.GeneralPlotTimelines.html#PyFoam.Basics.GeneralPlotTimelines.GeneralPlotTimelines.doHardcopy">[docs]</a>    <span class="k">def</span> <span class="nf">doHardcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span><span class="n">form</span><span class="p">,</span><span class="n">termOpts</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the contents of the plot to disk</span>
+<span class="sd">        :param filename: Name of the file without type extension</span>
+<span class="sd">        :param form: String describing the format&quot;&quot;&quot;</span>
+
+        <span class="n">notImplemented</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;doHardcopy&quot;</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,668 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.TimeLineCollection &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.TimeLineCollection</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.TimeLineCollection</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Collection of array of timelines&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">ceil</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Lock</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">iteritems</span>
+
+<span class="n">transmissionLock</span><span class="o">=</span><span class="n">Lock</span><span class="p">()</span>
+
+<div class="viewcode-block" id="mean"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.mean">[docs]</a><span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Mean value of a and b&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="signedMax"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.signedMax">[docs]</a><span class="k">def</span> <span class="nf">signedMax</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Absolute Maximum of a and b with the sign preserved&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">a</span><span class="o">&lt;</span><span class="mf">0.</span> <span class="ow">or</span> <span class="n">b</span><span class="o">&lt;</span><span class="mf">0.</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimeLinesRegistry"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry">[docs]</a><span class="k">class</span> <span class="nc">TimeLinesRegistry</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Collects references to TimeLineCollection objects&quot;&quot;&quot;</span>
+
+    <span class="n">nr</span><span class="o">=</span><span class="mi">1</span>
+
+<div class="viewcode-block" id="TimeLinesRegistry.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">=</span><span class="p">{}</span></div>
+
+<div class="viewcode-block" id="TimeLinesRegistry.clear"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">TimeLinesRegistry</span><span class="o">.</span><span class="n">nr</span><span class="o">=</span><span class="mi">1</span></div>
+
+<div class="viewcode-block" id="TimeLinesRegistry.add"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">line</span><span class="p">,</span><span class="n">nr</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">nr</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">nr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
+                 <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Number&quot;</span><span class="p">,</span><span class="n">nr</span><span class="p">,</span><span class="s2">&quot;already existing&quot;</span><span class="p">)</span>
+            <span class="n">TimeLinesRegistry</span><span class="o">.</span><span class="n">nr</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">nr</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">TimeLinesRegistry</span><span class="o">.</span><span class="n">nr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nr</span><span class="o">=</span><span class="n">TimeLinesRegistry</span><span class="o">.</span><span class="n">nr</span>
+            <span class="n">TimeLinesRegistry</span><span class="o">.</span><span class="n">nr</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span><span class="o">=</span><span class="n">line</span>
+
+        <span class="k">return</span> <span class="n">nr</span></div>
+
+<div class="viewcode-block" id="TimeLinesRegistry.get"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">nr</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="n">nr</span><span class="p">,</span><span class="s2">&quot;not a known data set:&quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="TimeLinesRegistry.prepareForTransfer"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.prepareForTransfer">[docs]</a>    <span class="k">def</span> <span class="nf">prepareForTransfer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Makes sure that the data about the timelines is to be transfered via XMLRPC&quot;&quot;&quot;</span>
+
+        <span class="n">transmissionLock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+
+        <span class="n">lst</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">p</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">):</span>
+            <span class="n">slaves</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">slaves</span><span class="p">:</span>
+                <span class="n">slaves</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">lineNr</span><span class="p">)</span>
+
+            <span class="n">lst</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span><span class="o">=</span><span class="p">{</span> <span class="s2">&quot;nr&quot;</span>    <span class="p">:</span> <span class="n">i</span><span class="p">,</span>
+                     <span class="s2">&quot;times&quot;</span> <span class="p">:</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">times</span><span class="p">),</span>
+                     <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">values</span><span class="p">),</span>
+                     <span class="s2">&quot;lastValid&quot;</span> <span class="p">:</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">lastValid</span><span class="p">),</span>
+                     <span class="s2">&quot;slaves&quot;</span><span class="p">:</span> <span class="n">slaves</span> <span class="p">}</span>
+
+        <span class="n">transmissionLock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">lst</span></div>
+
+<div class="viewcode-block" id="TimeLinesRegistry.resolveSlaves"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.resolveSlaves">[docs]</a>    <span class="k">def</span> <span class="nf">resolveSlaves</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Looks through all the registered lines and replaces integers with</span>
+<span class="sd">        the actual registered line&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">p</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">slaves</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">slaves</span><span class="o">=</span><span class="p">[]</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">slaves</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">==</span><span class="nb">int</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">slaves</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
+                        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                            <span class="n">error</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="s2">&quot;not a known data set:&quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">slaves</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">slaves</span><span class="o">=</span><span class="n">slaves</span></div></div>
+
+<span class="n">_allLines</span><span class="o">=</span><span class="n">TimeLinesRegistry</span><span class="p">()</span>
+
+<div class="viewcode-block" id="allLines"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.allLines">[docs]</a><span class="k">def</span> <span class="nf">allLines</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">_allLines</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection">[docs]</a><span class="k">class</span> <span class="nc">TimeLineCollection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="n">possibleAccumulations</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;first&quot;</span><span class="p">,</span> <span class="s2">&quot;last&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;average&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span><span class="s2">&quot;count&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="TimeLineCollection.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">deflt</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+                 <span class="n">extendCopy</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">splitThres</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">splitFun</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">noEmptyTime</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">advancedSplit</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">preloadData</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">accumulation</span><span class="o">=</span><span class="s2">&quot;first&quot;</span><span class="p">,</span>
+                 <span class="n">registry</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param deflt: default value for timelines if none has been defined before</span>
+<span class="sd">        :param extendCopy: Extends the timeline by cpying the last element</span>
+<span class="sd">        :param splitThres: Threshold after which the number of points is halved</span>
+<span class="sd">        :param splitFun: Function that is used for halving. If none is specified the mean function is used</span>
+<span class="sd">        :param noEmptyTime: if there is no valid entry no data is stored for this time</span>
+<span class="sd">        :param advancedSplit: Use another split algorithm than one that condenses two values into one</span>
+<span class="sd">        :param preloadData: a dictionary with a dictionary to initialize the values</span>
+<span class="sd">        :param accumulation: if more than one value is given at any time-step, how to accumulate them (possible values: &quot;first&quot;, &quot;last&quot;, &quot;min&quot;, &quot;max&quot;, &quot;average&quot;, &quot;sum&quot;,&quot;count&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cTime</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addTimeOnDemand</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="o">=</span><span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastValid</span><span class="o">=</span><span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setDefault</span><span class="p">(</span><span class="n">deflt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setExtend</span><span class="p">(</span><span class="n">extendCopy</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thres</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">accumulation</span> <span class="ow">in</span> <span class="n">TimeLineCollection</span><span class="o">.</span><span class="n">possibleAccumulations</span><span class="p">):</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span><span class="n">accumulation</span><span class="p">,</span><span class="s2">&quot;not in list of possible values:&quot;</span><span class="p">,</span><span class="n">TimeLineCollection</span><span class="o">.</span><span class="n">possibleAccumulations</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">accumulation</span><span class="o">=</span><span class="n">accumulation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">accumulations</span><span class="o">=</span><span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">occured</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">slaves</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setSplitting</span><span class="p">(</span><span class="n">splitThres</span><span class="o">=</span><span class="n">splitThres</span><span class="p">,</span>
+                          <span class="n">splitFun</span><span class="o">=</span><span class="n">splitFun</span><span class="p">,</span>
+                          <span class="n">advancedSplit</span><span class="o">=</span><span class="n">advancedSplit</span><span class="p">,</span>
+                          <span class="n">noEmptyTime</span><span class="o">=</span><span class="n">noEmptyTime</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineNr</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="n">preloadData</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="o">=</span><span class="n">preloadData</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">=</span><span class="n">preloadData</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slaves</span><span class="o">=</span><span class="n">preloadData</span><span class="p">[</span><span class="s2">&quot;slaves&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lineNr</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">preloadData</span><span class="p">[</span><span class="s2">&quot;nr&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="s2">&quot;lastValid&quot;</span> <span class="ow">in</span> <span class="n">preloadData</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lastValid</span><span class="o">=</span><span class="n">preloadData</span><span class="p">[</span><span class="s2">&quot;lastValid&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">resetValid</span><span class="p">(</span><span class="n">val</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">registry</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">registry</span><span class="o">=</span><span class="n">allLines</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineNr</span><span class="o">=</span><span class="n">registry</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">lineNr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.resetValid"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.resetValid">[docs]</a>    <span class="k">def</span> <span class="nf">resetValid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">val</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Helper function that resets the information whether the last entry is valid&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastValid</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lastValid</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="n">val</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slaves</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">resetValid</span><span class="p">(</span><span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.nrValid"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.nrValid">[docs]</a>    <span class="k">def</span> <span class="nf">nrValid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Helper function that gets the number of valid values&quot;&quot;&quot;</span>
+        <span class="n">nr</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lastValid</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slaves</span><span class="p">:</span>
+            <span class="n">nr</span><span class="o">+=</span><span class="n">s</span><span class="o">.</span><span class="n">nrValid</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">nr</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.addSlave"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.addSlave">[docs]</a>    <span class="k">def</span> <span class="nf">addSlave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">slave</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Adds a slave time-line-collection&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slaves</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slave</span><span class="p">)</span>
+        <span class="n">slave</span><span class="o">.</span><span class="n">setSplitting</span><span class="p">(</span><span class="n">splitThres</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">thres</span><span class="p">,</span>
+                           <span class="n">splitFun</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="p">,</span>
+                           <span class="n">advancedSplit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">advancedSplit</span><span class="p">,</span>
+                           <span class="n">noEmptyTime</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">noEmptyTime</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.setAccumulator"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.setAccumulator">[docs]</a>    <span class="k">def</span> <span class="nf">setAccumulator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">accu</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets a special accumulator fopr a timeline</span>
+<span class="sd">        :param name: Name of the timeline</span>
+<span class="sd">        :param accu: Name of the accumulator&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">accu</span> <span class="ow">in</span> <span class="n">TimeLineCollection</span><span class="o">.</span><span class="n">possibleAccumulations</span><span class="p">):</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">,</span><span class="n">accu</span><span class="p">,</span><span class="s2">&quot;not in list of possible values:&quot;</span><span class="p">,</span><span class="n">TimeLineCollection</span><span class="o">.</span><span class="n">possibleAccumulations</span><span class="p">,</span><span class="s2">&quot;When setting for&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">accumulations</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">accu</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.setSplitting"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.setSplitting">[docs]</a>    <span class="k">def</span> <span class="nf">setSplitting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">splitThres</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">splitFun</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">advancedSplit</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">noEmptyTime</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the parameters for splitting&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">advancedSplit</span> <span class="o">=</span> <span class="n">advancedSplit</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">advancedSplit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">splitLevels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">splitThres</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">thres</span><span class="o">=</span><span class="n">splitThres</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thres</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">thres</span><span class="o">+=</span><span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">splitFun</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="o">=</span><span class="n">splitFun</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="o">=</span><span class="n">mean</span>
+
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slaves</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">setSplitting</span><span class="p">(</span><span class="n">splitThres</span><span class="o">=</span><span class="n">splitThres</span><span class="p">,</span><span class="n">splitFun</span><span class="o">=</span><span class="n">splitFun</span><span class="p">,</span><span class="n">advancedSplit</span><span class="o">=</span><span class="n">advancedSplit</span><span class="p">,</span><span class="n">noEmptyTime</span><span class="o">=</span><span class="n">noEmptyTime</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">noEmptyTime</span><span class="o">=</span><span class="n">noEmptyTime</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.setDefault"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.setDefault">[docs]</a>    <span class="k">def</span> <span class="nf">setDefault</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">deflt</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param deflt: default value to be used&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaultValue</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">deflt</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.setExtend"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.setExtend">[docs]</a>    <span class="k">def</span> <span class="nf">setExtend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">mode</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param mode: whether or not to extend the timeline by copying or setting the default value&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extendCopy</span><span class="o">=</span><span class="n">mode</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.nr"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.nr">[docs]</a>    <span class="k">def</span> <span class="nf">nr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of elements in timelines&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.setTime"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.setTime">[docs]</a>    <span class="k">def</span> <span class="nf">setTime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">noLock</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">forceAppend</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the time. If time is new all the timelines are extended</span>
+<span class="sd">        :param time: the new current time</span>
+<span class="sd">        :param noLock: do not acquire the lock that ensures consistent data transmission&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">noLock</span><span class="p">:</span>
+            <span class="n">transmissionLock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+
+        <span class="n">dTime</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+
+        <span class="n">append</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addTimeOnDemand</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">if</span> <span class="n">dTime</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">cTime</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cTime</span><span class="o">=</span><span class="n">dTime</span>
+            <span class="n">append</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">noEmptyTime</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">forceAppend</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrValid</span><span class="p">()</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># no valid data yet. Extend the timeline when the first data set is added</span>
+                    <span class="n">append</span><span class="o">=</span><span class="bp">False</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">addTimeOnDemand</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">if</span> <span class="n">append</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cTime</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">extendCopy</span><span class="p">:</span>
+                        <span class="n">val</span><span class="o">=</span><span class="n">v</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultValue</span>
+                    <span class="n">v</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cTime</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">resetValid</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">thres</span> <span class="ow">and</span> <span class="n">append</span><span class="p">:</span>
+              <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">)</span><span class="o">&gt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">thres</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">advancedSplit</span><span class="p">:</span>
+                        <span class="c1"># Clumsy algorithm where the maximum and the minimum of a</span>
+                        <span class="c1"># data-window are preserved in that order</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">splitLevels</span><span class="p">)</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">splitLevels</span><span class="o">+=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">)</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">splitLevels</span><span class="p">))</span>
+                        <span class="n">splitTill</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">)</span><span class="o">*</span><span class="mf">0.75</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitLevels</span><span class="p">[</span><span class="n">splitTill</span><span class="p">]</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+                            <span class="c1"># Shouldn&#39;t happen. But just in case</span>
+                            <span class="n">splitTill</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">splitLevels</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                        <span class="n">splitFrom</span><span class="o">=</span><span class="mi">0</span>
+                        <span class="n">maxLevel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">splitLevels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxLevel</span><span class="p">):</span>
+                             <span class="k">try</span><span class="p">:</span>
+                                 <span class="n">li</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">splitLevels</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+                                 <span class="k">if</span> <span class="n">li</span><span class="o">&gt;=</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">li</span><span class="o">&lt;</span><span class="n">splitTill</span><span class="o">/</span><span class="mi">2</span><span class="p">:</span>
+                                     <span class="n">splitFrom</span><span class="o">=</span><span class="n">li</span>
+                                     <span class="k">break</span>
+                             <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                                 <span class="k">pass</span>
+                        <span class="n">window</span><span class="o">=</span><span class="mi">4</span>
+                        <span class="k">if</span> <span class="p">((</span><span class="n">splitTill</span><span class="o">-</span><span class="n">splitFrom</span><span class="p">)</span><span class="o">/</span><span class="n">window</span><span class="p">)</span><span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+                            <span class="n">splitTill</span><span class="o">=</span><span class="n">splitFrom</span><span class="o">+</span><span class="n">window</span><span class="o">*</span><span class="nb">int</span><span class="p">(</span><span class="n">ceil</span><span class="p">((</span><span class="n">splitTill</span><span class="o">-</span><span class="n">splitFrom</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">window</span><span class="p">)))</span>
+
+                        <span class="c1"># prepare data that will not be split</span>
+                        <span class="n">times</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[:</span><span class="n">splitFrom</span><span class="p">]</span>
+                        <span class="n">levels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">splitLevels</span><span class="p">[:</span><span class="n">splitFrom</span><span class="p">]</span>
+                        <span class="n">values</span><span class="o">=</span><span class="p">{}</span>
+                        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+                            <span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">][:</span><span class="n">splitFrom</span><span class="p">]</span>
+
+                        <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">splitFrom</span><span class="p">,</span><span class="n">splitTill</span><span class="p">,</span><span class="n">window</span><span class="p">):</span>
+                            <span class="n">end</span><span class="o">=</span><span class="n">start</span><span class="o">+</span><span class="n">window</span><span class="o">-</span><span class="mi">1</span>
+                            <span class="n">sTime</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">start</span><span class="p">]</span>
+                            <span class="n">eTime</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">end</span><span class="p">]</span>
+                            <span class="n">times</span><span class="o">+=</span><span class="p">[</span><span class="n">sTime</span><span class="p">,(</span><span class="n">eTime</span><span class="o">-</span><span class="n">sTime</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mf">2.</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span><span class="o">+</span><span class="n">sTime</span><span class="p">]</span>
+                            <span class="n">levels</span><span class="o">+=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">splitLevels</span><span class="p">[</span><span class="n">start</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">splitLevels</span><span class="p">[</span><span class="n">end</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+                                <span class="n">minV</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">start</span><span class="p">]</span>
+                                <span class="n">minI</span><span class="o">=</span><span class="mi">0</span>
+                                <span class="n">maxV</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">start</span><span class="p">]</span>
+                                <span class="n">maxI</span><span class="o">=</span><span class="mi">0</span>
+                                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">window</span><span class="p">):</span>
+                                    <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">start</span><span class="o">+</span><span class="n">j</span><span class="p">]</span>
+                                    <span class="k">if</span> <span class="n">val</span><span class="o">&gt;</span><span class="n">maxV</span><span class="p">:</span>
+                                        <span class="n">maxV</span><span class="o">=</span><span class="n">val</span>
+                                        <span class="n">maxI</span><span class="o">=</span><span class="n">j</span>
+                                    <span class="k">if</span> <span class="n">val</span><span class="o">&lt;</span><span class="n">minV</span><span class="p">:</span>
+                                        <span class="n">minV</span><span class="o">=</span><span class="n">val</span>
+                                        <span class="n">minI</span><span class="o">=</span><span class="n">j</span>
+                                <span class="k">if</span> <span class="n">minI</span><span class="o">&lt;</span><span class="n">maxI</span><span class="p">:</span>
+                                    <span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">+=</span><span class="p">[</span><span class="n">minV</span><span class="p">,</span><span class="n">maxV</span><span class="p">]</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">+=</span><span class="p">[</span><span class="n">maxV</span><span class="p">,</span><span class="n">minV</span><span class="p">]</span>
+                        <span class="n">firstUnsplit</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">splitTill</span><span class="o">/</span><span class="n">window</span><span class="p">)</span><span class="o">*</span><span class="n">window</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="o">=</span><span class="n">times</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">firstUnsplit</span><span class="p">:]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">splitLevels</span><span class="o">=</span><span class="n">levels</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">splitLevels</span><span class="p">[</span><span class="n">firstUnsplit</span><span class="p">:]</span>
+                        <span class="c1"># print self.splitLevels</span>
+                        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">firstUnsplit</span><span class="p">:]</span>
+                            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">)</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">,</span><span class="nb">min</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="p">)</span>
+              <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                   <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                   <span class="n">err</span><span class="p">,</span> <span class="n">detail</span><span class="p">,</span> <span class="n">tb</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+                   <span class="n">print_</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                   <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Problem splitting&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">occured</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slaves</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">setTime</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">noLock</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">forceAppend</span><span class="o">=</span><span class="n">append</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">noLock</span><span class="p">:</span>
+            <span class="n">transmissionLock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.split"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.split">[docs]</a>    <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">array</span><span class="p">,</span><span class="n">func</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Makes the array smaller by joining every two points</span>
+<span class="sd">        :param array: the field to split</span>
+<span class="sd">        :param func: The function to use for joining two points&quot;&quot;&quot;</span>
+
+        <span class="n">newLen</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+        <span class="n">newArray</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">]</span><span class="o">*</span><span class="n">newLen</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">newLen</span><span class="p">):</span>
+            <span class="n">newArray</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">func</span><span class="p">(</span><span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">],</span><span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">newArray</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.getTimes"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.getTimes">[docs]</a>    <span class="k">def</span> <span class="nf">getTimes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:return: A list of the time values&quot;&quot;&quot;</span>
+        <span class="n">tm</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="ow">or</span> <span class="n">name</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">tm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slaves</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+                    <span class="n">tm</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">times</span>
+                    <span class="k">break</span>
+        <span class="k">return</span> <span class="n">tm</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.getValueNames"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.getValueNames">[docs]</a>    <span class="k">def</span> <span class="nf">getValueNames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:return: A list with the names of the safed values&quot;&quot;&quot;</span>
+        <span class="n">names</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slaves</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">getValueNames</span><span class="p">():</span>
+                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_slave</span><span class="si">%02d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">i</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">names</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.getValues"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.getValues">[docs]</a>    <span class="k">def</span> <span class="nf">getValues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gets a timeline</span>
+<span class="sd">        :param name: Name of the timeline</span>
+<span class="sd">        :return: List with the values&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slaves</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;_slave&quot;</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">nr</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:])</span>
+                    <span class="n">nm</span><span class="o">=</span><span class="n">name</span><span class="p">[:</span><span class="n">name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;_slave&quot;</span><span class="p">)]</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">slaves</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span><span class="o">.</span><span class="n">getValues</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">()</span><span class="o">*</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultValue</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.setValue"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.setValue">[docs]</a>    <span class="k">def</span> <span class="nf">setValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the value of the last element in a timeline</span>
+<span class="sd">        :param name: name of the timeline</span>
+<span class="sd">        :param value: the last element&quot;&quot;&quot;</span>
+
+        <span class="n">val</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="n">transmissionLock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">addTimeOnDemand</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cTime</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">extendCopy</span><span class="p">:</span>
+                    <span class="n">val</span><span class="o">=</span><span class="n">v</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">val</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">defaultValue</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addTimeOnDemand</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getValues</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">accu</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">accumulation</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">occured</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">accu</span><span class="o">==</span><span class="s2">&quot;count&quot;</span><span class="p">:</span>
+                    <span class="n">newValue</span><span class="o">=</span><span class="mi">1</span> <span class="c1"># =1L</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">newValue</span><span class="o">=</span><span class="n">val</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">occured</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">oldValue</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">occured</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">occured</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumulations</span><span class="p">:</span>
+                    <span class="n">accu</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">accumulations</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">accu</span><span class="o">==</span><span class="s2">&quot;first&quot;</span><span class="p">:</span>
+                    <span class="n">newValue</span><span class="o">=</span><span class="n">oldValue</span>
+                <span class="k">elif</span> <span class="n">accu</span><span class="o">==</span><span class="s2">&quot;last&quot;</span><span class="p">:</span>
+                    <span class="n">newValue</span><span class="o">=</span><span class="n">val</span>
+                <span class="k">elif</span> <span class="n">accu</span><span class="o">==</span><span class="s2">&quot;max&quot;</span><span class="p">:</span>
+                    <span class="n">newValue</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">val</span><span class="p">,</span><span class="n">oldValue</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">accu</span><span class="o">==</span><span class="s2">&quot;min&quot;</span><span class="p">:</span>
+                    <span class="n">newValue</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">val</span><span class="p">,</span><span class="n">oldValue</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">accu</span><span class="o">==</span><span class="s2">&quot;sum&quot;</span><span class="p">:</span>
+                    <span class="n">newValue</span><span class="o">=</span><span class="n">val</span><span class="o">+</span><span class="n">oldValue</span>
+                <span class="k">elif</span> <span class="n">accu</span><span class="o">==</span><span class="s2">&quot;average&quot;</span><span class="p">:</span>
+                    <span class="n">newValue</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="o">*</span><span class="n">oldValue</span><span class="o">+</span><span class="n">val</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">accu</span><span class="o">==</span><span class="s2">&quot;count&quot;</span><span class="p">:</span>
+                    <span class="n">newValue</span><span class="o">=</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unimplemented accumulator&quot;</span><span class="p">,</span><span class="n">accu</span><span class="p">,</span><span class="s2">&quot;for&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">newValue</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastValid</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="bp">True</span>
+
+        <span class="n">transmissionLock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.getData"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.getData">[docs]</a>    <span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the whole current data as a SpreadsheetData-object&quot;&quot;&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">.SpreadsheetData</span> <span class="kn">import</span> <span class="n">SpreadsheetData</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">numpy</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="c1"># assume this is pypy and retry</span>
+            <span class="kn">import</span> <span class="nn">numpypy</span>
+            <span class="kn">import</span> <span class="nn">numpy</span>
+
+        <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span><span class="o">+</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">data</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">SpreadsheetData</span><span class="p">(</span><span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">,</span><span class="n">data</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="TimeLineCollection.getLatestData"><a class="viewcode-back" href="../../../api/PyFoam.Basics.TimeLineCollection.html#PyFoam.Basics.TimeLineCollection.TimeLineCollection.getLatestData">[docs]</a>    <span class="k">def</span> <span class="nf">getLatestData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a dictionary with the latest values from all data sets&quot;&quot;&quot;</span>
+
+        <span class="n">result</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">d</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastValid</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">result</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

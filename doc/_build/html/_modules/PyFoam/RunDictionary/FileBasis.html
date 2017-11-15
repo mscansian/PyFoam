@@ -1,0 +1,532 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.RunDictionary.FileBasis &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.RunDictionary.FileBasis</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.RunDictionary.FileBasis</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Basis for the handling of OpenFOAM-files</span>
+
+<span class="sd">Transparently accepts gnuzipped files&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span><span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">mktemp</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.Utilities</span> <span class="kn">import</span> <span class="n">Utilities</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.LineReader</span> <span class="kn">import</span> <span class="n">LineReader</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">warning</span><span class="p">,</span><span class="n">error</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">PY3</span>
+
+<div class="viewcode-block" id="FileBasis"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis">[docs]</a><span class="k">class</span> <span class="nc">FileBasis</span><span class="p">(</span><span class="n">Utilities</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Base class for the other OpenFOAM--file-classes&quot;&quot;&quot;</span>
+
+    <span class="n">removedString</span><span class="o">=</span><span class="s2">&quot;//PyFoamRemoved: &quot;</span>
+    <span class="sd">&quot;&quot;&quot;Comment for lines that were overwritten by PyFoam-routines&quot;&quot;&quot;</span>
+
+    <span class="n">addedString</span><span class="o">=</span><span class="s2">&quot;//PyFoamAdded&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Comment for lines that were added by PyFoam-routines&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FileBasis.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">createZipped</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param name: Name of the file. If the field is zipped the .gz is</span>
+<span class="sd">        appended. Alternatively it can be a filehandle</span>
+<span class="sd">        :param createZipped: if the file doesnot exist: should it be created</span>
+<span class="sd">        as a zipped file?&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;read&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="o">=</span><span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="o">=</span><span class="n">name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exists</span> <span class="o">=</span> <span class="bp">False</span>
+
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exists</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="o">=</span><span class="bp">False</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;.gz&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="o">=</span><span class="bp">True</span>
+                <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.gz&quot;</span><span class="p">):</span>
+                    <span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.gz&quot;</span><span class="p">,</span><span class="s2">&quot;and&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;existing - using the unzipped&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.gz&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="o">=</span><span class="bp">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exists</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="o">=</span><span class="n">createZipped</span>
+
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;.gz&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">=</span><span class="bp">None</span></div>
+
+<div class="viewcode-block" id="FileBasis.realName"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.realName">[docs]</a>    <span class="k">def</span> <span class="nf">realName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The full filename with appended .gz (if zipped)&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.gz&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FileBasis.baseName"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.baseName">[docs]</a>    <span class="k">def</span> <span class="nf">baseName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the basic file name (without .gz)&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FileBasis.openFile"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.openFile">[docs]</a>    <span class="k">def</span> <span class="nf">openFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keepContent</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;opens the file. To be overloaded by derived classes&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">keepContent</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="o">=</span><span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.gz&quot;</span><span class="p">,</span><span class="n">mode</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">mode</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">mode</span><span class="o">!=</span><span class="s2">&quot;r&quot;</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;File-handle&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="p">),</span><span class="s2">&quot;can only be used with mode &#39;r&#39;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FileBasis.closeFile"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.closeFile">[docs]</a>    <span class="k">def</span> <span class="nf">closeFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; closes the file&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="o">=</span><span class="bp">None</span></div>
+
+<div class="viewcode-block" id="FileBasis.readFile"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.readFile">[docs]</a>    <span class="k">def</span> <span class="nf">readFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; read the whole File into memory&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">openFile</span><span class="p">()</span>
+        <span class="n">txt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">PY3</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">:</span>
+            <span class="n">txt</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">txt</span><span class="p">,</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">closeFile</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FileBasis.writeFile"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.writeFile">[docs]</a>    <span class="k">def</span> <span class="nf">writeFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">content</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; write the whole File from memory</span>
+<span class="sd">        :param content: content that should replace the old content&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">content</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">=</span><span class="n">content</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">openFile</span><span class="p">(</span><span class="n">keepContent</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+                <span class="n">txt</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">txt</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">closeFile</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;File-handle&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="p">),</span><span class="s2">&quot;can not be written&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FileBasis.encode"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.encode">[docs]</a>    <span class="k">def</span> <span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">txt</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Encode a string to byte if necessary (for Python3)&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">PY3</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">txt</span><span class="p">,</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">txt</span></div>
+
+<div class="viewcode-block" id="FileBasis.writeFileAs"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.writeFileAs">[docs]</a>    <span class="k">def</span> <span class="nf">writeFileAs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Writes a copy of the file. Extends with .gz if the original</span>
+<span class="sd">        is zipped</span>
+<span class="sd">        :param name: Name under which the file is written&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">==</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+                <span class="n">warning</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;and&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;seem to be the same. Nothing done&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+
+        <span class="n">erase</span><span class="o">=</span><span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">erase</span><span class="o">=</span><span class="bp">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">readFile</span><span class="p">()</span>
+
+        <span class="n">tmp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">fh</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="n">tmp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="o">=</span><span class="n">fh</span>
+
+        <span class="k">if</span> <span class="n">erase</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">=</span><span class="bp">None</span></div>
+
+<div class="viewcode-block" id="FileBasis.parse"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cnt</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Parse a string that is to be the content, to be overriden</span>
+<span class="sd">        by the sub-classes&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">cnt</span></div>
+
+<div class="viewcode-block" id="FileBasis.__str__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build a string from self.content, to be overriden by sub-classes&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span></div>
+
+<div class="viewcode-block" id="FileBasis.__enter__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.__enter__">[docs]</a>    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Making the &#39;with&#39;-statement happy&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="FileBasis.__exit__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.__exit__">[docs]</a>    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">typ</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="n">traceback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Making the &#39;with&#39;-statement happy&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">closeFile</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FileBasis.makeTemp"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.makeTemp">[docs]</a>    <span class="k">def</span> <span class="nf">makeTemp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;creates a temporary file&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="n">fName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="n">fn</span><span class="o">=</span><span class="n">mktemp</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">fName</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">zipped</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">=</span><span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fh</span><span class="p">,</span><span class="n">fn</span></div>
+
+<div class="viewcode-block" id="FileBasis.writeEncoded"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.writeEncoded">[docs]</a>    <span class="k">def</span> <span class="nf">writeEncoded</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">out</span><span class="p">,</span><span class="n">txt</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert the text to &#39;bytes&#39; is we encounter a zipped file&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="ow">is</span> <span class="n">gzip</span><span class="o">.</span><span class="n">GzipFile</span><span class="p">:</span>
+                <span class="n">txt</span><span class="o">=</span><span class="nb">bytes</span><span class="p">(</span><span class="n">txt</span><span class="p">,</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FileBasis.goTo"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.goTo">[docs]</a>    <span class="k">def</span> <span class="nf">goTo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">s</span><span class="p">,</span><span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">echoLast</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">stop</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read lines until a token is found</span>
+
+<span class="sd">        :param l: a LineReader object</span>
+<span class="sd">        :param s: the string to look for</span>
+<span class="sd">        :param out: filehandle to echo the lines to</span>
+<span class="sd">        :param stop: pattern that indicates that exp will never be found (only passed through to goMatch)</span>
+<span class="sd">        :param echoLast: echo the line with the string&quot;&quot;&quot;</span>
+        <span class="n">exp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;( |^)&quot;</span><span class="o">+</span><span class="n">s</span><span class="o">+</span><span class="s2">&quot;( |$)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">goMatch</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">exp</span><span class="p">,</span><span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">,</span><span class="n">stop</span><span class="o">=</span><span class="n">stop</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">out</span><span class="o">!=</span><span class="bp">None</span> <span class="ow">and</span> <span class="n">echoLast</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeEncoded</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="n">l</span><span class="o">.</span><span class="n">line</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FileBasis.goMatch"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.goMatch">[docs]</a>    <span class="k">def</span> <span class="nf">goMatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">exp</span><span class="p">,</span><span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">stop</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read lines until a regular expression is matched</span>
+
+<span class="sd">        :param l: a LineReader object</span>
+<span class="sd">        :param exp: the expression to look for</span>
+<span class="sd">        :param out: filehandle to echo the lines to</span>
+<span class="sd">        :param stop: pattern that indicates that exp will never be found</span>
+<span class="sd">        :return: match-object if exp is found, the line if stop is found and None if the end of the file is reached&quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="n">l</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="p">):</span>
+            <span class="n">m</span><span class="o">=</span><span class="n">exp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">m</span>
+            <span class="k">elif</span> <span class="n">stop</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">stop</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">line</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">l</span><span class="o">.</span><span class="n">line</span>
+            <span class="k">if</span> <span class="n">out</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">writeEncoded</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="n">l</span><span class="o">.</span><span class="n">line</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="FileBasis.copyRest"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.copyRest">[docs]</a>    <span class="k">def</span> <span class="nf">copyRest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="n">out</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Copy the rest of the file</span>
+
+<span class="sd">        :param l: a LineReader object</span>
+<span class="sd">        :param out: filehandle to echo the lines to&quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="n">l</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeEncoded</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="n">l</span><span class="o">.</span><span class="n">line</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FileBasis.purgeFile"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.purgeFile">[docs]</a>    <span class="k">def</span> <span class="nf">purgeFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Undo all the manipulations done by PyFOAM</span>
+
+<span class="sd">        Goes through the file and removes all lines that were added&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;File-handle&quot;</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="p">),</span><span class="s2">&quot;can not be purged&quot;</span><span class="p">)</span>
+
+        <span class="n">rmExp</span><span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;^&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">removedString</span><span class="o">+</span><span class="s2">&quot;(.*)$&quot;</span><span class="p">)</span>
+        <span class="n">addExp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;^(.*)&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">addedString</span><span class="o">+</span><span class="s2">&quot;$&quot;</span><span class="p">)</span>
+
+        <span class="n">l</span><span class="o">=</span><span class="n">LineReader</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">openFile</span><span class="p">()</span>
+
+        <span class="p">(</span><span class="n">fh</span><span class="p">,</span><span class="n">fn</span><span class="p">)</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeTemp</span><span class="p">()</span>
+
+        <span class="k">while</span> <span class="n">l</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="p">):</span>
+            <span class="n">toPrint</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">line</span>
+
+            <span class="n">m</span><span class="o">=</span><span class="n">addExp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">m</span><span class="o">=</span><span class="n">rmExp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">toPrint</span><span class="o">=</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeEncoded</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span><span class="n">toPrint</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">closeFile</span><span class="p">()</span>
+        <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FileBasis.getCaseDir"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasis.getCaseDir">[docs]</a>    <span class="k">def</span> <span class="nf">getCaseDir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the path to the case of this file (if any valid case is found).</span>
+<span class="sd">        Else return None&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="n">fName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fh</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="kn">from</span> <span class="nn">.SolutionDirectory</span> <span class="kn">import</span> <span class="n">NoTouchSolutionDirectory</span>
+
+        <span class="n">caseDir</span><span class="o">=</span><span class="bp">None</span>
+        <span class="n">comp</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">fName</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">NoTouchSolutionDirectory</span><span class="p">(</span><span class="n">comp</span><span class="p">)</span><span class="o">.</span><span class="n">isValid</span><span class="p">():</span>
+                <span class="n">caseDir</span><span class="o">=</span><span class="n">comp</span>
+                <span class="k">break</span>
+            <span class="n">comp</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">comp</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">caseDir</span></div></div>
+
+<div class="viewcode-block" id="CleanCharactersFile"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.CleanCharactersFile">[docs]</a><span class="k">class</span> <span class="nc">CleanCharactersFile</span><span class="p">(</span><span class="n">FileBasis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read file and remove characters from the content&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CleanCharactersFile.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.CleanCharactersFile.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">charsToRemove</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;@param charsToRemove: string with characters that should be removed&quot;&quot;&quot;</span>
+        <span class="n">FileBasis</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chars</span><span class="o">=</span><span class="n">charsToRemove</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">readFile</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CleanCharactersFile.parse"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.CleanCharactersFile.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cnt</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chars</span><span class="p">:</span>
+            <span class="n">cnt</span><span class="o">=</span><span class="n">cnt</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cnt</span></div></div>
+
+<div class="viewcode-block" id="FileBasisBackup"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasisBackup">[docs]</a><span class="k">class</span> <span class="nc">FileBasisBackup</span><span class="p">(</span><span class="n">FileBasis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A file with a backup-copy&quot;&quot;&quot;</span>
+
+    <span class="n">counter</span><span class="o">=</span><span class="p">{}</span>
+
+<div class="viewcode-block" id="FileBasisBackup.__init__"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasisBackup.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">backup</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">createZipped</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param name: The name of the parameter file</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param backup: create a backup-copy of the file</span>
+<span class="sd">        :type backup: boolean&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;read&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">backup</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">),</span><span class="s2">&quot;is a file-handle. No backup possible&quot;</span><span class="p">)</span>
+            <span class="n">backup</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="n">FileBasis</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">createZipped</span><span class="o">=</span><span class="n">createZipped</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">backup</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">backupName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.backup&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">FileBasisBackup</span><span class="o">.</span><span class="n">counter</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">FileBasisBackup</span><span class="o">.</span><span class="n">counter</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">backupName</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">backupName</span><span class="o">=</span><span class="bp">None</span></div>
+
+<div class="viewcode-block" id="FileBasisBackup.restore"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.FileBasisBackup.restore">[docs]</a>    <span class="k">def</span> <span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;if a backup-copy was made the file is restored from this&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backupName</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">FileBasisBackup</span><span class="o">.</span><span class="n">counter</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">-=</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="n">FileBasisBackup</span><span class="o">.</span><span class="n">counter</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">backupName</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">backupName</span><span class="p">)</span>
+                <span class="k">del</span> <span class="n">FileBasisBackup</span><span class="o">.</span><span class="n">counter</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span></div></div>
+
+<div class="viewcode-block" id="exists"><a class="viewcode-back" href="../../../api/PyFoam.RunDictionary.FileBasis.html#PyFoam.RunDictionary.FileBasis.exists">[docs]</a><span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="n">f</span><span class="o">=</span><span class="n">FileBasis</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">exists</span></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

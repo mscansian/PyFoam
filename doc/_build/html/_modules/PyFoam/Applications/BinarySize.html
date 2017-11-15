@@ -1,0 +1,373 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.BinarySize &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.BinarySize</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.BinarySize</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application-class that implements pyFoamBinarySize.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.Utilities</span> <span class="kn">import</span> <span class="n">diskUsage</span><span class="p">,</span><span class="n">humanReadableSize</span>
+
+<span class="kn">import</span> <span class="nn">PyFoam.FoamInformation</span> <span class="kn">as</span> <span class="nn">FI</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">listdir</span><span class="p">,</span><span class="n">path</span>
+
+<div class="viewcode-block" id="BinarySize"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BinarySize.html#PyFoam.Applications.BinarySize.BinarySize">[docs]</a><span class="k">class</span> <span class="nc">BinarySize</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="BinarySize.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BinarySize.html#PyFoam.Applications.BinarySize.BinarySize.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Goes through the OpenFOAM-installation and records the size of all the binary</span>
+<span class="s2">files (linked as well as object files) and reports them for each compiliation</span>
+<span class="s2">option separately (Debug/Opt, compilers)</span>
+
+<span class="s2">This should provide the user with an overview how much disk space each variation</span>
+<span class="s2">of the binaries needs.</span>
+
+<span class="s2">The reported OpenfOAM-installation can be selected using the usual Foam-version</span>
+<span class="s2">switching.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">examples</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">%prog</span>
+
+<span class="s2">  List the disk space used by the current OpenFOAM-installation</span>
+
+<span class="s2">%prog --foamVersion=1.7.x</span>
+
+<span class="s2">  List the disk space used by binaries in OpenFOAM-1.7.x</span>
+
+<span class="s2">%prog --all-installations</span>
+
+<span class="s2">  List the disk space used by all the available installations</span>
+
+<span class="s2">%prog --all-installations --follow-symlinked-installations</span>
+
+<span class="s2">  Also follow symlinked installations (this may count binaries twice)&quot;&quot;&quot;</span>
+
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">examples</span><span class="o">=</span><span class="n">examples</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog &lt;caseDirectory&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                   <span class="n">exactNr</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BinarySize.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BinarySize.html#PyFoam.Applications.BinarySize.BinarySize.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">what</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                         <span class="s2">&quot;What&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;What should be reported&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">what</span><span class="p">)</span>
+
+        <span class="n">what</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--all-installations&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;allInstallations&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Report the disk usage for all installations (this may take quite a while)&quot;</span><span class="p">)</span>
+        <span class="n">what</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--follow-symlinked-installations&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;symlinkInstallations&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Also count the installation if it is a symlink (otherwise only report the original installation and skip it)&quot;</span><span class="p">)</span>
+
+        <span class="n">display</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                            <span class="s2">&quot;Display&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;Output on the screen&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">display</span><span class="p">)</span>
+        <span class="n">display</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--progress-maximum-depth&quot;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                           <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;maximumProgressDepth&quot;</span><span class="p">,</span>
+                           <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Maximum level of recursion depth for which the progress should be reported. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">display</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-progress-bar&quot;</span><span class="p">,</span>
+                           <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_const&quot;</span><span class="p">,</span>
+                           <span class="n">const</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                           <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;maximumProgressDepth&quot;</span><span class="p">,</span>
+                           <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Switch off the progress bars&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BinarySize.output"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BinarySize.html#PyFoam.Applications.BinarySize.BinarySize.output">[docs]</a>    <span class="k">def</span> <span class="nf">output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maximumProgressDepth</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="o">+=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BinarySize.scanDir"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BinarySize.html#PyFoam.Applications.BinarySize.BinarySize.scanDir">[docs]</a>    <span class="k">def</span> <span class="nf">scanDir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dPath</span><span class="p">,</span><span class="n">usages</span><span class="p">,</span><span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">dName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">dPath</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dName</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;.&quot;</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="n">dName</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;lnInclude&quot;</span><span class="p">,</span><span class="s2">&quot;Doxygen&quot;</span><span class="p">]:</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="n">dName</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Make&quot;</span><span class="p">,</span><span class="s2">&quot;platform&quot;</span><span class="p">,</span><span class="s2">&quot;bin&quot;</span><span class="p">,</span><span class="s2">&quot;platforms&quot;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">listdir</span><span class="p">(</span><span class="n">dPath</span><span class="p">),</span>
+                          <span class="n">desc</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">dPath</span><span class="p">),</span>
+                          <span class="n">disable</span><span class="o">=</span><span class="n">depth</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maximumProgressDepth</span><span class="p">,</span>
+                          <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;files&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;.&quot;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">nPath</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dPath</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">nPath</span><span class="p">):</span>
+                    <span class="n">isBin</span><span class="o">=</span><span class="bp">False</span>
+                    <span class="k">for</span> <span class="n">end</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Opt&quot;</span><span class="p">,</span><span class="s2">&quot;Debug&quot;</span><span class="p">,</span><span class="s2">&quot;Prof&quot;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">end</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">end</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">end</span><span class="p">))</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+                            <span class="n">isBin</span><span class="o">=</span><span class="bp">True</span>
+                    <span class="k">if</span> <span class="n">isBin</span><span class="p">:</span>
+                        <span class="n">sz</span><span class="o">=</span><span class="n">diskUsage</span><span class="p">(</span><span class="n">nPath</span><span class="p">)</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">usages</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">+=</span><span class="n">sz</span>
+                        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                            <span class="n">usages</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">=</span><span class="n">sz</span>
+                           <span class="c1"># self.output(&quot;Found architecture&quot;,f,&quot;in&quot;,dPath)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">listdir</span><span class="p">(</span><span class="n">dPath</span><span class="p">),</span>
+                              <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;files&quot;</span><span class="p">,</span>
+                              <span class="n">disable</span><span class="o">=</span><span class="n">depth</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maximumProgressDepth</span><span class="p">,</span>
+                              <span class="n">desc</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">dPath</span><span class="p">)):</span>
+                    <span class="n">nPath</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dPath</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">nPath</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">nPath</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">scanDir</span><span class="p">(</span><span class="n">nPath</span><span class="p">,</span><span class="n">usages</span><span class="p">,</span><span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Can&#39;t process&quot;</span><span class="p">,</span><span class="n">dPath</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BinarySize.reportInstallation"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BinarySize.html#PyFoam.Applications.BinarySize.BinarySize.reportInstallation">[docs]</a>    <span class="k">def</span> <span class="nf">reportInstallation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Report the usages of a OpenFOAM-installation&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Scanning&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">fName</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="s2">&quot;Symlinked to&quot;</span><span class="p">,</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">fName</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">symlinkInstallations</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="s2">&quot;Skipping symlinked installation&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">0</span>
+        <span class="n">usages</span><span class="o">=</span><span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scanDir</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="n">usages</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">usages</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">nameLength</span><span class="o">=</span><span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">usages</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
+            <span class="n">sizeLength</span><span class="o">=</span><span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">usages</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+            <span class="n">formatString</span><span class="o">=</span><span class="s2">&quot;    </span><span class="si">%%%d</span><span class="s2">s - </span><span class="si">%%%d</span><span class="s2">d (</span><span class="si">%%</span><span class="s2">s)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nameLength</span><span class="p">,</span><span class="n">sizeLength</span><span class="p">)</span>
+            <span class="n">total</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">usages</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="n">v</span><span class="o">=</span><span class="n">usages</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="n">total</span><span class="o">+=</span><span class="n">v</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="n">formatString</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">humanReadableSize</span><span class="p">(</span><span class="n">v</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="s2">&quot;Sum of binaries&quot;</span><span class="p">,</span><span class="n">humanReadableSize</span><span class="p">(</span><span class="n">total</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">total</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="s2">&quot;    No binaries found&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="BinarySize.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.BinarySize.html#PyFoam.Applications.BinarySize.BinarySize.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">allInstallations</span><span class="p">:</span>
+             <span class="n">installed</span><span class="o">=</span><span class="n">FI</span><span class="o">.</span><span class="n">foamInstalledVersions</span><span class="p">()</span>
+             <span class="n">total</span><span class="o">=</span><span class="mi">0</span>
+             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">installed</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+                           <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Distro&quot;</span><span class="p">,</span>
+                           <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;distro&quot;</span><span class="p">):</span>
+                 <span class="n">instPath</span><span class="o">=</span><span class="n">installed</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                 <span class="n">total</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">reportInstallation</span><span class="p">(</span><span class="n">instPath</span><span class="p">)</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Total disk space used by binaries:&quot;</span><span class="o">+</span><span class="n">humanReadableSize</span><span class="p">(</span><span class="n">total</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reportInstallation</span><span class="p">(</span><span class="n">FI</span><span class="o">.</span><span class="n">installationPath</span><span class="p">())</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No Foam-installation active. Specify one&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

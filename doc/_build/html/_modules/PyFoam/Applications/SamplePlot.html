@@ -1,0 +1,1148 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.SamplePlot &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.SamplePlot</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.SamplePlot</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application class that implements pyFoamSamplePlot.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">string</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.SampleDirectory</span> <span class="kn">import</span> <span class="n">SampleDirectory</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.SpreadsheetData</span> <span class="kn">import</span> <span class="n">WrongDataSize</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+
+<span class="kn">from</span> <span class="nn">.PlotHelpers</span> <span class="kn">import</span> <span class="n">cleanFilename</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<div class="viewcode-block" id="SamplePlot"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SamplePlot.html#PyFoam.Applications.SamplePlot.SamplePlot">[docs]</a><span class="k">class</span> <span class="nc">SamplePlot</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="SamplePlot.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SamplePlot.html#PyFoam.Applications.SamplePlot.SamplePlot.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Reads data from the sample-dictionary and generates appropriate</span>
+<span class="s2">gnuplot-commands. As an option the data can be written to a CSV-file.</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] &lt;casedir&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="n">modeChoices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;separate&quot;</span><span class="p">,</span><span class="s2">&quot;timesInOne&quot;</span><span class="p">,</span><span class="s2">&quot;fieldsInOne&quot;</span><span class="p">,</span><span class="s2">&quot;linesInOne&quot;</span><span class="p">,</span><span class="s2">&quot;complete&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="SamplePlot.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SamplePlot.html#PyFoam.Applications.SamplePlot.SamplePlot.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                          <span class="s2">&quot;Data&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;Select the data to plot&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--line&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;line&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Thesample line from which data is plotted (can be used more than once)&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--field&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;field&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The fields that are plotted (can be used more than once). If none are specified all found fields are used&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--pattern-for-line&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;linePattern&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Usually the name of the line is automatically determined from the file name by taking the first part. If this regular expression is specified then it is used: the first group in the pattern will be the line name&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--default-value-names&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;valueNames&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Usually the names of the values automatically determined from the file. If they are specified (as a comma separated list of names) then these names are used and all the files MUST have these values&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--no-extension-needed&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;needsExtension&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The files do not have an extension&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--is-distribution&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;isDistribution&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The files in the directory are distributions. This sets the names of the lines and fields accordingly&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--postfix-for-field-names&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;fieldPostfix&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Possible postfix for field names of the form &#39;name_postfix&#39;. Note that this should not be a possible field name&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--prefix-for-field-names&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;fieldPrefix&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Possible prefix for field names of the form &#39;prefix_name&#39;. Note that this should not be a possible field name&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--directory-name&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;samples&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;dirName&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Alternate name for the directory with the samples (Default: </span><span class="si">%d</span><span class="s2">efault)&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--preferred-component&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;component&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The component that should be used for vectors. Otherwise the absolute value is used&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--reference-directory&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;reference&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;A reference directory. If fitting sample data is found there it is plotted alongside the regular data&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--reference-case&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;referenceCase&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;A reference case where a directory with the same name is looked for. Mutual exclusive with --reference-directory&quot;</span><span class="p">)</span>
+
+        <span class="n">scale</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                          <span class="s2">&quot;Scale&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;Scale the data before comparing (not used during plotting)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span>
+        <span class="n">scale</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--scale-data&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                         <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;scaleData&quot;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Scale the data by this factor. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">scale</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--offset-data&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                         <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;offsetData&quot;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Offset the data by this factor. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">scale</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--scale-x-axis&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                         <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;scaleXAxis&quot;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Scale the x-axis by this factor. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">scale</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--offset-x-axis&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                         <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;offsetXAxis&quot;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Offset the x-axis by this factor. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+
+        <span class="n">scale</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--scale-reference-data&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                         <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;scaleReferenceData&quot;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Scale the reference data by this factor. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">scale</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--offset-reference-data&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                         <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;offsetReferenceData&quot;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Offset the reference data by this factor. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">scale</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--scale-reference-x-axis&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                         <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;scaleReferenceXAxis&quot;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Scale the reference x-axis by this factor. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">scale</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--offset-reference-x-axis&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                         <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;offsetReferenceXAxis&quot;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Offset the reference x-axis by this factor. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+
+        <span class="n">time</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                         <span class="s2">&quot;Time&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;Select the times to plot&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+
+        <span class="n">time</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--time&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The times that are plotted (can be used more than once). If none are specified all found times are used&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--min-time&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;minTime&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The smallest time that should be used&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--max-time&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;maxTime&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The biggest time that should be used&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--fuzzy-time&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;fuzzyTime&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Try to find the next timestep if the time doesn&#39;t match exactly&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--latest-time&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;latestTime&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Take the latest time from the data&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--reference-time&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;referenceTime&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Take this time from the reference data (instead of using the same time as the regular data)&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--tolerant-reference-time&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;tolerantReferenceTime&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Take the reference-time that is nearest to the selected time&quot;</span><span class="p">)</span>
+
+        <span class="n">output</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Appearance&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;How it should be plotted&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--mode&quot;</span><span class="p">,</span>
+                          <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;choice&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="s2">&quot;separate&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;mode&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">modeChoices</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;What kind of plots are generated: a) separate for every time, line and field b) all times of a field in one plot c) all fields of a time in one plot d) all lines in one plot e) everything in one plot (Names: &quot;</span><span class="o">+</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeChoices</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;) Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--unscaled&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;scaled&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t scale a value to the same range for all plots&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--scale-all&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;scaleAll&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use the same scale for all fields (else use one scale for each field)&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--scale-domain&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;scaleDomain&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Automatically scale the x-domain to the same length for all plots&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--domain-minimum&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;domainMin&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use this value as the minimum for the x-domain for all plots&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--domain-maximum&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;domainMax&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use this value as the maximum for the x-domain for all plots&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--gnuplot-file&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;gnuplotFile&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Write the necessary gnuplot commands to this file. Else they are written to the standard output&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--picture-destination&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;pictureDest&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Directory the pictures should be stored to&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--name-prefix&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;namePrefix&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Prefix to the picture-name&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--csv-file&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;csvFile&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Write the data to a CSV-file instead of the gnuplot-commands&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--excel-file&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;excelFile&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Write the data to a Excel-file instead of the gnuplot-commands&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--pandas-data&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;pandasData&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Pass the raw data in pandas-format&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--numpy-data&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;numpyData&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Pass the raw data in numpy-format&quot;</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--info&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print info about the sampled data and exit&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--style&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;style&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Gnuplot-style for the data (Default: </span><span class="si">%d</span><span class="s2">efault)&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--clean-filename&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;cleanFilename&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Clean filenames so that they can be used in HTML or Latex-documents&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--index-instead-of-time&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;indexInsteadOfTime&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use an index instead of the time in the filename (mainly needed if the files are used to make a movie with FFMPEG)&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--reference-prefix&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;refprefix&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="s2">&quot;Reference&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Prefix that gets added to the reference lines. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--resample-reference&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;resampleReference&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Resample the reference value to the current x-axis (for CSV or Excel-output)&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--extend-data&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;extendData&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Extend the data range if it differs (for CSV or Excel-files)&quot;</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--silent&quot;</span><span class="p">,</span>
+                          <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                          <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;silent&quot;</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t write to screen (with the silent and the compare-options)&quot;</span><span class="p">)</span>
+
+        <span class="n">numerics</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                             <span class="s2">&quot;Quantify&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;Metrics of the data and numerical comparisons&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">numerics</span><span class="p">)</span>
+        <span class="n">numerics</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--metrics&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;metrics&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print the metrics of the data sets&quot;</span><span class="p">)</span>
+        <span class="n">numerics</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--compare&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;compare&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Compare all data sets that are also in the reference data&quot;</span><span class="p">)</span>
+        <span class="n">numerics</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--common-range-compare&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;commonRange&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;When comparing two datasets only use the common time range&quot;</span><span class="p">)</span>
+        <span class="n">numerics</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--index-tolerant-compare&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;indexTolerant&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Compare two data sets even if they have different indizes&quot;</span><span class="p">)</span>
+        <span class="n">numerics</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--use-reference-for-comparison&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;compareOnOriginal&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Use the reference-data as the basis for the numerical comparison. Otherwise the original data will be used&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SamplePlot.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.SamplePlot.html#PyFoam.Applications.SamplePlot.SamplePlot.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">isDistribution</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">valueNames</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">linePattern</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The option --is-distribution can not be used with --pattern-for-line or --default-value-names&quot;</span><span class="p">)</span>
+            <span class="c1">#            self.opts.valueNames=&quot;normalized,raw&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">linePattern</span><span class="o">=</span><span class="s2">&quot;.+istribution_(.+)&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">needsExtension</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="c1"># remove trailing slashif present</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dirName</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dirName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dirName</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">usedDirName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dirName</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">valueNames</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">usedValueNames</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">usedValueNames</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">valueNames</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+
+        <span class="n">samples</span><span class="o">=</span><span class="n">SampleDirectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                                <span class="n">dirName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dirName</span><span class="p">,</span>
+                                <span class="n">postfixes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fieldPostfix</span><span class="p">,</span>
+                                <span class="n">prefixes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fieldPrefix</span><span class="p">,</span>
+                                <span class="n">valueNames</span><span class="o">=</span><span class="n">usedValueNames</span><span class="p">,</span>
+                                <span class="n">namesFromFirstLine</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">isDistribution</span><span class="p">,</span>
+                                <span class="n">linePattern</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">linePattern</span><span class="p">,</span>
+                                <span class="n">needsExtension</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">needsExtension</span><span class="p">)</span>
+        <span class="n">reference</span><span class="o">=</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">reference</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceCase</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Options --reference-directory and --reference-case are mutual exclusive&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">csvFile</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">excelFile</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pandasData</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">numpyData</span><span class="p">)</span>  <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">compare</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">metrics</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Options --csv-file/--excel-file/--pandas-data/--numpy-data and --compare/--metrics are mutual exclusive&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">reference</span><span class="p">:</span>
+            <span class="n">reference</span><span class="o">=</span><span class="n">SampleDirectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                                      <span class="n">dirName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">reference</span><span class="p">,</span>
+                                      <span class="n">postfixes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fieldPostfix</span><span class="p">,</span>
+                                      <span class="n">prefixes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fieldPrefix</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceCase</span><span class="p">:</span>
+            <span class="n">reference</span><span class="o">=</span><span class="n">SampleDirectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceCase</span><span class="p">,</span>
+                                      <span class="n">dirName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">dirName</span><span class="p">,</span>
+                                      <span class="n">postfixes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fieldPostfix</span><span class="p">,</span>
+                                      <span class="n">prefixes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fieldPrefix</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">reference</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">samefile</span><span class="p">(</span><span class="n">reference</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">samples</span><span class="o">.</span><span class="n">dir</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Used sample directory&quot;</span><span class="p">,</span><span class="n">samples</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span>
+                           <span class="s2">&quot;and reference directory&quot;</span><span class="p">,</span><span class="n">reference</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span>
+                           <span class="s2">&quot;are the same&quot;</span><span class="p">)</span>
+
+        <span class="n">lines</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">lines</span><span class="p">()</span>
+        <span class="n">times</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">times</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Times : &quot;</span><span class="p">,</span><span class="n">samples</span><span class="o">.</span><span class="n">times</span><span class="p">)</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Lines : &quot;</span><span class="p">,</span><span class="n">samples</span><span class="o">.</span><span class="n">lines</span><span class="p">())</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Fields: &quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">({</span><span class="s1">&#39;times&#39;</span>  <span class="p">:</span> <span class="n">samples</span><span class="o">.</span><span class="n">times</span><span class="p">,</span>
+                          <span class="s1">&#39;lines&#39;</span>  <span class="p">:</span> <span class="n">samples</span><span class="o">.</span><span class="n">lines</span><span class="p">(),</span>
+                          <span class="s1">&#39;values&#39;</span> <span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">values</span><span class="p">())})</span>
+
+            <span class="k">if</span> <span class="n">reference</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Reference Data:&quot;</span><span class="p">)</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Times : &quot;</span><span class="p">,</span><span class="n">reference</span><span class="o">.</span><span class="n">times</span><span class="p">)</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Lines : &quot;</span><span class="p">,</span><span class="n">reference</span><span class="o">.</span><span class="n">lines</span><span class="p">())</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Fields: &quot;</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="n">reference</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">({</span><span class="s1">&#39;reference&#39;</span><span class="p">:{</span><span class="s1">&#39;times&#39;</span>  <span class="p">:</span> <span class="n">samples</span><span class="o">.</span><span class="n">times</span><span class="p">,</span>
+                                           <span class="s1">&#39;lines&#39;</span>  <span class="p">:</span> <span class="n">samples</span><span class="o">.</span><span class="n">lines</span><span class="p">(),</span>
+                                           <span class="s1">&#39;values&#39;</span> <span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">values</span><span class="p">())}})</span>
+
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="c1">#            error(&quot;At least one line has to be specified. Found were&quot;,samples.lines())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="o">=</span><span class="n">lines</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">l</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;The line&quot;</span><span class="p">,</span><span class="n">l</span><span class="p">,</span><span class="s2">&quot;does not exist in&quot;</span><span class="p">,</span><span class="n">lines</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">latestTime</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="n">samples</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Times&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">,</span><span class="s2">&quot;and range [&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="p">,</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span><span class="p">,</span><span class="s2">&quot;] set: contradiction&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span><span class="o">=</span> <span class="mf">1e20</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="o">=-</span><span class="mf">1e20</span>
+
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">&lt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">&gt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No times in range [&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="p">,</span><span class="s2">&quot;,&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span><span class="p">,</span><span class="s2">&quot;] found: &quot;</span><span class="p">,</span><span class="n">times</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+            <span class="n">iTimes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">iTimes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">samples</span><span class="o">.</span><span class="n">times</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fuzzyTime</span><span class="p">:</span>
+                    <span class="n">tf</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                    <span class="n">use</span><span class="o">=</span><span class="bp">None</span>
+                    <span class="n">dist</span><span class="o">=</span><span class="mf">1e20</span>
+                    <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">samples</span><span class="o">.</span><span class="n">times</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">tf</span><span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">ts</span><span class="p">))</span><span class="o">&lt;</span><span class="n">dist</span><span class="p">:</span>
+                            <span class="n">use</span><span class="o">=</span><span class="n">ts</span>
+                            <span class="n">dist</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">tf</span><span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">ts</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">use</span> <span class="ow">and</span> <span class="n">use</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">use</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="c1">#                    self.warning(&quot;Time&quot;,t,&quot;not found in the sample-times. Use option --fuzzy&quot;)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">tolerantReferenceTime</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceTime</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;--tolerant-reference-time and --reference-time can&#39;t be used at the same time&quot;</span><span class="p">)</span>
+            <span class="n">refTimes</span><span class="o">=</span><span class="p">{}</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                <span class="n">dist</span><span class="o">=</span><span class="mf">1e20</span>
+                <span class="k">for</span> <span class="n">rt</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">times</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">rt</span><span class="p">))</span><span class="o">&lt;</span><span class="n">dist</span><span class="p">:</span>
+                        <span class="n">refTimes</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">=</span><span class="n">rt</span>
+                        <span class="n">dist</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">rt</span><span class="p">))</span>
+
+        <span class="n">plots</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">oPlots</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">rPlots</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;separate&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">times</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">lines</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="p">:</span>
+                        <span class="n">plot</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="n">line</span><span class="o">=</span><span class="p">[</span><span class="n">l</span><span class="p">],</span>
+                                             <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">f</span><span class="p">],</span>
+                                             <span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="n">t</span><span class="p">],</span>
+                                             <span class="n">scale</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleXAxis</span><span class="p">,</span>
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleData</span><span class="p">),</span>
+                                             <span class="n">offset</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">offsetXAxis</span><span class="p">,</span>
+                                                     <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">offsetData</span><span class="p">))</span>
+                        <span class="n">oPlots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plot</span><span class="p">[:])</span>
+                        <span class="k">if</span> <span class="n">reference</span><span class="p">:</span>
+                            <span class="n">rT</span><span class="o">=</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceTime</span><span class="p">:</span>
+                                <span class="n">rT</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceTime</span><span class="p">]</span>
+                            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">tolerantReferenceTime</span><span class="p">:</span>
+                                <span class="n">rT</span><span class="o">=</span><span class="p">[</span><span class="n">refTimes</span><span class="p">[</span><span class="n">t</span><span class="p">]]</span>
+                            <span class="n">p</span><span class="o">=</span><span class="n">reference</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="n">line</span><span class="o">=</span><span class="p">[</span><span class="n">l</span><span class="p">],</span>
+                                                <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">f</span><span class="p">],</span>
+                                                <span class="n">time</span><span class="o">=</span><span class="n">rT</span><span class="p">,</span>
+                                                <span class="n">note</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">refprefix</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="p">,</span>
+                                                <span class="n">scale</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleReferenceXAxis</span><span class="p">,</span>
+                                                       <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleReferenceData</span><span class="p">),</span>
+                                                <span class="n">offset</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">offsetReferenceXAxis</span><span class="p">,</span>
+                                                        <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">offsetReferenceData</span><span class="p">))</span>
+                            <span class="n">rPlots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                            <span class="n">plot</span><span class="o">+=</span><span class="n">p</span>
+                        <span class="n">plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plot</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;timesInOne&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">lines</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="p">:</span>
+                    <span class="n">plot</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="n">line</span><span class="o">=</span><span class="p">[</span><span class="n">l</span><span class="p">],</span>
+                                         <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">f</span><span class="p">],</span>
+                                         <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+                    <span class="n">oPlots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plot</span><span class="p">[:])</span>
+
+                    <span class="k">if</span> <span class="n">reference</span><span class="p">:</span>
+                        <span class="n">rT</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceTime</span><span class="p">:</span>
+                            <span class="n">rT</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceTime</span><span class="p">]</span>
+                        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">tolerantReferenceTime</span><span class="p">:</span>
+                            <span class="n">rT</span><span class="o">=</span><span class="p">[</span><span class="n">refTimes</span><span class="p">[</span><span class="n">t</span><span class="p">]]</span>
+                        <span class="n">p</span><span class="o">=</span><span class="n">reference</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="n">line</span><span class="o">=</span><span class="p">[</span><span class="n">l</span><span class="p">],</span>
+                                            <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">f</span><span class="p">],</span>
+                                            <span class="n">time</span><span class="o">=</span><span class="n">rT</span><span class="p">,</span>
+                                            <span class="n">note</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">refprefix</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+                        <span class="n">rPlots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                        <span class="n">plot</span><span class="o">+=</span><span class="n">p</span>
+
+                    <span class="n">plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plot</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;fieldsInOne&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaled</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleAll</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;In mode &#39;&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span><span class="s2">&quot;&#39; all fields are scaled to the same value&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleAll</span><span class="o">=</span><span class="bp">True</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">times</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">lines</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="p">:</span>
+                    <span class="n">plot</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="n">line</span><span class="o">=</span><span class="p">[</span><span class="n">l</span><span class="p">],</span>
+                                         <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="p">,</span>
+                                         <span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+                    <span class="n">oPlots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plot</span><span class="p">[:])</span>
+                    <span class="k">if</span> <span class="n">reference</span><span class="p">:</span>
+                        <span class="n">rT</span><span class="o">=</span><span class="n">t</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceTime</span><span class="p">:</span>
+                            <span class="n">rT</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceTime</span>
+                        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">tolerantReferenceTime</span><span class="p">:</span>
+                            <span class="n">rT</span><span class="o">=</span><span class="n">refTimes</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+                        <span class="n">p</span><span class="o">=</span><span class="n">reference</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="n">line</span><span class="o">=</span><span class="p">[</span><span class="n">l</span><span class="p">],</span>
+                                            <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="p">,</span>
+                                            <span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="n">rT</span><span class="p">],</span>
+                                            <span class="n">note</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">refprefix</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+                        <span class="n">rPlots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                        <span class="n">plot</span><span class="o">+=</span><span class="n">p</span>
+
+                    <span class="n">plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plot</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;linesInOne&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">times</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                    <span class="n">plot</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="n">line</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="p">,</span>
+                                         <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">f</span><span class="p">],</span>
+                                         <span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+                    <span class="n">oPlots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plot</span><span class="p">[:])</span>
+
+                    <span class="k">if</span> <span class="n">reference</span><span class="p">:</span>
+                        <span class="n">rT</span><span class="o">=</span><span class="n">t</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceTime</span><span class="p">:</span>
+                            <span class="n">rT</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceTime</span>
+                        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">tolerantReferenceTime</span><span class="p">:</span>
+                            <span class="n">rT</span><span class="o">=</span><span class="n">refTimes</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+                        <span class="n">p</span><span class="o">=</span><span class="n">reference</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="n">line</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="p">,</span>
+                                            <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">f</span><span class="p">],</span>
+                                            <span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="n">rT</span><span class="p">],</span>
+                                            <span class="n">note</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">refprefix</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+                        <span class="n">rPlots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                        <span class="n">plot</span><span class="o">+=</span><span class="n">p</span>
+
+                    <span class="n">plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plot</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;complete&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaled</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleAll</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;In mode &#39;&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span><span class="s2">&quot;&#39; all fields are scaled to the same value&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleAll</span><span class="o">=</span><span class="bp">True</span>
+
+            <span class="n">plot</span><span class="o">=</span><span class="n">samples</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="n">line</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="p">,</span>
+                                 <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="p">,</span>
+                                 <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+            <span class="n">oPlots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plot</span><span class="p">[:])</span>
+            <span class="k">if</span> <span class="n">reference</span><span class="p">:</span>
+                <span class="n">rT</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceTime</span><span class="p">:</span>
+                    <span class="n">rT</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceTime</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">tolerantReferenceTime</span><span class="p">:</span>
+                    <span class="n">rT</span><span class="o">=</span><span class="p">[</span><span class="n">refTimes</span><span class="p">[</span><span class="n">t</span><span class="p">]]</span>
+                <span class="n">p</span><span class="o">=</span><span class="n">reference</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="n">line</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="p">,</span>
+                                    <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="p">,</span>
+                                    <span class="n">time</span><span class="o">=</span><span class="n">rT</span><span class="p">,</span>
+                                    <span class="n">note</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">refprefix</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+                <span class="n">plot</span><span class="o">+=</span><span class="n">p</span>
+                <span class="n">rPlots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+            <span class="n">plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plot</span><span class="p">)</span>
+
+        <span class="n">xMin</span><span class="p">,</span><span class="n">xMax</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="bp">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleDomain</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">domainMin</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">domainMax</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;--scale-domain used. Can&#39;t use --domain-minimum or --domain-maximum&quot;</span><span class="p">)</span>
+            <span class="n">xMin</span><span class="p">,</span><span class="n">xMax</span><span class="o">=</span><span class="mf">1e40</span><span class="p">,</span><span class="o">-</span><span class="mf">1e40</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">plots</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
+                    <span class="n">mi</span><span class="p">,</span><span class="n">mx</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">domain</span><span class="p">()</span>
+                    <span class="n">xMin</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">xMin</span><span class="p">,</span><span class="n">mi</span><span class="p">)</span>
+                    <span class="n">xMax</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">xMax</span><span class="p">,</span><span class="n">mx</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">xMin</span><span class="p">,</span><span class="n">xMax</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">domainMin</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">domainMax</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaled</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleAll</span><span class="p">:</span>
+                <span class="n">vRange</span><span class="o">=</span><span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">vRanges</span><span class="o">=</span><span class="p">{}</span>
+
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">plots</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
+                    <span class="n">mi</span><span class="p">,</span><span class="n">ma</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">component</span><span class="p">)</span>
+                    <span class="n">nm</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">name</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleAll</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">vRanges</span><span class="p">:</span>
+                            <span class="n">vRange</span><span class="o">=</span><span class="n">vRanges</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">vRange</span><span class="o">=</span><span class="bp">None</span>
+
+                    <span class="k">if</span> <span class="n">vRange</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                        <span class="n">vRange</span><span class="o">=</span><span class="n">mi</span><span class="p">,</span><span class="n">ma</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">vRange</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">vRange</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">mi</span><span class="p">),</span><span class="nb">max</span><span class="p">(</span><span class="n">vRange</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">ma</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleAll</span><span class="p">:</span>
+                        <span class="n">vRanges</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span><span class="o">=</span><span class="n">vRange</span>
+
+        <span class="n">result</span><span class="o">=</span><span class="s2">&quot;set term png</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="n">plots</span><span class="o">=</span><span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">plots</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">plots</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No plots produced. Nothing done&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">plots</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">namePrefix</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">namePrefix</span><span class="o">+</span><span class="s2">&quot;_&quot;</span>
+            <span class="n">name</span><span class="o">+=</span><span class="n">usedDirName</span>
+            <span class="n">title</span><span class="o">=</span><span class="bp">None</span>
+            <span class="n">tIndex</span><span class="o">=</span><span class="n">times</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+
+            <span class="c1">#            name+=&quot;_&quot;+&quot;_&quot;.join(self.opts.line)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;separate&quot;</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_</span><span class="si">%s</span><span class="s2">&quot;</span>        <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">line</span><span class="p">())</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">indexInsteadOfTime</span><span class="p">:</span>
+                    <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%04d</span><span class="s2">&quot;</span>   <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">tIndex</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_</span><span class="si">%s</span><span class="s2">_t=</span><span class="si">%f</span><span class="s2">&quot;</span>   <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="p">()))</span>
+
+                <span class="n">title</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> at t=</span><span class="si">%f</span><span class="s2"> on </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="p">()),</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">line</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;timesInOne&quot;</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_</span><span class="si">%s</span><span class="s2">&quot;</span>        <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">line</span><span class="p">())</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                    <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;t=&quot;</span><span class="o">+</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">])</span>
+                <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+                <span class="n">title</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> on </span><span class="si">%s</span><span class="s2">&quot;</span>  <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">line</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;fieldsInOne&quot;</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_</span><span class="si">%s</span><span class="s2">&quot;</span>        <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">line</span><span class="p">())</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                    <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">field</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                    <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;t=&quot;</span><span class="o">+</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span><span class="p">])</span>
+                <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_</span><span class="si">%04d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tIndex</span>
+                <span class="n">title</span><span class="o">=</span><span class="s2">&quot;t=</span><span class="si">%f</span><span class="s2"> on </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="p">()),</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">line</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;linesInOne&quot;</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_</span><span class="si">%s</span><span class="s2">&quot;</span>        <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                    <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">indexInsteadOfTime</span><span class="p">:</span>
+                    <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_</span><span class="si">%04d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tIndex</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;_t=</span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+                <span class="n">title</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> at t=</span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="p">()))</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;complete&quot;</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+            <span class="n">name</span><span class="o">+=</span><span class="s2">&quot;.png&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pictureDest</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pictureDest</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">cleanFilename</span><span class="p">:</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">cleanFilename</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="n">result</span><span class="o">+=</span><span class="s1">&#39;set output &quot;</span><span class="si">%s</span><span class="s1">&quot;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">name</span>
+            <span class="k">if</span> <span class="n">title</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">+=</span><span class="s1">&#39;set title &quot;</span><span class="si">%s</span><span class="s1">&quot;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">title</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">_&quot;</span><span class="p">)</span>
+
+            <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;plot &quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaled</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleAll</span><span class="p">:</span>
+                    <span class="n">vRange</span><span class="o">=</span><span class="n">vRanges</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+
+                <span class="c1"># only scale if extremas are sufficiently different</span>
+                <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">vRange</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">vRange</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">&gt;</span><span class="mf">1e-5</span><span class="o">*</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">vRange</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="nb">abs</span><span class="p">(</span><span class="n">vRange</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="ow">and</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">vRange</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="nb">abs</span><span class="p">(</span><span class="n">vRange</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span><span class="o">&gt;</span><span class="mf">1e-10</span><span class="p">:</span>
+                    <span class="n">yRange</span><span class="o">=</span><span class="s2">&quot;[</span><span class="si">%g</span><span class="s2">:</span><span class="si">%g</span><span class="s2">] &quot;</span> <span class="o">%</span> <span class="n">vRange</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">yRange</span><span class="o">=</span><span class="s2">&quot;[]&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">yRange</span><span class="o">=</span><span class="s2">&quot;[]&quot;</span>
+
+            <span class="k">if</span> <span class="n">xMin</span> <span class="ow">or</span> <span class="n">xMax</span><span class="p">:</span>
+                <span class="n">xRange</span><span class="o">=</span><span class="s2">&quot;[&quot;</span>
+                <span class="k">if</span> <span class="n">xMin</span><span class="p">:</span>
+                    <span class="n">xRange</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="n">xMin</span><span class="p">)</span>
+                <span class="n">xRange</span><span class="o">+=</span><span class="s2">&quot;:&quot;</span>
+                <span class="k">if</span> <span class="n">xMax</span><span class="p">:</span>
+                    <span class="n">xRange</span><span class="o">+=</span><span class="nb">str</span><span class="p">(</span><span class="n">xMax</span><span class="p">)</span>
+                <span class="n">xRange</span><span class="o">+=</span><span class="s2">&quot;]&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">xRange</span><span class="o">=</span><span class="s2">&quot;[]&quot;</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaled</span> <span class="ow">or</span> <span class="n">xMin</span> <span class="ow">or</span> <span class="n">xMax</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">+=</span><span class="n">xRange</span><span class="o">+</span><span class="n">yRange</span>
+
+            <span class="n">first</span><span class="o">=</span><span class="bp">True</span>
+
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
+                    <span class="n">first</span><span class="o">=</span><span class="bp">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;, &quot;</span>
+
+                <span class="n">colSpec</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span>
+                <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">isVector</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">component</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                        <span class="n">colSpec</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">component</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">colSpec</span><span class="o">=</span><span class="s2">&quot;(sqrt($</span><span class="si">%d</span><span class="s2">**2+$</span><span class="si">%d</span><span class="s2">**2+$</span><span class="si">%d</span><span class="s2">**2))&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">d</span><span class="o">.</span><span class="n">index</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span><span class="n">d</span><span class="o">.</span><span class="n">index</span><span class="o">+</span><span class="mi">3</span><span class="p">)</span>
+
+                        <span class="c1">#                result+=&#39;&quot;%s&quot; using 1:%s &#39; % (d.file,colSpec)</span>
+
+                <span class="k">def</span> <span class="nf">makeCol</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span><span class="n">sc</span><span class="p">,</span><span class="n">off</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+                        <span class="n">pre</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">pre</span><span class="o">=</span><span class="s2">&quot;$&quot;</span>
+                        <span class="n">spec</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">sc</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">off</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                            <span class="k">return</span> <span class="n">spec</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">return</span> <span class="s2">&quot;(</span><span class="si">%s%s</span><span class="s2">+</span><span class="si">%f</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pre</span><span class="p">,</span><span class="n">spec</span><span class="p">,</span><span class="n">off</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">off</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                            <span class="k">return</span> <span class="s2">&quot;(</span><span class="si">%s%s</span><span class="s2">*</span><span class="si">%f</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pre</span><span class="p">,</span><span class="n">spec</span><span class="p">,</span><span class="n">sc</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">return</span> <span class="s2">&quot;(</span><span class="si">%s%s</span><span class="s2">*</span><span class="si">%f</span><span class="s2">+</span><span class="si">%f</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pre</span><span class="p">,</span><span class="n">spec</span><span class="p">,</span><span class="n">sc</span><span class="p">,</span><span class="n">off</span><span class="p">)</span>
+
+                <span class="n">result</span><span class="o">+=</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot; using </span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">file</span><span class="p">,</span>
+                                              <span class="n">makeCol</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">d</span><span class="o">.</span><span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">d</span><span class="o">.</span><span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                                              <span class="n">makeCol</span><span class="p">(</span><span class="n">colSpec</span><span class="p">,</span><span class="n">d</span><span class="o">.</span><span class="n">scale</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">d</span><span class="o">.</span><span class="n">offset</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+                <span class="n">title</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">note</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;separate&quot;</span><span class="p">:</span>
+                    <span class="n">title</span><span class="o">+=</span><span class="s2">&quot;&quot;</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;timesInOne&quot;</span><span class="p">:</span>
+                    <span class="n">title</span><span class="o">+=</span><span class="s2">&quot;t=</span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;fieldsInOne&quot;</span><span class="p">:</span>
+                    <span class="n">title</span><span class="o">+=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span>   <span class="o">%</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;linesInOne&quot;</span><span class="p">:</span>
+                    <span class="n">title</span><span class="o">+=</span><span class="s2">&quot;t=</span><span class="si">%f</span><span class="s2">&quot;</span>   <span class="o">%</span> <span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">mode</span><span class="o">==</span><span class="s2">&quot;complete&quot;</span><span class="p">:</span>
+                    <span class="n">title</span><span class="o">+=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> at t=</span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">time</span><span class="p">()))</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">title</span><span class="o">+=</span><span class="s2">&quot; on </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">d</span><span class="o">.</span><span class="n">line</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">title</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;notitle &quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span><span class="o">+=</span><span class="s1">&#39;title &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="n">title</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">_&quot;</span><span class="p">)</span>
+
+                <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;with </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">style</span>
+
+            <span class="n">result</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">csvFile</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">excelFile</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pandasData</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">numpyData</span><span class="p">:</span>
+            <span class="n">tmp</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="n">plots</span><span class="p">,[])</span>
+            <span class="n">c</span><span class="o">=</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]()</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">c</span><span class="o">+=</span><span class="n">p</span><span class="p">()</span>
+                <span class="k">except</span> <span class="n">WrongDataSize</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">resampleReference</span><span class="p">:</span>
+                        <span class="n">sp</span><span class="o">=</span><span class="n">p</span><span class="p">()</span>
+                        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">sp</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]:</span>
+                            <span class="n">data</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span>
+                                            <span class="n">n</span><span class="p">,</span>
+                                            <span class="n">extendData</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">extendData</span><span class="p">)</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">c</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+                            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                                <span class="n">c</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">refprefix</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="n">n</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Try the --resample-option&quot;</span><span class="p">)</span>
+                        <span class="k">raise</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">csvFile</span><span class="p">:</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">writeCSV</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">csvFile</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">excelFile</span><span class="p">:</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">excelFile</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">pandasData</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">({</span><span class="s2">&quot;series&quot;</span><span class="p">:</span><span class="n">c</span><span class="o">.</span><span class="n">getSeries</span><span class="p">(),</span>
+                              <span class="s2">&quot;dataFrame&quot;</span><span class="p">:</span><span class="n">c</span><span class="o">.</span><span class="n">getData</span><span class="p">()})</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">numpyData</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()})</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">compare</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">metrics</span><span class="p">:</span>
+            <span class="n">statData</span><span class="o">=</span><span class="p">{}</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">compare</span><span class="p">:</span>
+                <span class="n">statData</span><span class="p">[</span><span class="s2">&quot;compare&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">metrics</span><span class="p">:</span>
+                <span class="n">statData</span><span class="p">[</span><span class="s2">&quot;metrics&quot;</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">line</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">compare</span><span class="p">:</span>
+                    <span class="n">statData</span><span class="p">[</span><span class="s2">&quot;compare&quot;</span><span class="p">][</span><span class="n">p</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">metrics</span><span class="p">:</span>
+                    <span class="n">statData</span><span class="p">[</span><span class="s2">&quot;metrics&quot;</span><span class="p">][</span><span class="n">p</span><span class="p">]</span><span class="o">=</span><span class="p">{}</span>
+
+            <span class="n">oPlots</span><span class="o">=</span><span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">oPlots</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sublist</span><span class="p">]</span>
+            <span class="n">rPlots</span><span class="o">=</span><span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">rPlots</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sublist</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rPlots</span><span class="p">)</span><span class="o">!=</span><span class="nb">len</span><span class="p">(</span><span class="n">oPlots</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">compare</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Number of original data sets&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">oPlots</span><span class="p">),</span>
+                           <span class="s2">&quot;is not equal to the reference data sets&quot;</span><span class="p">,</span>
+                           <span class="nb">len</span><span class="p">(</span><span class="n">rPlots</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rPlots</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">metrics</span><span class="p">:</span>
+                <span class="n">rPlots</span><span class="o">=</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">oPlots</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">o</span><span class="p">,</span><span class="n">r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">oPlots</span><span class="p">,</span><span class="n">rPlots</span><span class="p">):</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">o</span><span class="p">(</span><span class="n">scaleData</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleData</span><span class="p">,</span>
+                       <span class="n">offsetData</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">offsetData</span><span class="p">,</span>
+                       <span class="n">scaleX</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleXAxis</span><span class="p">,</span>
+                       <span class="n">offsetX</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">offsetXAxis</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">compare</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="o">!=</span><span class="n">r</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">index</span><span class="o">!=</span><span class="n">r</span><span class="o">.</span><span class="n">index</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">indexTolerant</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Data from original&quot;</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                                   <span class="s2">&quot;and reference&quot;</span><span class="p">,</span><span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">r</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                                   <span class="s2">&quot;do not match. Try --index-tolerant-compare if you&#39;re sure that the data is right&quot;</span><span class="p">)</span>
+                    <span class="n">ref</span><span class="o">=</span><span class="n">r</span><span class="p">(</span><span class="n">scaleData</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleReferenceData</span><span class="p">,</span>
+                          <span class="n">offsetData</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">offsetReferenceData</span><span class="p">,</span>
+                          <span class="n">scaleX</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">scaleReferenceXAxis</span><span class="p">,</span>
+                          <span class="n">offsetX</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">offsetReferenceXAxis</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ref</span><span class="o">=</span><span class="bp">None</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">names</span><span class="p">()):</span>
+                    <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">indexName</span><span class="o">=</span><span class="n">o</span><span class="o">.</span><span class="n">name</span>
+                    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">!=</span><span class="n">indexName</span><span class="p">:</span>
+                        <span class="n">indexName</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">metrics</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Metrics for&quot;</span><span class="p">,</span><span class="n">indexName</span><span class="p">,</span><span class="s2">&quot;(Path:&quot;</span><span class="p">,</span><span class="n">o</span><span class="o">.</span><span class="n">file</span><span class="p">,</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+                        <span class="n">result</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">metrics</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="n">i</span><span class="p">],</span>
+                                            <span class="n">minTime</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="p">,</span>
+                                            <span class="n">maxTime</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span><span class="p">)</span>
+                        <span class="n">statData</span><span class="p">[</span><span class="s2">&quot;metrics&quot;</span><span class="p">][</span><span class="n">o</span><span class="o">.</span><span class="n">line</span><span class="p">()][</span><span class="n">indexName</span><span class="p">]</span><span class="o">=</span><span class="n">result</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Min                :&quot;</span><span class="p">,</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">])</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Max                :&quot;</span><span class="p">,</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">])</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Average            :&quot;</span><span class="p">,</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;average&quot;</span><span class="p">])</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Weighted average   :&quot;</span><span class="p">,</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;wAverage&quot;</span><span class="p">])</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">compare</span><span class="p">:</span>
+                                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Data size:&quot;</span><span class="p">,</span><span class="n">data</span><span class="o">.</span><span class="n">size</span><span class="p">())</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Time Range         :&quot;</span><span class="p">,</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;tMin&quot;</span><span class="p">],</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;tMax&quot;</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">compare</span><span class="p">:</span>
+                        <span class="n">oname</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">referenceTime</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">tolerantReferenceTime</span><span class="p">:</span>
+                            <span class="n">oname</span><span class="o">=</span><span class="n">ref</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Comparing&quot;</span><span class="p">,</span><span class="n">indexName</span><span class="p">,</span><span class="s2">&quot;with name&quot;</span><span class="p">,</span><span class="n">oname</span><span class="p">,</span><span class="s2">&quot;(Path:&quot;</span><span class="p">,</span><span class="n">r</span><span class="o">.</span><span class="n">file</span><span class="p">,</span><span class="s2">&quot;)&quot;</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">compareOnOriginal</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+                                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;on original data points&quot;</span><span class="p">)</span>
+                            <span class="n">result</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span>
+                                                <span class="n">data</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="n">i</span><span class="p">],</span>
+                                                <span class="n">otherName</span><span class="o">=</span><span class="n">oname</span><span class="p">,</span><span class="n">common</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">commonRange</span><span class="p">,</span>
+                                                <span class="n">minTime</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="p">,</span>
+                                                <span class="n">maxTime</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+                                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;on reference data points&quot;</span><span class="p">)</span>
+                            <span class="n">result</span><span class="o">=</span><span class="n">ref</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">data</span><span class="p">,</span>
+                                               <span class="n">oname</span><span class="p">,</span>
+                                               <span class="n">otherName</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">names</span><span class="p">()[</span><span class="n">i</span><span class="p">],</span>
+                                               <span class="n">common</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">commonRange</span><span class="p">,</span>
+                                               <span class="n">minTime</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">minTime</span><span class="p">,</span>
+                                               <span class="n">maxTime</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">maxTime</span><span class="p">)</span>
+                        <span class="n">statData</span><span class="p">[</span><span class="s2">&quot;compare&quot;</span><span class="p">][</span><span class="n">o</span><span class="o">.</span><span class="n">line</span><span class="p">()][</span><span class="n">indexName</span><span class="p">]</span><span class="o">=</span><span class="n">result</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Max difference     :&quot;</span><span class="p">,</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">],</span><span class="s2">&quot;(at&quot;</span><span class="p">,</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;maxPos&quot;</span><span class="p">],</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Average difference :&quot;</span><span class="p">,</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;average&quot;</span><span class="p">])</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Weighted average   :&quot;</span><span class="p">,</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;wAverage&quot;</span><span class="p">])</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Data size:&quot;</span><span class="p">,</span><span class="n">data</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span><span class="s2">&quot;Reference:&quot;</span><span class="p">,</span><span class="n">ref</span><span class="o">.</span><span class="n">size</span><span class="p">())</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">metrics</span><span class="p">:</span>
+                                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Time Range         :&quot;</span><span class="p">,</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;tMin&quot;</span><span class="p">],</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;tMax&quot;</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">silent</span><span class="p">:</span>
+                        <span class="n">print_</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">statData</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dest</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">gnuplotFile</span><span class="p">:</span>
+                <span class="n">dest</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">gnuplotFile</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+            <span class="n">dest</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

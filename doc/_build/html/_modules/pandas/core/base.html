@@ -1,0 +1,755 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pandas.core.base &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="../../../index.html" class="fa fa-home"> PyFoam</a>
+        
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/PyFoam.html">PyFoam package</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>pandas.core.base</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for pandas.core.base</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Base and utility classes for pandas objects.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">compat</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pandas.core</span> <span class="kn">import</span> <span class="n">common</span> <span class="k">as</span> <span class="n">com</span>
+<span class="kn">import</span> <span class="nn">pandas.core.nanops</span> <span class="kn">as</span> <span class="nn">nanops</span>
+<span class="kn">import</span> <span class="nn">pandas.lib</span> <span class="kn">as</span> <span class="nn">lib</span>
+<span class="kn">from</span> <span class="nn">pandas.util.decorators</span> <span class="kn">import</span> <span class="n">Appender</span><span class="p">,</span> <span class="n">cache_readonly</span>
+<span class="kn">from</span> <span class="nn">pandas.core.strings</span> <span class="kn">import</span> <span class="n">StringMethods</span>
+<span class="kn">from</span> <span class="nn">pandas.core.common</span> <span class="kn">import</span> <span class="n">AbstractMethodError</span>
+
+<span class="n">_shared_docs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+<span class="n">_indexops_doc_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">klass</span><span class="o">=</span><span class="s">&#39;IndexOpsMixin&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+                            <span class="n">duplicated</span><span class="o">=</span><span class="s">&#39;IndexOpsMixin&#39;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">StringMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;implements string methods so long as object defines a `__unicode__`</span>
+<span class="sd">    method.</span>
+
+<span class="sd">    Handles Python2/3 compatibility transparently.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># side note - this could be made into a metaclass if more than one</span>
+    <span class="c">#             object needs</span>
+
+    <span class="c">#----------------------------------------------------------------------</span>
+    <span class="c"># Formatting</span>
+
+    <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">AbstractMethodError</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a string representation for a particular Object</span>
+
+<span class="sd">        Invoked by str(df) in both py2/py3.</span>
+<span class="sd">        Yields Bytestring in Py2, Unicode String in py3.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">compat</span><span class="o">.</span><span class="n">PY3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__unicode__</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__bytes__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__bytes__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a string representation for a particular object.</span>
+
+<span class="sd">        Invoked by bytes(obj) in py3 only.</span>
+<span class="sd">        Yields a bytestring in both py2/py3.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pandas.core.config</span> <span class="kn">import</span> <span class="n">get_option</span>
+
+        <span class="n">encoding</span> <span class="o">=</span> <span class="n">get_option</span><span class="p">(</span><span class="s">&quot;display.encoding&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__unicode__</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoding</span><span class="p">,</span> <span class="s">&#39;replace&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a string representation for a particular object.</span>
+
+<span class="sd">        Yields Bytestring in Py2, Unicode String in py3.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">PandasObject</span><span class="p">(</span><span class="n">StringMixin</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;baseclass for various pandas objects&quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;class constructor (for this class it&#39;s just `__class__`&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span>
+
+    <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a string representation for a particular object.</span>
+
+<span class="sd">        Invoked by unicode(obj) in py2 only. Yields a Unicode String in both</span>
+<span class="sd">        py2/py3.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Should be overwritten by base classes</span>
+        <span class="k">return</span> <span class="nb">object</span><span class="o">.</span><span class="n">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_dir_additions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; add addtional __dir__ for this object &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_dir_deletions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; delete unwanted __dir__ for this object &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Provide method name lookup and completion</span>
+<span class="sd">        Only provide &#39;public&#39; methods</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rv</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+        <span class="n">rv</span> <span class="o">=</span> <span class="p">(</span><span class="n">rv</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dir_deletions</span><span class="p">())</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dir_additions</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rv</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_reset_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset cached properties. If ``key`` is passed, only clears that key.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_cache&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">PandasDelegate</span><span class="p">(</span><span class="n">PandasObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; an abstract base class for delegating methods/properties &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_delegate_property_get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;You cannot access the property {name}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_delegate_property_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;The property {name} cannot be set&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_delegate_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;You cannot call method {name}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_add_delegate_accessors</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">delegate</span><span class="p">,</span> <span class="n">accessors</span><span class="p">,</span> <span class="n">typ</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        add accessors to cls from the delegate class</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cls : the class to add the methods/properties to</span>
+<span class="sd">        delegate : the class to get methods/properties &amp; doc-strings</span>
+<span class="sd">        acccessors : string list of accessors to add</span>
+<span class="sd">        typ : &#39;property&#39; or &#39;method&#39;</span>
+<span class="sd">        overwrite : boolean, default False</span>
+<span class="sd">           overwrite the method/property in the target class if it exists</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_create_delegator_property</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+
+            <span class="k">def</span> <span class="nf">_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delegate_property_get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">def</span> <span class="nf">_setter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_values</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delegate_property_set</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">new_values</span><span class="p">)</span>
+
+            <span class="n">_getter</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="n">_setter</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span>
+
+            <span class="k">return</span> <span class="nb">property</span><span class="p">(</span><span class="n">fget</span><span class="o">=</span><span class="n">_getter</span><span class="p">,</span> <span class="n">fset</span><span class="o">=</span><span class="n">_setter</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">delegate</span><span class="p">,</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">__doc__</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_create_delegator_method</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+
+            <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delegate_method</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="n">f</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">__doc__</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">delegate</span><span class="p">,</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">__doc__</span>
+
+            <span class="k">return</span> <span class="n">f</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">accessors</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s">&#39;property&#39;</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">_create_delegator_property</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">_create_delegator_method</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="c"># don&#39;t overwrite existing methods/properties</span>
+            <span class="k">if</span> <span class="n">overwrite</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">AccessorProperty</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Descriptor for implementing accessor properties like Series.str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accessor_cls</span><span class="p">,</span> <span class="n">construct_accessor</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">accessor_cls</span> <span class="o">=</span> <span class="n">accessor_cls</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">construct_accessor</span> <span class="o">=</span> <span class="n">construct_accessor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__doc__</span> <span class="o">=</span> <span class="n">accessor_cls</span><span class="o">.</span><span class="n">__doc__</span>
+
+    <span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">instance</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># this ensures that Series.str.&lt;method&gt; is well defined</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">accessor_cls</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">construct_accessor</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&quot;can&#39;t set attribute&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__delete__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&quot;can&#39;t delete attribute&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">FrozenList</span><span class="p">(</span><span class="n">PandasObject</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Container that doesn&#39;t allow setting item *but*</span>
+<span class="sd">    because it&#39;s technically non-hashable, will be used</span>
+<span class="sd">    for lookups, appropriately, etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Sidenote: This has to be of type list, otherwise it messes up PyTables</span>
+    <span class="c">#           typechecks</span>
+
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">FrozenList</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__add__</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
+
+    <span class="n">__iadd__</span> <span class="o">=</span> <span class="n">__add__</span>
+
+    <span class="c"># Python 2 compat</span>
+    <span class="k">def</span> <span class="nf">__getslice__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">FrozenList</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getslice__</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="c"># Python 3 compat</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">FrozenList</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">FrozenList</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">other</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">FrozenList</span><span class="p">)):</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">FrozenList</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="n">__req__</span> <span class="o">=</span> <span class="n">__eq__</span>
+
+    <span class="k">def</span> <span class="nf">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">FrozenList</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__mul__</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
+
+    <span class="n">__imul__</span> <span class="o">=</span> <span class="n">__mul__</span>
+
+    <span class="k">def</span> <span class="nf">__reduce__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="p">),)</span>
+
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_disabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This method will not function because object is immutable.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;&#39;</span><span class="si">%s</span><span class="s">&#39; does not support mutable operations.&quot;</span> <span class="o">%</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">pandas.core.common</span> <span class="kn">import</span> <span class="n">pprint_thing</span>
+        <span class="k">return</span> <span class="n">pprint_thing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quote_strings</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                            <span class="n">escape_chars</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span>
+                           <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+    <span class="n">__setitem__</span> <span class="o">=</span> <span class="n">__setslice__</span> <span class="o">=</span> <span class="n">__delitem__</span> <span class="o">=</span> <span class="n">__delslice__</span> <span class="o">=</span> <span class="n">_disabled</span>
+    <span class="n">pop</span> <span class="o">=</span> <span class="n">append</span> <span class="o">=</span> <span class="n">extend</span> <span class="o">=</span> <span class="n">remove</span> <span class="o">=</span> <span class="n">sort</span> <span class="o">=</span> <span class="n">insert</span> <span class="o">=</span> <span class="n">_disabled</span>
+
+<span class="k">class</span> <span class="nc">FrozenNDArray</span><span class="p">(</span><span class="n">PandasObject</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+
+    <span class="c"># no __array_finalize__ for now because no metadata</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">copy</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">copy</span> <span class="o">=</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">FrozenNDArray</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="n">copy</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">cls</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+    <span class="k">def</span> <span class="nf">_disabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This method will not function because object is immutable.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;&#39;</span><span class="si">%s</span><span class="s">&#39; does not support mutable operations.&quot;</span> <span class="o">%</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">)</span>
+
+    <span class="n">__setitem__</span> <span class="o">=</span> <span class="n">__setslice__</span> <span class="o">=</span> <span class="n">__delitem__</span> <span class="o">=</span> <span class="n">__delslice__</span> <span class="o">=</span> <span class="n">_disabled</span>
+    <span class="n">put</span> <span class="o">=</span> <span class="n">itemset</span> <span class="o">=</span> <span class="n">fill</span> <span class="o">=</span> <span class="n">_disabled</span>
+
+    <span class="k">def</span> <span class="nf">_shallow_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;returns *copy* of underlying array&quot;&quot;&quot;</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">arr</span>
+
+    <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a string representation for this object.</span>
+
+<span class="sd">        Invoked by unicode(df) in py2 only. Yields a Unicode String in both</span>
+<span class="sd">        py2/py3.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">prepr</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">pprint_thing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">escape_chars</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\t</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">),</span>
+                                 <span class="n">quote_strings</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">, dtype=&#39;</span><span class="si">%s</span><span class="s">&#39;)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">prepr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">IndexOpsMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; common ops mixin to support a unified inteface / docs for Series / Index &quot;&quot;&quot;</span>
+
+    <span class="c"># ndarray compatibility</span>
+    <span class="n">__array_priority__</span> <span class="o">=</span> <span class="mi">1000</span>
+
+    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return the transpose, which is by definition self &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="n">T</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">transpose</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s">&quot;return the transpose, which is by definition self&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return a tuple of the shape of the underlying data &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ndim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return the number of dimensions of the underlying data, by definition 1 &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">item</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return the first element of the underlying data as a python scalar &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="c"># copy numpy&#39;s message here because Py26 raises an IndexError</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;can only convert an array of size 1 to a &#39;</span>
+                             <span class="s">&#39;Python scalar&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return the data pointer of the underlying data &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">data</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">itemsize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return the size of the dtype of the item of the underlying data &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">itemsize</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nbytes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return the number of bytes in the underlying data &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">nbytes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">strides</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return the strides of the underlying data &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">strides</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return the number of elements in the underlying data &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">size</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">flags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return the ndarray.flags for the underlying data &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flags</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">base</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return the base object if the memory of the underlying data is shared &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">base</span>
+
+    <span class="k">def</span> <span class="nf">max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The maximum value of the object &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">nanops</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">argmax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        return a ndarray of the maximum argument indexer</span>
+
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        numpy.ndarray.argmax</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">nanops</span><span class="o">.</span><span class="n">nanargmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The minimum value of the object &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">nanops</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">argmin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        return a ndarray of the minimum argument indexer</span>
+
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        numpy.ndarray.argmin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">nanops</span><span class="o">.</span><span class="n">nanargmin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">hasnans</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return if I have any nans; enables various perf speedups &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">com</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">value_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                     <span class="n">bins</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dropna</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns object containing counts of unique values.</span>
+
+<span class="sd">        The resulting object will be in descending order so that the</span>
+<span class="sd">        first element is the most frequently-occurring element.</span>
+<span class="sd">        Excludes NA values by default.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        normalize : boolean, default False</span>
+<span class="sd">            If True then the object returned will contain the relative</span>
+<span class="sd">            frequencies of the unique values.</span>
+<span class="sd">        sort : boolean, default True</span>
+<span class="sd">            Sort by values</span>
+<span class="sd">        ascending : boolean, default False</span>
+<span class="sd">            Sort in ascending order</span>
+<span class="sd">        bins : integer, optional</span>
+<span class="sd">            Rather than count values, group them into half-open bins,</span>
+<span class="sd">            a convenience for pd.cut, only works with numeric data</span>
+<span class="sd">        dropna : boolean, default True</span>
+<span class="sd">            Don&#39;t include counts of NaN.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        counts : Series</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pandas.core.algorithms</span> <span class="kn">import</span> <span class="n">value_counts</span>
+        <span class="kn">from</span> <span class="nn">pandas.tseries.api</span> <span class="kn">import</span> <span class="n">DatetimeIndex</span><span class="p">,</span> <span class="n">PeriodIndex</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">value_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="n">sort</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="n">ascending</span><span class="p">,</span>
+                              <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">dropna</span><span class="o">=</span><span class="n">dropna</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">PeriodIndex</span><span class="p">):</span>
+            <span class="c"># preserve freq</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simple_new</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                            <span class="n">freq</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DatetimeIndex</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simple_new</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                            <span class="n">tz</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;tz&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">unique</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return array of unique values in the object. Significantly faster than</span>
+<span class="sd">        numpy.unique. Includes NA values.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        uniques : ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pandas.core.nanops</span> <span class="kn">import</span> <span class="n">unique1d</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">values</span><span class="p">,</span><span class="s">&#39;unique&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">values</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">unique1d</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">nunique</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dropna</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return number of unique elements in the object.</span>
+
+<span class="sd">        Excludes NA values by default.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dropna : boolean, default True</span>
+<span class="sd">            Don&#39;t include NaN in the count.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        nunique : int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uniqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">uniqs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dropna</span> <span class="ow">and</span> <span class="n">com</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">uniqs</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">n</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">n</span>
+
+
+    <span class="k">def</span> <span class="nf">factorize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">na_sentinel</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Encode the object as an enumerated type or categorical variable</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sort : boolean, default False</span>
+<span class="sd">            Sort by values</span>
+<span class="sd">        na_sentinel: int, default -1</span>
+<span class="sd">            Value to mark &quot;not found&quot;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        labels : the indexer to the original array</span>
+<span class="sd">        uniques : the unique Index</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pandas.core.algorithms</span> <span class="kn">import</span> <span class="n">factorize</span>
+        <span class="k">return</span> <span class="n">factorize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="n">sort</span><span class="p">,</span> <span class="n">na_sentinel</span><span class="o">=</span><span class="n">na_sentinel</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s">&#39;left&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; np.ndarray searchsorted compat &quot;&quot;&quot;</span>
+
+        <span class="c">### FIXME in GH7447</span>
+        <span class="c">#### needs coercion on the key (DatetimeIndex does alreay)</span>
+        <span class="c">#### needs tests/doc-string</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="n">side</span><span class="p">)</span>
+
+    <span class="c"># string methods</span>
+    <span class="k">def</span> <span class="nf">_make_str_accessor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">pandas.core.series</span> <span class="kn">import</span> <span class="n">Series</span>
+        <span class="kn">from</span> <span class="nn">pandas.core.index</span> <span class="kn">import</span> <span class="n">Index</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Series</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">com</span><span class="o">.</span><span class="n">is_object_dtype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">):</span>
+            <span class="c"># this really should exclude all series with any non-string values,</span>
+            <span class="c"># but that isn&#39;t practical for performance reasons until we have a</span>
+            <span class="c"># str dtype (GH 9343)</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&quot;Can only use .str accessor with string &quot;</span>
+                                 <span class="s">&quot;values, which use np.object_ dtype in &quot;</span>
+                                 <span class="s">&quot;pandas&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Index</span><span class="p">):</span>
+            <span class="c"># see scc/inferrence.pyx which can contain string values</span>
+            <span class="n">allowed_types</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;string&#39;</span><span class="p">,</span> <span class="s">&#39;unicode&#39;</span><span class="p">,</span> <span class="s">&#39;mixed&#39;</span><span class="p">,</span> <span class="s">&#39;mixed-integer&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inferred_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed_types</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;Can only use .str accessor with string values &quot;</span>
+                           <span class="s">&quot;(i.e. inferred_type is &#39;string&#39;, &#39;unicode&#39; or &#39;mixed&#39;)&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlevels</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="s">&quot;Can only use .str accessor with Index, not MultiIndex&quot;</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">StringMethods</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="nb">str</span> <span class="o">=</span> <span class="n">AccessorProperty</span><span class="p">(</span><span class="n">StringMethods</span><span class="p">,</span> <span class="n">_make_str_accessor</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_dir_additions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_dir_deletions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;str&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;str&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="n">_shared_docs</span><span class="p">[</span><span class="s">&#39;drop_duplicates&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sd">&quot;&quot;&quot;Return %(klass)s with duplicate values removed</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        take_last : boolean, default False</span>
+<span class="sd">            Take the last observed index in a group. Default first</span>
+<span class="sd">        %(inplace)s</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        deduplicated : %(klass)s</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="nd">@Appender</span><span class="p">(</span><span class="n">_shared_docs</span><span class="p">[</span><span class="s">&#39;drop_duplicates&#39;</span><span class="p">]</span> <span class="o">%</span> <span class="n">_indexops_doc_kwargs</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">drop_duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">take_last</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="n">duplicated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">take_last</span><span class="o">=</span><span class="n">take_last</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">duplicated</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_inplace</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span>
+
+    <span class="n">_shared_docs</span><span class="p">[</span><span class="s">&#39;duplicated&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sd">&quot;&quot;&quot;Return boolean %(duplicated)s denoting duplicate values</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        take_last : boolean, default False</span>
+<span class="sd">            Take the last observed index in a group. Default first</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        duplicated : %(duplicated)s</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="nd">@Appender</span><span class="p">(</span><span class="n">_shared_docs</span><span class="p">[</span><span class="s">&#39;duplicated&#39;</span><span class="p">]</span> <span class="o">%</span> <span class="n">_indexops_doc_kwargs</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">duplicated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">take_last</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">_ensure_object</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">duplicated</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">take_last</span><span class="o">=</span><span class="n">take_last</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constructor</span><span class="p">(</span><span class="n">duplicated</span><span class="p">,</span>
+                                     <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">__finalize__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">duplicated</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+
+    <span class="c">#----------------------------------------------------------------------</span>
+    <span class="c"># abstracts</span>
+
+    <span class="k">def</span> <span class="nf">_update_inplace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">AbstractMethodError</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+    </p>
+  </div>
+
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

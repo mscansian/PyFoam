@@ -1,0 +1,416 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.CommonPrePostHooks &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.CommonPrePostHooks</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.CommonPrePostHooks</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Class that implements the common functionality for executing hooks before and</span>
+<span class="sd">after the running of the solver</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="n">configparser</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">FatalErrorPyFoamException</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span><span class="p">,</span><span class="n">iteritems</span>
+
+<span class="kn">import</span> <span class="nn">traceback</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<div class="viewcode-block" id="CommonPrePostHooks"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonPrePostHooks.html#PyFoam.Applications.CommonPrePostHooks.CommonPrePostHooks">[docs]</a><span class="k">class</span> <span class="nc">CommonPrePostHooks</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; The class that runs the hooks</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CommonPrePostHooks.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonPrePostHooks.html#PyFoam.Applications.CommonPrePostHooks.CommonPrePostHooks.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">grp</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                        <span class="s2">&quot;Pre- and Postrun hooks&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;These options control the hooks that are either specified in the &#39;LocalConfigPyFoam&#39; of the case or other config files (for a system-wide configuration)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">grp</span><span class="p">)</span>
+
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--disable-pre-hooks&quot;</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;runPreHook&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Disable running of hooks before the solver&quot;</span><span class="p">)</span>
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--disable-post-hooks&quot;</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_false&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;runPostHook&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Disable running of hooks after the solver&quot;</span><span class="p">)</span>
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--disable-all-hooks&quot;</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;disableAllHooks&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Disable running of hooks before and after the solver&quot;</span><span class="p">)</span>
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--verbose-hooks&quot;</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;verboseHooks&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Be more informative about what is going on&quot;</span><span class="p">)</span>
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--list-hooks&quot;</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;listHooks&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;List the installed hooks&quot;</span><span class="p">)</span>
+        <span class="n">grp</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--hook-errors-are-fatal&quot;</span><span class="p">,</span>
+                       <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                       <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;hookErrorsFatal&quot;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If there are problems with the hooks then execution of the runner stops&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommonPrePostHooks.hookmessage"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonPrePostHooks.html#PyFoam.Applications.CommonPrePostHooks.CommonPrePostHooks.hookmessage">[docs]</a>    <span class="k">def</span> <span class="nf">hookmessage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verboseHooks</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CommonPrePostHooks.stopExecutionOnHookError"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonPrePostHooks.html#PyFoam.Applications.CommonPrePostHooks.CommonPrePostHooks.stopExecutionOnHookError">[docs]</a>    <span class="k">def</span> <span class="nf">stopExecutionOnHookError</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+         <span class="k">if</span> <span class="n">spec</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">hookErrorsFatal</span><span class="p">:</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Stopping because of error in hook&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommonPrePostHooks.runPreHooks"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonPrePostHooks.html#PyFoam.Applications.CommonPrePostHooks.CommonPrePostHooks.runPreHooks">[docs]</a>    <span class="k">def</span> <span class="nf">runPreHooks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run the hooks before the execution of the solver&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">runPreHook</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Running pre-hooks&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">h</span><span class="p">,</span><span class="n">spec</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">preHookInstances</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">executeHook</span><span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">spec</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Pre-hooks disabled&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommonPrePostHooks.runPostHooks"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonPrePostHooks.html#PyFoam.Applications.CommonPrePostHooks.CommonPrePostHooks.runPostHooks">[docs]</a>    <span class="k">def</span> <span class="nf">runPostHooks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run the hooks after the execution of the solver&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">runPostHook</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Running post-hooks&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">h</span><span class="p">,</span><span class="n">spec</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">postHookInstances</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">executeHook</span><span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">spec</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Post-hooks disabled&quot;</span><span class="p">)</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="CommonPrePostHooks.executeHook"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonPrePostHooks.html#PyFoam.Applications.CommonPrePostHooks.CommonPrePostHooks.executeHook">[docs]</a>    <span class="k">def</span> <span class="nf">executeHook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">hDict</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">passed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getData</span><span class="p">()[</span><span class="s2">&quot;wallTime&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">passed</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">if</span> <span class="n">passed</span><span class="o">&lt;</span><span class="n">hDict</span><span class="p">[</span><span class="s2">&quot;minRunTime&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Skipping&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;because passed time&quot;</span><span class="p">,</span>
+                             <span class="n">passed</span><span class="p">,</span><span class="s2">&quot;smaller than&quot;</span><span class="p">,</span><span class="n">hDict</span><span class="p">[</span><span class="s2">&quot;minRunTime&quot;</span><span class="p">])</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Executing hook&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+             <span class="n">hDict</span><span class="p">[</span><span class="s2">&quot;instance&quot;</span><span class="p">]()</span>
+        <span class="k">except</span> <span class="n">FatalErrorPyFoamException</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem executing&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem while executing&quot;</span><span class="p">,</span>
+                          <span class="n">name</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">stopExecutionOnHookError</span><span class="p">(</span><span class="n">hDict</span><span class="p">[</span><span class="s2">&quot;stopOnError&quot;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="CommonPrePostHooks.prepareHooks"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonPrePostHooks.html#PyFoam.Applications.CommonPrePostHooks.CommonPrePostHooks.prepareHooks">[docs]</a>    <span class="k">def</span> <span class="nf">prepareHooks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prepare the hooks and output additional info if wanted&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Preparing hooks&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">disableAllHooks</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Disabling all hooks&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">runPreHook</span><span class="o">=</span><span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">runPostHook</span><span class="o">=</span><span class="bp">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">listHooks</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Hooks to execute before run&quot;</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;---------------------------&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dumpHooks</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getHooksWithPrefix</span><span class="p">(</span><span class="s2">&quot;preRunHook&quot;</span><span class="p">))</span>
+            <span class="n">print_</span><span class="p">()</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Hooks to execute after run&quot;</span><span class="p">)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;--------------------------&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dumpHooks</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getHooksWithPrefix</span><span class="p">(</span><span class="s2">&quot;postRunHook&quot;</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">preHookInstances</span><span class="o">=</span><span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">postHookInstances</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Creating pre-hooks&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">runPreHook</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">checkAndCreateHookInstances</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">preHookInstances</span><span class="p">,</span>
+                <span class="s2">&quot;preRunHook&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Creating post-hooks&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">runPostHook</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">checkAndCreateHookInstances</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">postHookInstances</span><span class="p">,</span>
+                <span class="s2">&quot;postRunHook&quot;</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommonPrePostHooks.checkAndCreateHookInstances"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonPrePostHooks.html#PyFoam.Applications.CommonPrePostHooks.CommonPrePostHooks.checkAndCreateHookInstances">[docs]</a>    <span class="k">def</span> <span class="nf">checkAndCreateHookInstances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">toDict</span><span class="p">,</span><span class="n">prefix</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getHooksWithPrefix</span><span class="p">(</span><span class="n">prefix</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Checking&quot;</span><span class="p">,</span><span class="n">h</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="s2">&quot;enabled&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+                <span class="n">subdict</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">mod</span><span class="o">=</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="s2">&quot;module&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">mod</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No module specified for&quot;</span><span class="p">,</span><span class="n">h</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="n">subdict</span><span class="p">[</span><span class="s2">&quot;minRunTime&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="n">h</span><span class="p">,</span>
+                                                               <span class="s2">&quot;minRunTime&quot;</span><span class="p">,</span>
+                                                               <span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">subdict</span><span class="p">[</span><span class="s2">&quot;stopOnError&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="n">h</span><span class="p">,</span>
+                                                                  <span class="s2">&quot;stopOnError&quot;</span><span class="p">,</span>
+                                                                  <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Trying to import&quot;</span><span class="p">,</span><span class="n">mod</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">module</span><span class="o">=</span><span class="nb">__import__</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span><span class="nb">globals</span><span class="p">(),</span><span class="nb">locals</span><span class="p">(),[</span><span class="s2">&quot;dummy&quot;</span><span class="p">])</span>
+                    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                        <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;ImportError:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+                        <span class="n">mod</span><span class="o">=</span><span class="s2">&quot;PyFoam.Infrastructure.RunHooks.&quot;</span><span class="o">+</span><span class="n">mod</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Trying to import&quot;</span><span class="p">,</span><span class="n">mod</span><span class="p">)</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">module</span><span class="o">=</span><span class="nb">__import__</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span><span class="nb">globals</span><span class="p">(),</span><span class="nb">locals</span><span class="p">(),[</span><span class="s2">&quot;dummy&quot;</span><span class="p">])</span>
+                        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;ImportError:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not import module&quot;</span><span class="p">,</span>
+                                         <span class="n">mod</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="s2">&quot;for&quot;</span><span class="p">,</span><span class="n">h</span><span class="p">,</span>
+                                         <span class="s2">&quot;(Tried&quot;</span><span class="p">,</span><span class="n">mod</span><span class="p">,</span><span class="s2">&quot;too)&quot;</span><span class="p">)</span>
+                            <span class="k">continue</span>
+                <span class="k">except</span> <span class="ne">SyntaxError</span><span class="p">:</span>
+                    <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;SyntaxError:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Syntax error when trying to import&quot;</span><span class="p">,</span><span class="n">mod</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">theClass</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span><span class="n">mod</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;AttributeError:&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="s2">&quot;Attributes:&quot;</span><span class="p">,</span><span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Class&quot;</span><span class="p">,</span><span class="n">mod</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="s2">&quot;missing form&quot;</span><span class="p">,</span>
+                                 <span class="n">mod</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">subdict</span><span class="p">[</span><span class="s2">&quot;instance&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">theClass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">h</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem while creating instance of&quot;</span><span class="p">,</span>
+                                 <span class="n">theClass</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stopExecutionOnHookError</span><span class="p">(</span><span class="n">subdict</span><span class="p">[</span><span class="s2">&quot;stopOnError&quot;</span><span class="p">])</span>
+                    <span class="k">continue</span>
+                <span class="n">toDict</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="o">=</span><span class="n">subdict</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hookmessage</span><span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="s2">&quot;is disabled&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommonPrePostHooks.dumpHooks"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonPrePostHooks.html#PyFoam.Applications.CommonPrePostHooks.CommonPrePostHooks.dumpHooks">[docs]</a>    <span class="k">def</span> <span class="nf">dumpHooks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lst</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  enabled:&quot;</span><span class="p">,</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="n">h</span><span class="p">,</span>
+                                                               <span class="s2">&quot;enabled&quot;</span><span class="p">,</span>
+                                                               <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  module:&quot;</span><span class="p">,</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">h</span><span class="p">,</span>
+                                                       <span class="s2">&quot;module&quot;</span><span class="p">))</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  minRunTime:&quot;</span><span class="p">,</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="n">h</span><span class="p">,</span>
+                                                                <span class="s2">&quot;minRunTime&quot;</span><span class="p">,</span>
+                                                                <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  description:&quot;</span><span class="p">,</span><span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">h</span><span class="p">,</span>
+                                                            <span class="s2">&quot;description&quot;</span><span class="p">,</span>
+                                                            <span class="n">default</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">))</span>
+            <span class="k">except</span> <span class="n">configparser</span><span class="o">.</span><span class="n">NoOptionError</span><span class="p">:</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># Needed because python 2.5 does not support &#39;as e&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Hook&quot;</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="s2">&quot;incompletely defined (&quot;</span><span class="p">,</span><span class="n">e</span><span class="p">,</span><span class="s2">&quot;)&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommonPrePostHooks.getHooksWithPrefix"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonPrePostHooks.html#PyFoam.Applications.CommonPrePostHooks.CommonPrePostHooks.getHooksWithPrefix">[docs]</a>    <span class="k">def</span> <span class="nf">getHooksWithPrefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">prefix</span><span class="p">):</span>
+        <span class="n">lst</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">configuration</span><span class="p">()</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">prefix</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">lst</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

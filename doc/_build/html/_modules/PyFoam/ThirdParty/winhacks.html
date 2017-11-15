@@ -1,0 +1,260 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.ThirdParty.winhacks &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.ThirdParty.winhacks</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.ThirdParty.winhacks</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">------------------------------------------------------------------------------</span>
+<span class="sd"> License</span>
+<span class="sd">    This file is part of blueCAPE&#39;s modifications to PyFoam for working on</span>
+<span class="sd">    Windows. For more information on these modifications, visit:</span>
+<span class="sd">        http://www.bluecape.com.pt/blueCFD</span>
+
+<span class="sd">    PyFoam is free software; you can redistribute it and/or modify it</span>
+<span class="sd">    under the terms of the GNU General Public License as published by the</span>
+<span class="sd">    Free Software Foundation; either version 2 of the License, or (at your</span>
+<span class="sd">    option) any later version.  See the file COPYING in this directory,</span>
+<span class="sd">    for a description of the GNU General Public License terms under which </span>
+<span class="sd">    you can copy the files.</span>
+
+<span class="sd"> Script</span>
+<span class="sd">     winhacks.py</span>
+
+<span class="sd"> Description</span>
+<span class="sd">     This script file acts mostly as a dummy stub for several POSIX functions</span>
+<span class="sd">     that are not available on Windows and on Python for Windows.</span>
+<span class="sd">     Source code available on this file is a compilation of public domain</span>
+<span class="sd">     solutions.</span>
+
+<span class="sd">------------------------------------------------------------------------------</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">__CSL</span> <span class="o">=</span> <span class="bp">None</span>
+<div class="viewcode-block" id="symlink"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.winhacks.html#PyFoam.ThirdParty.winhacks.symlink">[docs]</a><span class="k">def</span> <span class="nf">symlink</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">link_name</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;symlink(source, link_name)</span>
+<span class="sd">       Creates a symbolic link pointing to source named link_name&#39;&#39;&#39;</span>
+    <span class="k">global</span> <span class="n">__CSL</span>
+    <span class="k">if</span> <span class="n">__CSL</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">ctypes</span>
+        <span class="n">csl</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">windll</span><span class="o">.</span><span class="n">kernel32</span><span class="o">.</span><span class="n">CreateSymbolicLinkW</span>
+        <span class="n">csl</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">c_wchar_p</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_wchar_p</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint32</span><span class="p">)</span>
+        <span class="n">csl</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ubyte</span>
+        <span class="n">__CSL</span> <span class="o">=</span> <span class="n">csl</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">__CSL</span><span class="p">(</span><span class="n">link_name</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">WinError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="getlogin"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.winhacks.html#PyFoam.ThirdParty.winhacks.getlogin">[docs]</a><span class="k">def</span> <span class="nf">getlogin</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;getlogin()</span>
+<span class="sd">       Get login username from environment.&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;USERNAME&#39;</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="getloadavg"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.winhacks.html#PyFoam.ThirdParty.winhacks.getloadavg">[docs]</a><span class="k">def</span> <span class="nf">getloadavg</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;Dummy result, 1 to avoid division by zero&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="mi">1</span></div>
+
+<span class="sd">&#39;&#39;&#39;hack the three functions above into the os module&#39;&#39;&#39;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">symlink</span> <span class="o">=</span> <span class="n">symlink</span>
+<span class="n">os</span><span class="o">.</span><span class="n">getlogin</span> <span class="o">=</span> <span class="n">getlogin</span>
+<span class="n">os</span><span class="o">.</span><span class="n">getloadavg</span> <span class="o">=</span> <span class="n">getloadavg</span>
+
+<span class="sd">&quot;&quot;&quot;These 3 can be improved if we use http://code.google.com/p/psutil/&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;All return 1 to avoid divisions by zero&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="getrusage"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.winhacks.html#PyFoam.ThirdParty.winhacks.getrusage">[docs]</a><span class="k">def</span> <span class="nf">getrusage</span><span class="p">(</span><span class="n">who</span><span class="p">):</span>
+  <span class="k">return</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="getpagesize"><a class="viewcode-back" href="../../../api/PyFoam.ThirdParty.winhacks.html#PyFoam.ThirdParty.winhacks.getpagesize">[docs]</a><span class="k">def</span> <span class="nf">getpagesize</span><span class="p">():</span>
+  <span class="k">return</span> <span class="mi">1</span></div>
+
+<span class="n">RUSAGE_CHILDREN</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

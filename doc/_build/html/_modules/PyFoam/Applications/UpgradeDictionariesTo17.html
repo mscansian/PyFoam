@@ -1,0 +1,446 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.UpgradeDictionariesTo17 &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.UpgradeDictionariesTo17</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.UpgradeDictionariesTo17</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application class that implements pyFoamUpgradeDictionariesTo17</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+<span class="kn">from</span> <span class="nn">.PyFoamApplication</span> <span class="kn">import</span> <span class="n">PyFoamApplication</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.RunDictionary.ParsedParameterFile</span> <span class="kn">import</span> <span class="n">ParsedParameterFile</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.Utilities</span> <span class="kn">import</span> <span class="n">copyfile</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.DataStructures</span> <span class="kn">import</span> <span class="n">DictProxy</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.FoamFileGenerator</span> <span class="kn">import</span> <span class="n">makeString</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<div class="viewcode-block" id="DictionaryUpgradeInfo"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo">[docs]</a><span class="k">class</span> <span class="nc">DictionaryUpgradeInfo</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class knows how to detect old versions and how to upgrade them&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DictionaryUpgradeInfo.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">case</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="o">=</span><span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fName</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">noHeader</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listDict</span><span class="o">=</span><span class="bp">False</span></div>
+
+<div class="viewcode-block" id="DictionaryUpgradeInfo.setFile"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo.setFile">[docs]</a>    <span class="k">def</span> <span class="nf">setFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fName</span><span class="o">=</span><span class="n">fName</span></div>
+
+<div class="viewcode-block" id="DictionaryUpgradeInfo.path"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo.path">[docs]</a>    <span class="k">def</span> <span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fName</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fName</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">case</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="DictionaryUpgradeInfo.disable"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo.disable">[docs]</a>    <span class="k">def</span> <span class="nf">disable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="o">=</span><span class="bp">False</span></div>
+
+<div class="viewcode-block" id="DictionaryUpgradeInfo.disableCallback"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo.disableCallback">[docs]</a>    <span class="k">def</span> <span class="nf">disableCallback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DictionaryUpgradeInfo.needsUpgrade"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo.needsUpgrade">[docs]</a>    <span class="k">def</span> <span class="nf">needsUpgrade</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">f</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">(),</span>
+                              <span class="n">listDict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">listDict</span><span class="p">,</span>
+                              <span class="n">noHeader</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">noHeader</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkUpgrade</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">content</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DictionaryUpgradeInfo.upgrade"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo.upgrade">[docs]</a>    <span class="k">def</span> <span class="nf">upgrade</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">force</span><span class="p">,</span><span class="n">printIt</span><span class="p">):</span>
+        <span class="n">backup</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;.upgradeBackup&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">printIt</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">backup</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
+                    <span class="n">error</span><span class="p">(</span><span class="s2">&quot;The backup-file&quot;</span><span class="p">,</span><span class="n">backup</span><span class="p">,</span><span class="s2">&quot;does already exist&quot;</span><span class="p">)</span>
+
+            <span class="n">copyfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">(),</span><span class="n">backup</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">=</span><span class="n">ParsedParameterFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">(),</span>
+                              <span class="n">listDict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">listDict</span><span class="p">,</span>
+                              <span class="n">noHeader</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">noHeader</span><span class="p">)</span>
+        <span class="n">r</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">content</span><span class="o">=</span><span class="n">r</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">printIt</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">writeFile</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DictionaryUpgradeInfo.makeComment"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.DictionaryUpgradeInfo.makeComment">[docs]</a>    <span class="k">def</span> <span class="nf">makeComment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="n">s</span><span class="o">=</span><span class="n">makeString</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> old Value: &quot;</span><span class="o">+</span><span class="n">s</span>
+        <span class="n">s</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">//&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span></div></div>
+
+<div class="viewcode-block" id="FvSolutionUpgradeInfo"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.FvSolutionUpgradeInfo">[docs]</a><span class="k">class</span> <span class="nc">FvSolutionUpgradeInfo</span><span class="p">(</span><span class="n">DictionaryUpgradeInfo</span><span class="p">):</span>
+<div class="viewcode-block" id="FvSolutionUpgradeInfo.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.FvSolutionUpgradeInfo.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">DictionaryUpgradeInfo</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FvSolutionUpgradeInfo.location"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.FvSolutionUpgradeInfo.location">[docs]</a>    <span class="k">def</span> <span class="nf">location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;system&quot;</span><span class="p">,</span><span class="s2">&quot;fvSolution&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FvSolutionUpgradeInfo.name"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.FvSolutionUpgradeInfo.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;fvSolution17&quot;</span></div>
+
+<div class="viewcode-block" id="FvSolutionUpgradeInfo.checkUpgrade"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.FvSolutionUpgradeInfo.checkUpgrade">[docs]</a>    <span class="k">def</span> <span class="nf">checkUpgrade</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">content</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;solvers&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">][</span><span class="n">s</span><span class="p">])</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">dict</span><span class="p">,</span><span class="n">DictProxy</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="FvSolutionUpgradeInfo.manipulate"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.FvSolutionUpgradeInfo.manipulate">[docs]</a>    <span class="k">def</span> <span class="nf">manipulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">content</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">]:</span>
+            <span class="n">comment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">makeComment</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">][</span><span class="n">s</span><span class="p">])</span>
+            <span class="n">alg</span><span class="p">,</span><span class="n">rest</span><span class="o">=</span><span class="n">content</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">][</span><span class="n">s</span><span class="p">]</span>
+            <span class="n">rest</span><span class="p">[</span><span class="s2">&quot;solver&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">alg</span>
+            <span class="n">content</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">][</span><span class="n">s</span><span class="p">]</span><span class="o">=</span><span class="n">rest</span>
+            <span class="n">content</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">addDecoration</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">comment</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="UpgradeDictionariesTo17"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.UpgradeDictionariesTo17">[docs]</a><span class="k">class</span> <span class="nc">UpgradeDictionariesTo17</span><span class="p">(</span><span class="n">PyFoamApplication</span><span class="p">):</span>
+<div class="viewcode-block" id="UpgradeDictionariesTo17.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.UpgradeDictionariesTo17.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">description</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">description</span><span class="p">:</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">Examines dictionaries in a case and tries to upgrade them to a form</span>
+<span class="s2">that is compatible with OpenFOAM 1.7</span>
+
+<span class="s2">If only a file is specified then the mode of that file has to be specified</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dicts</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addDicts</span><span class="p">()</span>
+
+        <span class="n">PyFoamApplication</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+                                   <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;%prog [options] &lt;case&gt;&quot;</span><span class="p">,</span>
+                                   <span class="n">changeVersion</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                   <span class="n">nr</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                   <span class="n">interspersed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UpgradeDictionariesTo17.addDicts"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.UpgradeDictionariesTo17.addDicts">[docs]</a>    <span class="k">def</span> <span class="nf">addDicts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dicts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FvSolutionUpgradeInfo</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="UpgradeDictionariesTo17.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.UpgradeDictionariesTo17.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">behaveGroup</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                                <span class="s2">&quot;Behaviour&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;General behaviour of the program&quot;</span><span class="p">)</span>
+
+        <span class="n">behaveGroup</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--apply-changes&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;applyChanges&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Apply changes to the dictionaries in question. Without this option only the results of the analysis will be shown&quot;</span><span class="p">)</span>
+
+        <span class="n">behaveGroup</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--print&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;print_&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Only print the modified dictionaries to the screen&quot;</span><span class="p">)</span>
+
+        <span class="n">behaveGroup</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--verbose&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Speak out aloud which decisions are made&quot;</span><span class="p">)</span>
+
+        <span class="n">behaveGroup</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--force&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;force&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Force even if backup-files exist&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">behaveGroup</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dictGroup</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                              <span class="s2">&quot;Dictionaries&quot;</span><span class="p">,</span>
+                              <span class="s2">&quot;Dictionaries that should be updated&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dicts</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dictGroup</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--disable-&quot;</span><span class="o">+</span><span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">location</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">))),</span>
+                                      <span class="n">action</span><span class="o">=</span><span class="s2">&quot;callback&quot;</span><span class="p">,</span>
+                                      <span class="n">callback</span><span class="o">=</span><span class="n">d</span><span class="o">.</span><span class="n">disableCallback</span><span class="p">,</span>
+                                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Disable the modification of &quot;</span><span class="o">+</span><span class="n">d</span><span class="o">.</span><span class="n">location</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dictGroup</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">modes</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dicts</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modes</span><span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">()]</span><span class="o">=</span><span class="n">d</span>
+
+        <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">modes</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">choices</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="n">behaveGroup</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--file-mode&quot;</span><span class="p">,</span>
+                               <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                               <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;choice&quot;</span><span class="p">,</span>
+                               <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;fileMode&quot;</span><span class="p">,</span>
+                               <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                               <span class="n">choices</span><span class="o">=</span><span class="n">choices</span><span class="p">,</span>
+                               <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The file should be treated as what while upgrading. Possible modes: &quot;</span><span class="o">+</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">choices</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="UpgradeDictionariesTo17.run"><a class="viewcode-back" href="../../../api/PyFoam.Applications.UpgradeDictionariesTo17.html#PyFoam.Applications.UpgradeDictionariesTo17.UpgradeDictionariesTo17.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">getArgs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">fName</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fileMode</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Filemode&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fileMode</span><span class="p">,</span><span class="s2">&quot;specified. But&quot;</span><span class="p">,</span>
+                           <span class="n">fName</span><span class="p">,</span><span class="s2">&quot;is a directory&quot;</span><span class="p">)</span>
+            <span class="n">case</span><span class="o">=</span><span class="n">fName</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">checkCase</span><span class="p">(</span><span class="n">case</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Working on case&quot;</span><span class="p">,</span><span class="n">case</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dicts</span><span class="p">:</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">case</span><span class="o">=</span><span class="n">case</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;  Checking&quot;</span><span class="p">,</span><span class="n">d</span><span class="o">.</span><span class="n">location</span><span class="p">())</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">d</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;    Disabled&quot;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">path</span><span class="p">()):</span>
+                    <span class="n">d</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;    Does not exist - disabling&quot;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">d</span><span class="o">.</span><span class="n">needsUpgrade</span><span class="p">():</span>
+                    <span class="n">d</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                        <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;    Does not need an upgrade - disabling&quot;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+
+                <span class="n">print_</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">location</span><span class="p">(),</span><span class="s2">&quot;needs an upgrade&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">applyChanges</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">print_</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">applyChanges</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Doing the upgrades&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dicts</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Upgrading&quot;</span><span class="p">,</span><span class="n">d</span><span class="o">.</span><span class="n">location</span><span class="p">())</span>
+                        <span class="n">d</span><span class="o">.</span><span class="n">upgrade</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">force</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">print_</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fileMode</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot;is a file, but no --file-mode specified&quot;</span><span class="p">)</span>
+            <span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">modes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fileMode</span><span class="p">]</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">setFile</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Handling&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot;as&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">fileMode</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">d</span><span class="o">.</span><span class="n">needsUpgrade</span><span class="p">():</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;    Does not need an upgrade&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;    Needs an upgrade&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">applyChanges</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">print_</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Upgrading&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">)</span>
+                    <span class="n">d</span><span class="o">.</span><span class="n">upgrade</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">force</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">print_</span><span class="p">)</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,675 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Execution.AnalyzedCommon &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Execution.AnalyzedCommon</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Execution.AnalyzedCommon</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id$</span>
+<span class="sd">&quot;&quot;&quot;Common stuff for classes that use analyzers&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span><span class="p">,</span><span class="n">mkdir</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">move</span><span class="p">,</span><span class="n">rmtree</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.PlotTimelinesFactory</span> <span class="kn">import</span> <span class="n">createPlotTimelines</span><span class="p">,</span><span class="n">createPlotTimelinesDirect</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.TimeLineCollection</span> <span class="kn">import</span> <span class="n">signedMax</span>
+<span class="kn">from</span> <span class="nn">PyFoam.LogAnalysis.RegExpLineAnalyzer</span> <span class="kn">import</span> <span class="n">RegExpLineAnalyzer</span>
+<span class="kn">from</span> <span class="nn">PyFoam.LogAnalysis.PhaseChangerLineAnalyzer</span> <span class="kn">import</span> <span class="n">PhaseChangerLineAnalyzer</span>
+<span class="kn">from</span> <span class="nn">PyFoam.LogAnalysis.ExecNameLineAnalyzer</span> <span class="kn">import</span> <span class="n">ExecNameLineAnalyzer</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">warning</span>
+
+<span class="c1"># import pickle</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span> <span class="k">as</span> <span class="n">pickle</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.GeneralPlotTimelines</span> <span class="kn">import</span> <span class="n">allPlots</span>
+<span class="kn">from</span> <span class="nn">PyFoam.Basics.TimeLineCollection</span> <span class="kn">import</span> <span class="n">allLines</span>
+
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Lock</span>
+
+<div class="viewcode-block" id="AnalyzedCommon"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon">[docs]</a><span class="k">class</span> <span class="nc">AnalyzedCommon</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class collects information and methods that are needed for</span>
+<span class="sd">    handling analyzers&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AnalyzedCommon.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">filename</span><span class="p">,</span>
+                 <span class="n">analyzer</span><span class="p">,</span>
+                 <span class="n">doPickling</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param filename: name of the file that is being analyzed</span>
+<span class="sd">        :param analyzer: the analyzer itself</span>
+<span class="sd">        :param doPickling: write the pickled plot data&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">analyzer</span><span class="o">=</span><span class="n">analyzer</span>
+
+        <span class="k">if</span> <span class="s1">&#39;dir&#39;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logDir</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span><span class="n">filename</span><span class="o">+</span><span class="s2">&quot;.analyzed&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logDir</span><span class="o">=</span><span class="n">filename</span><span class="o">+</span><span class="s2">&quot;.analyzed&quot;</span>
+
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logDir</span><span class="p">):</span>
+            <span class="c1"># Clean away</span>
+            <span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logDir</span><span class="p">,</span><span class="n">ignore_errors</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logDir</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">doPickling</span><span class="o">=</span><span class="n">doPickling</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doPickling</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pickleLock</span><span class="o">=</span><span class="n">Lock</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;data&quot;</span><span class="p">):</span>
+            <span class="n">pickleFile</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logDir</span><span class="p">,</span><span class="s2">&quot;pickledStartData&quot;</span><span class="p">)</span>
+            <span class="n">pick</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">Pickler</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">pickleFile</span><span class="p">,</span><span class="s2">&quot;wb&quot;</span><span class="p">))</span>
+            <span class="n">pick</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">persist</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raiseit</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeFiles</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">splitThres</span><span class="o">=</span><span class="mi">2048</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plottingImplementation</span><span class="o">=</span><span class="s2">&quot;dummy&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gnuplotTerminal</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="n">eName</span><span class="o">=</span><span class="n">ExecNameLineAnalyzer</span><span class="p">()</span>
+        <span class="n">eName</span><span class="o">.</span><span class="n">addListener</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execNameFound</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addAnalyzer</span><span class="p">(</span><span class="s2">&quot;ExecName&quot;</span><span class="p">,</span><span class="n">eName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">automaticCustom</span><span class="o">=</span><span class="bp">None</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.addPlots"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.addPlots">[docs]</a>    <span class="k">def</span> <span class="nf">addPlots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">plots</span><span class="p">):</span>
+        <span class="s2">&quot;Add plots. To be overriden&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.execNameFound"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.execNameFound">[docs]</a>    <span class="k">def</span> <span class="nf">execNameFound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">execName</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">automaticCustom</span><span class="o">=</span><span class="p">[]</span>
+        <span class="kn">from</span> <span class="nn">PyFoam</span> <span class="kn">import</span> <span class="n">configuration</span> <span class="k">as</span> <span class="n">conf</span>
+        <span class="kn">from</span> <span class="nn">PyFoam.Basics.CustomPlotInfo</span> <span class="kn">import</span> <span class="n">CustomPlotInfo</span>
+
+        <span class="n">solvers</span><span class="o">=</span><span class="nb">set</span><span class="p">([</span><span class="n">execName</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span><span class="n">lst</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="s2">&quot;SolverBase&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">execName</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+                <span class="n">solvers</span><span class="o">|=</span><span class="nb">set</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="n">lst</span><span class="p">))</span>
+
+        <span class="kn">import</span> <span class="nn">re</span>
+        <span class="n">autoplots</span><span class="o">=</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">()</span><span class="o">.</span><span class="n">getList</span><span class="p">(</span><span class="s2">&quot;Plotting&quot;</span><span class="p">,</span><span class="s2">&quot;autoplots&quot;</span><span class="p">)]</span>
+
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span><span class="n">dataString</span> <span class="ow">in</span> <span class="n">conf</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="s2">&quot;Autoplots&quot;</span><span class="p">):</span>
+            <span class="n">found</span><span class="o">=</span><span class="bp">False</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">dataString</span><span class="p">)</span>
+                <span class="n">solverPatterns</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;solvers&quot;</span><span class="p">]</span>
+                <span class="n">info</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;plotinfo&quot;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">solverPatterns</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">eName</span> <span class="ow">in</span> <span class="n">solvers</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">eName</span><span class="p">):</span>
+                                <span class="n">found</span><span class="o">=</span><span class="bp">True</span>
+                                <span class="k">break</span>
+                        <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
+                            <span class="k">break</span>
+                    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                        <span class="c1"># python 2 has no fullmatch</span>
+                        <span class="k">for</span> <span class="n">eName</span> <span class="ow">in</span> <span class="n">solvers</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;(?:&quot;</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s2">r&quot;)\Z&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">eName</span><span class="p">):</span>
+                                <span class="n">found</span><span class="o">=</span><span class="bp">True</span>
+                                <span class="k">break</span>
+                        <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
+                            <span class="k">break</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">sys</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Miss-configured automatic expression&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span>
+                        <span class="s2">&quot;Missing key&quot;</span><span class="p">,</span><span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">except</span> <span class="n">re</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">sys</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem with regular expression&quot;</span><span class="p">,</span><span class="n">s</span><span class="p">,</span><span class="s2">&quot;of&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span>
+                        <span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">SyntaxError</span><span class="p">:</span>
+                <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Syntax error in&quot;</span><span class="p">,</span><span class="n">dataString</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">found</span> <span class="ow">or</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">autoplots</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">automaticCustom</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CustomPlotInfo</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
+                                                           <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.tearDown"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.tearDown">[docs]</a>    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analyzer</span><span class="o">.</span><span class="n">tearDown</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;data&quot;</span><span class="p">):</span>
+            <span class="n">pickleFile</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logDir</span><span class="p">,</span><span class="s2">&quot;pickledData&quot;</span><span class="p">)</span>
+            <span class="n">pick</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">Pickler</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">pickleFile</span><span class="p">,</span><span class="s2">&quot;wb&quot;</span><span class="p">))</span>
+            <span class="n">pick</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.listAnalyzers"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.listAnalyzers">[docs]</a>    <span class="k">def</span> <span class="nf">listAnalyzers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:returns: A list with the names of the analyzers&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyzer</span><span class="o">.</span><span class="n">listAnalyzers</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.getAnalyzer"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.getAnalyzer">[docs]</a>    <span class="k">def</span> <span class="nf">getAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param name: name of the LineAnalyzer to get&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyzer</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.hasAnalyzer"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.hasAnalyzer">[docs]</a>    <span class="k">def</span> <span class="nf">hasAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param name: name of the LineAnalyzer we ask for&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyzer</span><span class="o">.</span><span class="n">hasAnalyzer</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.addAnalyzer"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.addAnalyzer">[docs]</a>    <span class="k">def</span> <span class="nf">addAnalyzer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">analyzer</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:param name: name of the LineAnalyzer to add</span>
+<span class="sd">        :param analyzer: the analyzer to add&quot;&quot;&quot;</span>
+        <span class="n">analyzer</span><span class="o">.</span><span class="n">setDirectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logDir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyzer</span><span class="o">.</span><span class="n">addAnalyzer</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">analyzer</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.lineHandle"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.lineHandle">[docs]</a>    <span class="k">def</span> <span class="nf">lineHandle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">line</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Not to be called: calls the analyzer for the current line&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analyzer</span><span class="o">.</span><span class="n">analyzeLine</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">automaticCustom</span><span class="p">:</span>
+            <span class="c1"># if one of the readers added custom plots add them AFTER</span>
+            <span class="c1"># processing the whole line</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">automaticCustom</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Adding automatic plots:&quot;</span><span class="p">,</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">automaticCustom</span><span class="p">]))</span>
+
+                <span class="n">automaticPlots</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">addCustomExpressions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">automaticCustom</span><span class="p">,</span>
+                                                         <span class="n">persist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">persist</span><span class="p">,</span>
+                                                         <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">start_</span><span class="p">,</span>
+                                                         <span class="n">end</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">,</span>
+                                                         <span class="n">raiseit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raiseit</span><span class="p">,</span>
+                                                         <span class="n">writeFiles</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">writeFiles</span><span class="p">,</span>
+                                                         <span class="n">splitThres</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">splitThres</span><span class="p">,</span>
+                                                         <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gnuplotTerminal</span><span class="p">,</span>
+                                                         <span class="n">plottingImplementation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">plottingImplementation</span><span class="p">)</span>
+                <span class="c1"># plots.update(customPlots)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addPlots</span><span class="p">(</span><span class="n">automaticPlots</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">automaticCustom</span><span class="o">=</span><span class="bp">None</span></div>
+
+
+<div class="viewcode-block" id="AnalyzedCommon.reset"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;reset the analyzer&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analyzer</span><span class="o">.</span><span class="n">setDirectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logDir</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.getDirname"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.getDirname">[docs]</a>    <span class="k">def</span> <span class="nf">getDirname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the name of the directory where the data is written to&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">logDir</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.getTime"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.getTime">[docs]</a>    <span class="k">def</span> <span class="nf">getTime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the execution time&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyzer</span><span class="o">.</span><span class="n">getTime</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.addTrigger"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.addTrigger">[docs]</a>    <span class="k">def</span> <span class="nf">addTrigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">func</span><span class="p">,</span><span class="n">once</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">until</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Adds a timed trigger to the Analyzer</span>
+<span class="sd">        :param time: the time at which the function should be triggered</span>
+<span class="sd">        :param func: the trigger function</span>
+<span class="sd">        :param once: Should this function be called once or at every time-step</span>
+<span class="sd">        :param until: The time until which the trigger should be called&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">analyzer</span><span class="o">.</span><span class="n">addTrigger</span><span class="p">(</span><span class="n">time</span><span class="p">,</span><span class="n">func</span><span class="p">,</span><span class="n">once</span><span class="o">=</span><span class="n">once</span><span class="p">,</span><span class="n">until</span><span class="o">=</span><span class="n">until</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.createPlots"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.createPlots">[docs]</a>    <span class="k">def</span> <span class="nf">createPlots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">persist</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">raiseit</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                    <span class="n">splitThres</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span>
+                    <span class="n">plotLinear</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                    <span class="n">plotCont</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                    <span class="n">plotBound</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                    <span class="n">plotIterations</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                    <span class="n">plotCourant</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                    <span class="n">plotExecution</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                    <span class="n">plotDeltaT</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                    <span class="n">start</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">end</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">writeFiles</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                    <span class="n">customRegexp</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">plottingImplementation</span><span class="o">=</span><span class="s2">&quot;dummy&quot;</span><span class="p">):</span>
+
+        <span class="n">plots</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">persist</span><span class="o">=</span><span class="n">persist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_</span><span class="o">=</span><span class="n">start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="o">=</span><span class="n">end</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raiseit</span><span class="o">=</span><span class="n">raiseit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeFiles</span><span class="o">=</span><span class="n">writeFiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">splitThres</span><span class="o">=</span><span class="n">splitThres</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plottingImplementation</span><span class="o">=</span><span class="n">plottingImplementation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gnuplotTerminal</span><span class="o">=</span><span class="n">gnuplotTerminal</span>
+
+        <span class="k">if</span> <span class="n">plotLinear</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasAnalyzer</span><span class="p">(</span><span class="s2">&quot;Linear&quot;</span><span class="p">):</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;linear&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">createPlotTimelinesDirect</span><span class="p">(</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;Linear&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span>
+                                                      <span class="n">persist</span><span class="o">=</span><span class="n">persist</span><span class="p">,</span>
+                                                      <span class="n">raiseit</span><span class="o">=</span><span class="n">raiseit</span><span class="p">,</span>
+                                                      <span class="n">forbidden</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;final&quot;</span><span class="p">,</span><span class="s2">&quot;iterations&quot;</span><span class="p">],</span>
+                                                      <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+                                                      <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span>
+                                                      <span class="n">logscale</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                      <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="n">gnuplotTerminal</span><span class="p">,</span>
+                                                      <span class="n">implementation</span><span class="o">=</span><span class="n">plottingImplementation</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;Linear&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">setSplitting</span><span class="p">(</span><span class="n">splitThres</span><span class="o">=</span><span class="n">splitThres</span><span class="p">,</span>
+                                                          <span class="n">splitFun</span><span class="o">=</span><span class="nb">max</span><span class="p">,</span>
+                                                          <span class="n">advancedSplit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;linear&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setTitle</span><span class="p">(</span><span class="s2">&quot;Residuals&quot;</span><span class="p">)</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;linear&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setYLabel</span><span class="p">(</span><span class="s2">&quot;Initial residual&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">plotCont</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasAnalyzer</span><span class="p">(</span><span class="s2">&quot;Continuity&quot;</span><span class="p">):</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;cont&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">createPlotTimelinesDirect</span><span class="p">(</span><span class="s2">&quot;continuity&quot;</span><span class="p">,</span>
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;Continuity&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span>
+                                                    <span class="n">persist</span><span class="o">=</span><span class="n">persist</span><span class="p">,</span>
+                                                    <span class="n">alternateAxis</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Global&quot;</span><span class="p">],</span>
+                                                    <span class="n">raiseit</span><span class="o">=</span><span class="n">raiseit</span><span class="p">,</span>
+                                                    <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+                                                    <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span>
+                                                    <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="n">gnuplotTerminal</span><span class="p">,</span>
+                                                    <span class="n">implementation</span><span class="o">=</span><span class="n">plottingImplementation</span><span class="p">)</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;cont&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setYLabel</span><span class="p">(</span><span class="s2">&quot;Cumulative&quot;</span><span class="p">)</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;cont&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setYLabel2</span><span class="p">(</span><span class="s2">&quot;Global&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;Continuity&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">setSplitting</span><span class="p">(</span><span class="n">splitThres</span><span class="o">=</span><span class="n">splitThres</span><span class="p">,</span>
+                                                              <span class="n">advancedSplit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;cont&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setTitle</span><span class="p">(</span><span class="s2">&quot;Continuity&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">plotBound</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasAnalyzer</span><span class="p">(</span><span class="s2">&quot;Bounding&quot;</span><span class="p">):</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;bound&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">createPlotTimelinesDirect</span><span class="p">(</span><span class="s2">&quot;bounding&quot;</span><span class="p">,</span>
+                                                     <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;Bounding&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span>
+                                                     <span class="n">persist</span><span class="o">=</span><span class="n">persist</span><span class="p">,</span>
+                                                     <span class="n">raiseit</span><span class="o">=</span><span class="n">raiseit</span><span class="p">,</span>
+                                                     <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+                                                     <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span>
+                                                     <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="n">gnuplotTerminal</span><span class="p">,</span>
+                                                     <span class="n">implementation</span><span class="o">=</span><span class="n">plottingImplementation</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;Bounding&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">setSplitting</span><span class="p">(</span><span class="n">splitThres</span><span class="o">=</span><span class="n">splitThres</span><span class="p">,</span>
+                                                            <span class="n">splitFun</span><span class="o">=</span><span class="n">signedMax</span><span class="p">,</span>
+                                                            <span class="n">advancedSplit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;bound&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setTitle</span><span class="p">(</span><span class="s2">&quot;Bounded variables&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">plotIterations</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasAnalyzer</span><span class="p">(</span><span class="s2">&quot;Iterations&quot;</span><span class="p">):</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;iter&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">createPlotTimelinesDirect</span><span class="p">(</span><span class="s2">&quot;iterations&quot;</span><span class="p">,</span>
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;Iterations&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span>
+                                                    <span class="n">persist</span><span class="o">=</span><span class="n">persist</span><span class="p">,</span>
+                                                    <span class="n">with_</span><span class="o">=</span><span class="s2">&quot;steps&quot;</span><span class="p">,</span>
+                                                    <span class="n">raiseit</span><span class="o">=</span><span class="n">raiseit</span><span class="p">,</span>
+                                                    <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+                                                    <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span>
+                                                    <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="n">gnuplotTerminal</span><span class="p">,</span>
+                                                    <span class="n">implementation</span><span class="o">=</span><span class="n">plottingImplementation</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;Iterations&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">setSplitting</span><span class="p">(</span><span class="n">splitThres</span><span class="o">=</span><span class="n">splitThres</span><span class="p">,</span>
+                                                              <span class="n">advancedSplit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;iter&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setTitle</span><span class="p">(</span><span class="s2">&quot;Iterations&quot;</span><span class="p">)</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;iter&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setYLabel</span><span class="p">(</span><span class="s2">&quot;Sum of iterations&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">plotCourant</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasAnalyzer</span><span class="p">(</span><span class="s2">&quot;Courant&quot;</span><span class="p">):</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;courant&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">createPlotTimelinesDirect</span><span class="p">(</span><span class="s2">&quot;courant&quot;</span><span class="p">,</span>
+                                                       <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;Courant&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span>
+                                                       <span class="n">persist</span><span class="o">=</span><span class="n">persist</span><span class="p">,</span>
+                                                       <span class="n">raiseit</span><span class="o">=</span><span class="n">raiseit</span><span class="p">,</span>
+                                                       <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+                                                       <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span>
+                                                       <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="n">gnuplotTerminal</span><span class="p">,</span>
+                                                       <span class="n">implementation</span><span class="o">=</span><span class="n">plottingImplementation</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;Courant&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">setSplitting</span><span class="p">(</span><span class="n">splitThres</span><span class="o">=</span><span class="n">splitThres</span><span class="p">,</span>
+                                                           <span class="n">advancedSplit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;courant&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setTitle</span><span class="p">(</span><span class="s2">&quot;Courant&quot;</span><span class="p">)</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;courant&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setYLabel</span><span class="p">(</span><span class="s2">&quot;Courant Number [1]&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">plotDeltaT</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasAnalyzer</span><span class="p">(</span><span class="s2">&quot;DeltaT&quot;</span><span class="p">):</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;deltaT&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">createPlotTimelinesDirect</span><span class="p">(</span><span class="s2">&quot;timestep&quot;</span><span class="p">,</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;DeltaT&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span>
+                                                      <span class="n">persist</span><span class="o">=</span><span class="n">persist</span><span class="p">,</span>
+                                                      <span class="n">raiseit</span><span class="o">=</span><span class="n">raiseit</span><span class="p">,</span>
+                                                      <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+                                                      <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span>
+                                                      <span class="n">logscale</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                      <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="n">gnuplotTerminal</span><span class="p">,</span>
+                                                      <span class="n">implementation</span><span class="o">=</span><span class="n">plottingImplementation</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;DeltaT&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">setSplitting</span><span class="p">(</span><span class="n">splitThres</span><span class="o">=</span><span class="n">splitThres</span><span class="p">,</span>
+                                                          <span class="n">advancedSplit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;deltaT&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setTitle</span><span class="p">(</span><span class="s2">&quot;DeltaT&quot;</span><span class="p">)</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;deltaT&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setYLabel</span><span class="p">(</span><span class="s2">&quot;dt [s]&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">plotExecution</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasAnalyzer</span><span class="p">(</span><span class="s2">&quot;Execution&quot;</span><span class="p">):</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;execution&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">createPlotTimelinesDirect</span><span class="p">(</span><span class="s2">&quot;execution&quot;</span><span class="p">,</span>
+                                                         <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;Execution&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span>
+                                                         <span class="n">persist</span><span class="o">=</span><span class="n">persist</span><span class="p">,</span>
+                                                         <span class="n">with_</span><span class="o">=</span><span class="s2">&quot;steps&quot;</span><span class="p">,</span>
+                                                         <span class="n">raiseit</span><span class="o">=</span><span class="n">raiseit</span><span class="p">,</span>
+                                                         <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+                                                         <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span>
+                                                         <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="n">gnuplotTerminal</span><span class="p">,</span>
+                                                         <span class="n">implementation</span><span class="o">=</span><span class="n">plottingImplementation</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="s2">&quot;Execution&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">setSplitting</span><span class="p">(</span><span class="n">splitThres</span><span class="o">=</span><span class="n">splitThres</span><span class="p">,</span>
+                                                             <span class="n">advancedSplit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;execution&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setTitle</span><span class="p">(</span><span class="s2">&quot;Execution Time&quot;</span><span class="p">)</span>
+            <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;execution&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">setYLabel</span><span class="p">(</span><span class="s2">&quot;Time [s]&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">customRegexp</span><span class="p">:</span>
+            <span class="n">customPlots</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">addCustomExpressions</span><span class="p">(</span><span class="n">customRegexp</span><span class="p">,</span>
+                                                  <span class="n">persist</span><span class="o">=</span><span class="n">persist</span><span class="p">,</span>
+                                                  <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+                                                  <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span>
+                                                  <span class="n">raiseit</span><span class="o">=</span><span class="n">raiseit</span><span class="p">,</span>
+                                                  <span class="n">writeFiles</span><span class="o">=</span><span class="n">writeFiles</span><span class="p">,</span>
+                                                  <span class="n">splitThres</span><span class="o">=</span><span class="n">splitThres</span><span class="p">,</span>
+                                                  <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="n">gnuplotTerminal</span><span class="p">,</span>
+                                                  <span class="n">plottingImplementation</span><span class="o">=</span><span class="n">plottingImplementation</span><span class="p">)</span>
+            <span class="n">plots</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">customPlots</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addPlots</span><span class="p">(</span><span class="n">plots</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.addCustomExpressions"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.addCustomExpressions">[docs]</a>    <span class="k">def</span> <span class="nf">addCustomExpressions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">customRegexp</span><span class="p">,</span>
+                             <span class="n">persist</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">start</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">end</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">raiseit</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">writeFiles</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">splitThres</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span>
+                             <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                             <span class="n">plottingImplementation</span><span class="o">=</span><span class="s2">&quot;dummy&quot;</span><span class="p">):</span>
+        <span class="n">plots</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">masters</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">slaves</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">custom</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">customRegexp</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">custom</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">persist</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">custom</span><span class="o">.</span><span class="n">persist</span><span class="o">=</span><span class="n">persist</span>
+            <span class="k">if</span> <span class="n">start</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">custom</span><span class="o">.</span><span class="n">start</span><span class="o">=</span><span class="n">start</span>
+            <span class="k">if</span> <span class="n">end</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">custom</span><span class="o">.</span><span class="n">end</span><span class="o">=</span><span class="n">end</span>
+            <span class="n">custom</span><span class="o">.</span><span class="n">raiseit</span><span class="o">=</span><span class="n">raiseit</span>
+
+            <span class="n">createPlot</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">if</span> <span class="n">custom</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s2">&quot;phase&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addAnalyzer</span><span class="p">(</span><span class="n">custom</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                 <span class="n">PhaseChangerLineAnalyzer</span><span class="p">(</span><span class="n">custom</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span>
+                                                          <span class="n">idNr</span><span class="o">=</span><span class="n">custom</span><span class="o">.</span><span class="n">idNr</span><span class="p">))</span>
+                <span class="n">createPlot</span><span class="o">=</span><span class="bp">False</span>
+            <span class="k">elif</span> <span class="n">custom</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;dynamic&quot;</span><span class="p">,</span><span class="s2">&quot;dynamicslave&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addAnalyzer</span><span class="p">(</span><span class="n">custom</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                 <span class="n">RegExpLineAnalyzer</span><span class="p">(</span><span class="n">custom</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+                                                    <span class="n">custom</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span>
+                                                    <span class="n">titles</span><span class="o">=</span><span class="n">custom</span><span class="o">.</span><span class="n">titles</span><span class="p">,</span>
+                                                    <span class="n">doTimelines</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                    <span class="n">doFiles</span><span class="o">=</span><span class="n">writeFiles</span><span class="p">,</span>
+                                                    <span class="n">accumulation</span><span class="o">=</span><span class="n">custom</span><span class="o">.</span><span class="n">accumulation</span><span class="p">,</span>
+                                                    <span class="n">progressTemplate</span><span class="o">=</span><span class="n">custom</span><span class="o">.</span><span class="n">progress</span><span class="p">,</span>
+                                                    <span class="n">singleFile</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                    <span class="n">idNr</span><span class="o">=</span><span class="n">custom</span><span class="o">.</span><span class="n">idNr</span><span class="p">,</span>
+                                                    <span class="n">startTime</span><span class="o">=</span><span class="n">custom</span><span class="o">.</span><span class="n">start</span><span class="p">,</span>
+                                                    <span class="n">endTime</span><span class="o">=</span><span class="n">custom</span><span class="o">.</span><span class="n">end</span><span class="p">))</span>
+
+            <span class="k">elif</span> <span class="n">custom</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;regular&quot;</span><span class="p">,</span><span class="s2">&quot;slave&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addAnalyzer</span><span class="p">(</span><span class="n">custom</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                 <span class="n">RegExpLineAnalyzer</span><span class="p">(</span><span class="n">custom</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+                                                    <span class="n">custom</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span>
+                                                    <span class="n">titles</span><span class="o">=</span><span class="n">custom</span><span class="o">.</span><span class="n">titles</span><span class="p">,</span>
+                                                    <span class="n">doTimelines</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                    <span class="n">doFiles</span><span class="o">=</span><span class="n">writeFiles</span><span class="p">,</span>
+                                                    <span class="n">accumulation</span><span class="o">=</span><span class="n">custom</span><span class="o">.</span><span class="n">accumulation</span><span class="p">,</span>
+                                                    <span class="n">progressTemplate</span><span class="o">=</span><span class="n">custom</span><span class="o">.</span><span class="n">progress</span><span class="p">,</span>
+                                                    <span class="n">singleFile</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                    <span class="n">startTime</span><span class="o">=</span><span class="n">custom</span><span class="o">.</span><span class="n">start</span><span class="p">,</span>
+                                                    <span class="n">endTime</span><span class="o">=</span><span class="n">custom</span><span class="o">.</span><span class="n">end</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown type&quot;</span><span class="p">,</span><span class="n">custom</span><span class="o">.</span><span class="n">type</span><span class="p">,</span><span class="s2">&quot;in custom expression&quot;</span><span class="p">,</span><span class="n">custom</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">createPlot</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">custom</span><span class="o">.</span><span class="n">master</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">custom</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;slave&quot;</span><span class="p">,</span><span class="s2">&quot;dynamicslave&quot;</span><span class="p">]:</span>
+                        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Custom expression&quot;</span><span class="p">,</span><span class="n">custom</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;is supposed to be a &#39;slave&#39; but no master is defined&quot;</span><span class="p">)</span>
+                    <span class="n">masters</span><span class="p">[</span><span class="n">custom</span><span class="o">.</span><span class="n">id</span><span class="p">]</span><span class="o">=</span><span class="n">custom</span>
+                    <span class="n">plotCustom</span><span class="o">=</span><span class="n">createPlotTimelines</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="n">custom</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span>
+                                                   <span class="n">custom</span><span class="o">=</span><span class="n">custom</span><span class="p">,</span>
+                                                   <span class="n">gnuplotTerminal</span><span class="o">=</span><span class="n">gnuplotTerminal</span><span class="p">,</span>
+                                                   <span class="n">implementation</span><span class="o">=</span><span class="n">plottingImplementation</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="n">custom</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">setSplitting</span><span class="p">(</span><span class="n">splitThres</span><span class="o">=</span><span class="n">splitThres</span><span class="p">,</span>
+                                                                 <span class="n">advancedSplit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="n">plotCustom</span><span class="o">.</span><span class="n">setTitle</span><span class="p">(</span><span class="n">custom</span><span class="o">.</span><span class="n">theTitle</span><span class="p">)</span>
+                    <span class="n">plots</span><span class="p">[</span><span class="s2">&quot;custom</span><span class="si">%04d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">plotCustom</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">custom</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;slave&quot;</span><span class="p">,</span><span class="s2">&quot;dynamicslave&quot;</span><span class="p">]:</span>
+                        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;&#39;master&#39; only makes sense if type is &#39;slave&#39; or &#39;dynamicslave&#39; for&quot;</span><span class="p">,</span><span class="n">custom</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">custom</span><span class="p">,</span><span class="s2">&quot;alternateAxis&quot;</span><span class="p">,</span><span class="bp">None</span><span class="p">):</span>
+                        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Specify alternate values in &#39;alternateAxis&#39; of master&quot;</span><span class="p">,</span>
+                              <span class="n">custom</span><span class="o">.</span><span class="n">master</span><span class="p">,</span><span class="s2">&quot;for&quot;</span><span class="p">,</span><span class="n">custom</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">slaves</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">custom</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slaves</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">master</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">masters</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;The custom plot&quot;</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">id</span><span class="p">,</span><span class="s2">&quot;wants the master plot&quot;</span><span class="p">,</span>
+                      <span class="n">s</span><span class="o">.</span><span class="n">master</span><span class="p">,</span><span class="s2">&quot;but it is not found in the list of masters&quot;</span><span class="p">,</span>
+                      <span class="nb">list</span><span class="p">(</span><span class="n">masters</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">slave</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getAnalyzer</span><span class="p">(</span><span class="n">masters</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">master</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">slave</span><span class="o">.</span><span class="n">setMaster</span><span class="p">(</span><span class="n">master</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">plots</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.picklePlots"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.picklePlots">[docs]</a>    <span class="k">def</span> <span class="nf">picklePlots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">wait</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Writes the necessary information for the plots permanently to disc,</span>
+<span class="sd">        so that it doesn&#39;t have to be generated again</span>
+<span class="sd">        :param wait: wait for the lock to be allowed to pickle&quot;&quot;&quot;</span>
+
+        <span class="c1">#        print &quot;Putting some pickles in the jar&quot;</span>
+
+        <span class="n">lines</span><span class="o">=</span><span class="n">allLines</span><span class="p">()</span>
+        <span class="n">plots</span><span class="o">=</span><span class="n">allPlots</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">lines</span> <span class="ow">and</span> <span class="n">plots</span><span class="p">:</span>
+            <span class="n">gotIt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pickleLock</span><span class="o">.</span><span class="n">acquire</span><span class="p">(</span><span class="n">wait</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">gotIt</span><span class="p">:</span>
+                <span class="k">return</span>
+
+            <span class="n">pickleFile</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logDir</span><span class="p">,</span><span class="s2">&quot;pickledPlots&quot;</span><span class="p">)</span>
+            <span class="n">pick</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">Pickler</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">pickleFile</span><span class="o">+</span><span class="s2">&quot;.tmp&quot;</span><span class="p">,</span><span class="s2">&quot;wb&quot;</span><span class="p">))</span>
+            <span class="n">pick</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">lines</span><span class="o">.</span><span class="n">prepareForTransfer</span><span class="p">())</span>
+            <span class="n">pick</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">plots</span><span class="o">.</span><span class="n">prepareForTransfer</span><span class="p">())</span>
+            <span class="n">move</span><span class="p">(</span><span class="n">pickleFile</span><span class="o">+</span><span class="s2">&quot;.tmp&quot;</span><span class="p">,</span><span class="n">pickleFile</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;data&quot;</span><span class="p">):</span>
+                <span class="n">pickleFile</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logDir</span><span class="p">,</span><span class="s2">&quot;pickledUnfinishedData&quot;</span><span class="p">)</span>
+                <span class="n">pick</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">Pickler</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">pickleFile</span><span class="o">+</span><span class="s2">&quot;.tmp&quot;</span><span class="p">,</span><span class="s2">&quot;wb&quot;</span><span class="p">))</span>
+                <span class="n">pick</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                <span class="k">del</span> <span class="n">pick</span>
+                <span class="n">move</span><span class="p">(</span><span class="n">pickleFile</span><span class="o">+</span><span class="s2">&quot;.tmp&quot;</span><span class="p">,</span><span class="n">pickleFile</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">pickleLock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AnalyzedCommon.setDataSet"><a class="viewcode-back" href="../../../api/PyFoam.Execution.AnalyzedCommon.html#PyFoam.Execution.AnalyzedCommon.AnalyzedCommon.setDataSet">[docs]</a>    <span class="k">def</span> <span class="nf">setDataSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;data&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;analyzed&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">data</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

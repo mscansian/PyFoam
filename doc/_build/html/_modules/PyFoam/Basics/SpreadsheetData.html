@@ -1,0 +1,910 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.SpreadsheetData &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.SpreadsheetData</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Basics.SpreadsheetData</h1><div class="highlight"><pre>
+<span></span><span class="c1">#  ICE Revision: $Id: $</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Data that can go into a spreadsheet (title line and rectangular data)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># assume this is pypy and retry</span>
+    <span class="kn">import</span> <span class="nn">numpypy</span>
+    <span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.Error</span> <span class="kn">import</span> <span class="n">error</span><span class="p">,</span><span class="n">FatalErrorPyFoamException</span><span class="p">,</span><span class="n">warning</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">PY3</span>
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">b</span> <span class="k">as</span> <span class="n">toByte</span>
+
+<div class="viewcode-block" id="WrongDataSize"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.WrongDataSize">[docs]</a><span class="k">class</span> <span class="nc">WrongDataSize</span><span class="p">(</span><span class="n">FatalErrorPyFoamException</span><span class="p">):</span>
+<div class="viewcode-block" id="WrongDataSize.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.WrongDataSize.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">txt</span><span class="o">=</span><span class="s2">&quot;Size of the arrays differs&quot;</span><span class="p">):</span>
+        <span class="n">FatalErrorPyFoamException</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">txt</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="SpreadsheetData"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData">[docs]</a><span class="k">class</span> <span class="nc">SpreadsheetData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Collects data that could go into a spreadsheet. The focus of this class is on</span>
+<span class="sd">    storing all the data at once</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="SpreadsheetData.__init__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">timeName</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">validData</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">validMatchRegexp</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">csvName</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">txtName</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">excelName</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">data</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">isSampleFile</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">skip_header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">stripCharacters</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">replaceFirstLine</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">title</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Either this is constructed from a file or from the data and the column headers</span>
+
+<span class="sd">        :param timeName: the data colum that is to be considered the time in this file</span>
+<span class="sd">        :param validData: names of the valid data columns (all others should be discarded)</span>
+<span class="sd">        :param validMatchRegexp: Should the validData be interpreted as regular expressions</span>
+<span class="sd">        :param csvName: name of the CSV-file the data should be constructed from,</span>
+<span class="sd">        :param txtName: name of a file the data should be constructed from,</span>
+<span class="sd">        :param excelName: name of a Excel-file the data should be constructed from (uses the first sheet in the file),</span>
+<span class="sd">        :param data: the actual data to use</span>
+<span class="sd">        :param names: the names for the column header</span>
+<span class="sd">        :param isSampleFile: file produced by sample/set. Field names are determined from the filename</span>
+<span class="sd">        :param stripCharacters: String with characters that should be removed before reading</span>
+<span class="sd">        :param replaceFirstLine: String with a line that should replace the first line (usually to replace the header)</span>
+<span class="sd">        :param title: a name that is used to make unique heades names&quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">filterChars</span><span class="p">(</span><span class="n">fName</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">first</span><span class="o">=</span><span class="bp">True</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">first</span> <span class="ow">and</span> <span class="n">replaceFirstLine</span><span class="p">:</span>
+                        <span class="n">l</span><span class="o">=</span><span class="n">replaceFirstLine</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="k">elif</span> <span class="n">stripCharacters</span><span class="p">:</span>
+                        <span class="n">l</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span><span class="n">stripCharacters</span><span class="p">)</span>
+                    <span class="n">first</span><span class="o">=</span><span class="bp">False</span>
+                    <span class="k">yield</span> <span class="n">toByte</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="o">=</span><span class="n">title</span>
+
+        <span class="n">nrFileSpec</span><span class="o">=</span><span class="nb">len</span><span class="p">([</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="n">csvName</span><span class="p">,</span><span class="n">txtName</span><span class="p">,</span><span class="n">excelName</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">nrFileSpec</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;SpreadsheetData is either constructed from data or from a file&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">nrFileSpec</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Only one file specification allowed&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">csvName</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">rec</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">recfromcsv</span><span class="p">(</span><span class="n">filterChars</span><span class="p">(</span><span class="n">csvName</span><span class="p">),</span>
+                                     <span class="n">names</span><span class="o">=</span><span class="bp">True</span> <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">names</span><span class="p">,</span>
+                                     <span class="n">skip_header</span><span class="o">=</span><span class="n">skip_header</span><span class="p">)</span>
+                <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">rec</span><span class="p">]</span>
+                <span class="n">names</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rec</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="c1"># for old numpy-versions</span>
+                <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">numpy</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">csvName</span><span class="p">,</span>
+                                                      <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
+                                                      <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+                <span class="n">names</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">csvName</span><span class="p">)</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+
+            <span class="c1"># redo this to make sure that everything is float</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,[</span><span class="s1">&#39;f8&#39;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">))))</span>
+        <span class="k">elif</span> <span class="n">txtName</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">isSampleFile</span><span class="p">:</span>
+                    <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+                    <span class="n">raw</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">recfromtxt</span><span class="p">(</span><span class="n">filterChars</span><span class="p">(</span><span class="n">txtName</span><span class="p">))</span>
+                    <span class="n">rawName</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">txtName</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
+                    <span class="n">pData</span><span class="o">=</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">raw</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])]</span>
+                    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;coord&quot;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">raw</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">rawName</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span>
+                        <span class="c1"># scalars</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rawName</span><span class="p">):</span>
+                            <span class="n">pData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">raw</span><span class="p">[:,</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">]))</span>
+                            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">raw</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="mi">3</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">rawName</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rawName</span><span class="p">):</span>
+                            <span class="k">for</span> <span class="n">j</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="s2">&quot;x&quot;</span><span class="p">,</span><span class="s2">&quot;y&quot;</span><span class="p">,</span><span class="s2">&quot;z&quot;</span><span class="p">]):</span>
+                                <span class="n">pData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">raw</span><span class="p">[:,</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">]))</span>
+                                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">c</span><span class="p">)</span>
+                            <span class="n">vals</span><span class="o">=</span><span class="p">[</span><span class="n">raw</span><span class="p">[:,</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span>
+                            <span class="n">pData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span>
+                                                         <span class="n">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span>
+                                                         <span class="n">vals</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">vals</span><span class="p">[</span><span class="mi">2</span><span class="p">])))</span>
+                            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="s2">&quot;_mag&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">error</span><span class="p">(</span><span class="s2">&quot;List of names&quot;</span><span class="p">,</span><span class="n">rawName</span><span class="p">,</span><span class="s2">&quot;does not fit number of colums&quot;</span><span class="p">,</span>
+                              <span class="n">raw</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="s2">&quot;should be&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">rawName</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>
+                              <span class="s2">&quot;for scalars or&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">rawName</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="s2">&quot;for vector&quot;</span><span class="p">)</span>
+                    <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pData</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">rec</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">recfromtxt</span><span class="p">(</span><span class="n">filterChars</span><span class="p">(</span><span class="n">txtName</span><span class="p">),</span><span class="n">names</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">rec</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                        <span class="n">names</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rec</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">nr</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">rec</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                            <span class="n">off</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="o">-</span><span class="n">nr</span><span class="o">+</span><span class="mi">1</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">names</span><span class="p">[:</span><span class="n">off</span><span class="p">])</span>
+                            <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">[:</span><span class="n">off</span><span class="p">]</span><span class="o">+</span><span class="p">[</span><span class="s2">&quot;index&quot;</span><span class="p">]</span><span class="o">+</span><span class="n">names</span><span class="p">[</span><span class="n">off</span><span class="p">:]</span>
+                        <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">[</span><span class="o">-</span><span class="n">nr</span><span class="p">:]</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="c1"># for old numpy-versions</span>
+                <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">numpy</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">txtName</span><span class="p">)]</span>
+                <span class="n">names</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">txtName</span><span class="p">)</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+
+            <span class="c1"># redo this to make sure that everything is float</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,[</span><span class="s1">&#39;f8&#39;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">))))</span>
+        <span class="k">elif</span> <span class="n">excelName</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">pandas</span>
+            <span class="n">rec</span><span class="o">=</span><span class="n">pandas</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">excelName</span><span class="p">)</span><span class="o">.</span><span class="n">to_records</span><span class="p">()</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">rec</span><span class="p">]</span>
+            <span class="n">names</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">rec</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,[</span><span class="s1">&#39;f8&#39;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">))))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">names</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;No names given for the data&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="p">],</span>
+                                  <span class="n">dtype</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,[</span><span class="s1">&#39;f8&#39;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">))))</span>
+
+        <span class="k">if</span> <span class="n">timeName</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">index</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">timeName</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Time name&quot;</span><span class="p">,</span><span class="n">timeName</span><span class="p">,</span><span class="s2">&quot;not in&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">index</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">eliminatedNames</span><span class="o">=</span><span class="bp">None</span>
+
+        <span class="k">if</span> <span class="n">validData</span><span class="p">:</span>
+            <span class="n">usedData</span><span class="o">=</span><span class="p">[]</span>
+            <span class="n">usedNames</span><span class="o">=</span><span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">n</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">validName</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">validData</span><span class="p">,</span><span class="n">validMatchRegexp</span><span class="p">):</span>
+                    <span class="n">usedData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">]))</span>
+                    <span class="n">usedNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">eliminatedNames</span><span class="o">=</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span><span class="o">-</span><span class="nb">set</span><span class="p">(</span><span class="n">usedNames</span><span class="p">)</span>
+
+            <span class="n">usedData</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">usedData</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">usedData</span><span class="p">],</span>
+                                  <span class="n">dtype</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">usedNames</span><span class="p">,[</span><span class="s1">&#39;f8&#39;</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">usedNames</span><span class="p">))))</span>
+            <span class="n">index</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">index</span><span class="p">]]</span><span class="o">+</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span><span class="o">+</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]]</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.validName"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.validName">[docs]</a>    <span class="k">def</span> <span class="nf">validName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">validData</span><span class="p">,</span><span class="n">validMatchRegexp</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">validData</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">validMatchRegexp</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">validData</span><span class="p">:</span>
+                <span class="n">exp</span><span class="o">=</span><span class="bp">None</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">exp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">exp</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">exp</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.names"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.names">[docs]</a>    <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.timeName"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.timeName">[docs]</a>    <span class="k">def</span> <span class="nf">timeName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.rename"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.rename">[docs]</a>    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">renameTime</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Rename all the columns according to a function. Time only if specified&quot;&quot;&quot;</span>
+        <span class="n">newNames</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">renameTime</span> <span class="ow">and</span> <span class="n">c</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                <span class="n">newNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">newNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">c</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="o">=</span><span class="n">newNames</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="o">=</span><span class="n">newNames</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.size"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.size">[docs]</a>    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">size</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.writeCSV"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.writeCSV">[docs]</a>    <span class="k">def</span> <span class="nf">writeCSV</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="p">,</span>
+                 <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write data to a CSV-file</span>
+<span class="sd">        :param fName: Name of the file</span>
+<span class="sd">        :param delimiter: Delimiter to be used in the CSV-file&quot;&quot;&quot;</span>
+
+        <span class="n">f</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">PY3</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">toByte</span><span class="p">(</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">())</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">())</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">numpy</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.tRange"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.tRange">[docs]</a>    <span class="k">def</span> <span class="nf">tRange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the range of times</span>
+<span class="sd">        :param time: name of the time. If None the first column is used&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">time</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span>
+        <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.join"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.join">[docs]</a>    <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">prefix</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Join this object with another. Assume that they have the same</span>
+<span class="sd">        amount of rows and that they have one column that designates the</span>
+<span class="sd">        time and is called the same and has the same values</span>
+<span class="sd">        :param other: the other array</span>
+<span class="sd">        :param time: name of the time. If None the first column is used</span>
+<span class="sd">        :param prefix: String that is added to the other names. If none is given then</span>
+<span class="sd">        the title is used&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">time</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span>
+        <span class="k">if</span> <span class="n">prefix</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="n">other</span><span class="o">.</span><span class="n">title</span>
+            <span class="k">if</span> <span class="n">prefix</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+                <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;other_&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">prefix</span><span class="o">+=</span><span class="s2">&quot;_&quot;</span>
+
+        <span class="n">t1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">]</span>
+        <span class="n">t2</span><span class="o">=</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t1</span><span class="p">)</span><span class="o">!=</span><span class="nb">len</span><span class="p">(</span><span class="n">t2</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">WrongDataSize</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">t1</span><span class="o">-</span><span class="n">t2</span><span class="p">))</span><span class="o">&gt;</span><span class="mf">1e-10</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">WrongDataSize</span><span class="p">(</span><span class="s2">&quot;Times do not have the same values&quot;</span><span class="p">)</span>
+
+        <span class="n">names</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">data</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">():</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">names</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">!=</span><span class="n">time</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">():</span>
+                    <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prefix</span><span class="o">+</span><span class="n">n</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">SpreadsheetData</span><span class="p">(</span><span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">,</span>
+                               <span class="n">data</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.__add__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.__add__">[docs]</a>    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convinience function for joining data&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.recalcData"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.recalcData">[docs]</a>    <span class="k">def</span> <span class="nf">recalcData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">expr</span><span class="p">,</span><span class="n">create</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Recalc or add a column to the data</span>
+<span class="sd">        :param name: the colum (must exist if it is not created. Otherwise it must not exist)</span>
+<span class="sd">        :param expr: the expression to calculate. All present column names are usable as variables.</span>
+<span class="sd">        There is also a variable data for subscripting if the data is not a valid variable name. If</span>
+<span class="sd">        the column is not create then there is also a variable this that is an alias for the name</span>
+<span class="sd">        :param create: whether a new data item should be created&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">create</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">():</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Item&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;already exists in names&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">create</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">():</span>
+            <span class="n">error</span><span class="p">(</span><span class="s2">&quot;Item&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;not in names&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">())</span>
+
+        <span class="n">result</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span><span class="nb">dict</span><span class="p">([(</span><span class="n">n</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">()]</span><span class="o">+</span><span class="p">[(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)]</span><span class="o">+</span>
+                              <span class="p">([(</span><span class="s2">&quot;this&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">create</span> <span class="k">else</span> <span class="p">[])])))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">create</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">=</span><span class="n">result</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">result</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.append"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">name</span><span class="p">,</span>
+               <span class="n">data</span><span class="p">,</span>
+               <span class="n">allowDuplicates</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add another column to the data. Assumes that the number of rows is right</span>
+<span class="sd">        :param name: the name of the column</span>
+<span class="sd">        :param data: the actual data</span>
+<span class="sd">        :param allowDuplicates: If the name already exists make it unique by appending _1, _2 ...&quot;&quot;&quot;</span>
+
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">newname</span><span class="o">=</span><span class="n">name</span>
+        <span class="k">if</span> <span class="n">newname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">()</span> <span class="ow">and</span> <span class="n">allowDuplicates</span><span class="p">:</span>
+            <span class="n">cnt</span><span class="o">=</span><span class="mi">1</span>
+            <span class="k">while</span> <span class="n">newname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">():</span>
+                <span class="n">newname</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">cnt</span><span class="p">)</span>
+                <span class="n">cnt</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Changing name&quot;</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;to&quot;</span><span class="p">,</span><span class="n">newname</span><span class="p">,</span><span class="s2">&quot;bacause it already exists in the data&quot;</span><span class="p">)</span>
+        <span class="n">newdtype</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">descr</span> <span class="o">+</span> <span class="p">[(</span><span class="n">newname</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">)])</span>
+        <span class="n">newrec</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">newdtype</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">fields</span><span class="p">:</span>
+            <span class="n">newrec</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">field</span><span class="p">]</span>
+            <span class="n">newrec</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">newrec</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.__call__"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">t</span><span class="p">,</span>
+                 <span class="n">name</span><span class="p">,</span>
+                 <span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">invalidExtend</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">noInterpolation</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;&#39;Evaluate&#39; the data at a specific time by linear interpolation</span>
+<span class="sd">        :param t: the time at which the data should be evaluated</span>
+<span class="sd">        :param name: name of the data column to be evaluated. Assumes that that column</span>
+<span class="sd">        is ordered in ascending order</span>
+<span class="sd">        :param time: name of the time column. If none is given then the first column is assumed</span>
+<span class="sd">        :param invalidExtend: if t is out of the valid range then use the smallest or the biggest value. If False use nan</span>
+<span class="sd">        :param noInterpolation: if t doesn&#39;t exactly fit a data-point return &#39;nan&#39;&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">time</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span>
+
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">]</span>
+        <span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+        <span class="c1"># get extremes</span>
+        <span class="k">if</span> <span class="n">t</span><span class="o">&lt;</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">invalidExtend</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">t</span><span class="o">&gt;</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">invalidExtend</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">noInterpolation</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">==</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">t</span><span class="o">==</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">iLow</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">iHigh</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+
+        <span class="k">while</span> <span class="p">(</span><span class="n">iHigh</span><span class="o">-</span><span class="n">iLow</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">iNew</span> <span class="o">=</span> <span class="n">iLow</span> <span class="o">+</span> <span class="nb">int</span><span class="p">((</span><span class="n">iHigh</span><span class="o">-</span><span class="n">iLow</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">iNew</span><span class="p">]</span><span class="o">==</span><span class="n">t</span><span class="p">:</span>
+                <span class="c1"># we got lucky</span>
+                <span class="k">return</span> <span class="n">y</span><span class="p">[</span><span class="n">iNew</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">x</span><span class="p">[</span><span class="n">iNew</span><span class="p">]:</span>
+                <span class="n">iHigh</span><span class="o">=</span><span class="n">iNew</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">iLow</span><span class="o">=</span><span class="n">iNew</span>
+        <span class="k">if</span> <span class="n">noInterpolation</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">y</span><span class="p">[</span><span class="n">iLow</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">iHigh</span><span class="p">]</span><span class="o">-</span><span class="n">y</span><span class="p">[</span><span class="n">iLow</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">t</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="n">iLow</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">iHigh</span><span class="p">]</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="n">iLow</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.addTimes"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.addTimes">[docs]</a>    <span class="k">def</span> <span class="nf">addTimes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">times</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">interpolate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">invalidExtend</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extend the data so that all new times are represented (add rows</span>
+<span class="sd">        if they are not there)</span>
+<span class="sd">        :param time: the name of the column with the time</span>
+<span class="sd">        :param times: the times that shoild be there</span>
+<span class="sd">        :param interpolate: interpolate the data in new rows. Otherwise</span>
+<span class="sd">        insert &#39;nan&#39;</span>
+<span class="sd">        :param invalidExtend: if t is out of the valid range then use</span>
+<span class="sd">        the smallest or the biggest value. If False use nan&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">time</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">]):</span>
+            <span class="n">same</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                    <span class="n">same</span><span class="o">=</span><span class="bp">False</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">same</span><span class="p">:</span>
+                <span class="c1"># No difference between the times</span>
+                <span class="k">return</span>
+
+        <span class="n">newData</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">otherI</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">originalI</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">while</span> <span class="n">otherI</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
+            <span class="n">goOn</span><span class="o">=</span><span class="n">originalI</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">])</span>
+            <span class="k">while</span> <span class="n">goOn</span> <span class="ow">and</span> <span class="n">times</span><span class="p">[</span><span class="n">otherI</span><span class="p">]</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="n">originalI</span><span class="p">]:</span>
+                <span class="n">newData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">originalI</span><span class="p">])</span>
+                <span class="n">originalI</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="n">goOn</span><span class="o">=</span><span class="n">originalI</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">])</span>
+
+            <span class="n">append</span><span class="o">=</span><span class="bp">True</span>
+            <span class="k">if</span> <span class="n">originalI</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">times</span><span class="p">[</span><span class="n">otherI</span><span class="p">]</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="n">originalI</span><span class="p">]:</span>
+                    <span class="n">newData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">originalI</span><span class="p">])</span>
+                    <span class="n">originalI</span><span class="o">+=</span><span class="mi">1</span>
+                    <span class="n">otherI</span><span class="o">+=</span><span class="mi">1</span>
+                    <span class="n">append</span><span class="o">=</span><span class="bp">False</span>
+
+            <span class="k">if</span> <span class="n">append</span><span class="p">:</span>
+                <span class="n">t</span><span class="o">=</span><span class="n">times</span><span class="p">[</span><span class="n">otherI</span><span class="p">]</span>
+                <span class="n">newRow</span><span class="o">=</span><span class="p">[]</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">n</span><span class="o">==</span><span class="n">time</span><span class="p">:</span>
+                        <span class="n">newRow</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">interpolate</span><span class="p">:</span>
+                        <span class="n">newRow</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span><span class="n">invalidExtend</span><span class="o">=</span><span class="n">invalidExtend</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">newRow</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">))</span>
+                <span class="n">newData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newRow</span><span class="p">)</span>
+                <span class="n">otherI</span><span class="o">+=</span><span class="mi">1</span>
+
+        <span class="k">while</span> <span class="n">originalI</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">]):</span>
+            <span class="n">newData</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">originalI</span><span class="p">])</span>
+            <span class="n">originalI</span><span class="o">+=</span><span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">newData</span><span class="p">],</span><span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.resample"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.resample">[docs]</a>    <span class="k">def</span> <span class="nf">resample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">other</span><span class="p">,</span>
+                 <span class="n">name</span><span class="p">,</span>
+                 <span class="n">otherName</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">invalidExtend</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">extendData</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">noInterpolation</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate values from another dataset at the same times as in this data-set</span>
+<span class="sd">        :param other: the other data-set</span>
+<span class="sd">        :param name: name of the data column to be evaluated. Assumes that that column</span>
+<span class="sd">        is ordered in ascending order</span>
+<span class="sd">        :param time: name of the time column. If none is given then the first column is assumed</span>
+<span class="sd">        :param invalidExtend: see __call__</span>
+<span class="sd">        :param extendData: if the time range of x is bigger than the range then extend the range before resampling</span>
+<span class="sd">        :param noInterpolation: if t doesn&#39;t exactly fit a data-point return &#39;nan&#39;&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">time</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span>
+
+        <span class="k">if</span> <span class="n">extendData</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">pre</span><span class="o">=</span><span class="p">[]</span>
+            <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">while</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">data</span><span class="o">=</span><span class="p">[]</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">n</span><span class="o">==</span><span class="n">time</span><span class="p">:</span>
+                        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">))</span>
+                <span class="n">pre</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">&gt;=</span><span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">]):</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pre</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pre</span><span class="p">],</span>
+                                                         <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+
+            <span class="n">post</span><span class="o">=</span><span class="p">[]</span>
+            <span class="n">i</span><span class="o">=-</span><span class="mi">1</span>
+            <span class="k">while</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">data</span><span class="o">=</span><span class="p">[]</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">n</span><span class="o">==</span><span class="n">time</span><span class="p">:</span>
+                        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">))</span>
+                <span class="n">post</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">i</span><span class="o">-=</span><span class="mi">1</span>
+                <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">&gt;=</span><span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">])</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+            <span class="n">post</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">post</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">post</span><span class="p">],</span>
+                                                                   <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)))</span>
+
+        <span class="n">result</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">]:</span>
+            <span class="n">nm</span><span class="o">=</span><span class="n">name</span>
+            <span class="k">if</span> <span class="n">otherName</span><span class="p">:</span>
+                <span class="n">nm</span><span class="o">=</span><span class="n">otherName</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">other</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">nm</span><span class="p">,</span>
+                                <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span>
+                                <span class="n">invalidExtend</span><span class="o">=</span><span class="n">invalidExtend</span><span class="p">,</span>
+                                <span class="n">noInterpolation</span><span class="o">=</span><span class="n">noInterpolation</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.compare"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.compare">[docs]</a>    <span class="k">def</span> <span class="nf">compare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">other</span><span class="p">,</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">otherName</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">common</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">minTime</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">maxTime</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compare this data-set with another. The time-points of this dataset are used as</span>
+<span class="sd">        a reference. Returns a dictionary with a number of norms: maximum absolute</span>
+<span class="sd">        difference, average absolute difference</span>
+<span class="sd">        on all timepoints, average absolute difference weighted by time</span>
+<span class="sd">        :param other: the other data-set</span>
+<span class="sd">        :param name: name of the data column to be evaluated. Assumes that that column</span>
+<span class="sd">        is ordered in ascending order</span>
+<span class="sd">        :param time: name of the time column. If none is given then the first column is assumed</span>
+<span class="sd">        :param common: cut off the parts where not both data sets are defined</span>
+<span class="sd">        :param minTime: first time which should be compared</span>
+<span class="sd">        :param maxTime: last time to compare&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">time</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span>
+
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">]</span>
+        <span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="n">y2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">other</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">otherName</span><span class="o">=</span><span class="n">otherName</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span><span class="n">invalidExtend</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="n">minT</span><span class="p">,</span><span class="n">maxT</span><span class="o">=</span><span class="n">minTime</span><span class="p">,</span><span class="n">maxTime</span>
+        <span class="k">if</span> <span class="n">common</span><span class="p">:</span>
+            <span class="n">minTmp</span><span class="p">,</span><span class="n">maxTmp</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span><span class="nb">min</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">minTmp</span><span class="o">&lt;=</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                    <span class="n">minT</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">break</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+                <span class="n">val</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="n">maxTmp</span><span class="o">&gt;=</span><span class="n">val</span><span class="p">:</span>
+                    <span class="n">maxT</span><span class="o">=</span><span class="n">val</span>
+                    <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">minT</span><span class="p">,</span><span class="n">maxT</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;max&quot;</span> <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                   <span class="s2">&quot;maxPos&quot;</span> <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                   <span class="s2">&quot;average&quot;</span> <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                   <span class="s2">&quot;wAverage&quot;</span> <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                   <span class="s2">&quot;tMin&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                   <span class="s2">&quot;tMax&quot;</span><span class="p">:</span> <span class="bp">None</span> <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">minT</span><span class="o">==</span><span class="bp">None</span> <span class="ow">or</span> <span class="n">maxT</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span>
+
+        <span class="k">if</span> <span class="n">minTime</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">minTime</span><span class="o">&gt;</span><span class="n">minT</span><span class="p">:</span>
+                <span class="n">minT</span><span class="o">=</span><span class="n">minTime</span>
+
+        <span class="k">if</span> <span class="n">maxTime</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">maxTime</span><span class="o">&lt;</span><span class="n">maxT</span><span class="p">:</span>
+                <span class="n">maxT</span><span class="o">=</span><span class="n">maxTime</span>
+
+        <span class="k">if</span> <span class="n">maxT</span><span class="o">&lt;</span><span class="n">minT</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span>
+
+        <span class="n">maxDiff</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">maxPos</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">sumDiff</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">sumWeighted</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">cnt</span><span class="o">=</span><span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">&lt;</span><span class="n">minT</span> <span class="ow">or</span> <span class="n">t</span><span class="o">&gt;</span><span class="n">maxT</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">cnt</span><span class="o">+=</span><span class="mi">1</span>
+
+            <span class="n">val1</span><span class="o">=</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">val2</span><span class="o">=</span><span class="n">y2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">diff</span><span class="o">=</span><span class="nb">abs</span><span class="p">(</span><span class="n">val1</span><span class="o">-</span><span class="n">val2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">diff</span><span class="o">&gt;</span><span class="n">maxDiff</span><span class="p">:</span>
+                <span class="n">maxDiff</span><span class="o">=</span><span class="n">diff</span>
+                <span class="n">maxPos</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">sumDiff</span><span class="o">+=</span><span class="n">diff</span>
+            <span class="n">weight</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">&gt;</span><span class="n">minT</span><span class="p">:</span>
+                <span class="n">weight</span><span class="o">+=</span><span class="p">(</span><span class="n">t</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">&lt;</span><span class="n">maxT</span><span class="p">:</span>
+                <span class="n">weight</span><span class="o">+=</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+            <span class="n">sumWeighted</span><span class="o">+=</span><span class="n">weight</span><span class="o">*</span><span class="n">diff</span>
+
+        <span class="k">return</span> <span class="p">{</span> <span class="s2">&quot;max&quot;</span> <span class="p">:</span> <span class="n">maxDiff</span><span class="p">,</span>
+                 <span class="s2">&quot;maxPos&quot;</span> <span class="p">:</span> <span class="n">maxPos</span><span class="p">,</span>
+                 <span class="s2">&quot;average&quot;</span> <span class="p">:</span> <span class="n">sumDiff</span><span class="o">/</span><span class="n">cnt</span><span class="p">,</span>
+                 <span class="s2">&quot;wAverage&quot;</span> <span class="p">:</span> <span class="n">sumWeighted</span><span class="o">/</span><span class="p">(</span><span class="n">maxT</span><span class="o">-</span><span class="n">minT</span><span class="p">),</span>
+                 <span class="s2">&quot;tMin&quot;</span><span class="p">:</span> <span class="n">minT</span><span class="p">,</span>
+                 <span class="s2">&quot;tMax&quot;</span><span class="p">:</span> <span class="n">maxT</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.metrics"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.metrics">[docs]</a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">minTime</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">maxTime</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculates the metrics for a data set. Returns a dictionary</span>
+<span class="sd">        with a number of norms: minimum, maximum, average, average weighted by time</span>
+<span class="sd">        :param name: name of the data column to be evaluated. Assumes that that column</span>
+<span class="sd">        is ordered in ascending order</span>
+<span class="sd">        :param time: name of the time column. If none is given then the first column is assumed</span>
+<span class="sd">        :param minTime: first time to take metrics from</span>
+<span class="sd">        :param maxTime: latest time to take matrics from&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">time</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span>
+
+        <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">time</span><span class="p">]</span>
+        <span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+        <span class="n">minVal</span><span class="o">=</span><span class="mf">1e40</span>
+        <span class="n">maxVal</span><span class="o">=-</span><span class="mf">1e40</span>
+        <span class="nb">sum</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">sumWeighted</span><span class="o">=</span><span class="mi">0</span>
+
+        <span class="n">minT</span><span class="p">,</span><span class="n">maxT</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">minTime</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">minTime</span><span class="o">&gt;</span><span class="n">minT</span><span class="p">:</span>
+                <span class="n">minT</span><span class="o">=</span><span class="n">minTime</span>
+
+        <span class="k">if</span> <span class="n">maxTime</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">maxTime</span><span class="o">&lt;</span><span class="n">maxT</span><span class="p">:</span>
+                <span class="n">maxT</span><span class="o">=</span><span class="n">maxTime</span>
+
+        <span class="n">cnt</span><span class="o">=</span><span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">&lt;</span><span class="n">minT</span> <span class="ow">or</span> <span class="n">t</span><span class="o">&gt;</span><span class="n">maxT</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">cnt</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="n">val</span><span class="o">=</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">maxVal</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">val</span><span class="p">,</span><span class="n">maxVal</span><span class="p">)</span>
+            <span class="n">minVal</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">val</span><span class="p">,</span><span class="n">minVal</span><span class="p">)</span>
+            <span class="nb">sum</span><span class="o">+=</span><span class="n">val</span>
+            <span class="n">weight</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">weight</span><span class="o">+=</span><span class="p">(</span><span class="n">t</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">&lt;</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">weight</span><span class="o">+=</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+            <span class="n">sumWeighted</span><span class="o">+=</span><span class="n">weight</span><span class="o">*</span><span class="n">val</span>
+
+        <span class="k">return</span> <span class="p">{</span> <span class="s2">&quot;max&quot;</span> <span class="p">:</span> <span class="n">maxVal</span><span class="p">,</span>
+                 <span class="s2">&quot;min&quot;</span> <span class="p">:</span> <span class="n">minVal</span><span class="p">,</span>
+                 <span class="s2">&quot;average&quot;</span> <span class="p">:</span> <span class="nb">sum</span><span class="o">/</span><span class="nb">max</span><span class="p">(</span><span class="n">cnt</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+                 <span class="s2">&quot;wAverage&quot;</span> <span class="p">:</span> <span class="n">sumWeighted</span><span class="o">/</span><span class="p">(</span><span class="n">maxT</span><span class="o">-</span><span class="n">minT</span><span class="p">),</span>
+                 <span class="s2">&quot;tMin&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                 <span class="s2">&quot;tMax&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]}</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.getData"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.getData">[docs]</a>    <span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">reindex</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a dictionary of the data in the DataFrame format of pandas</span>
+<span class="sd">        :param: drop duplicate times (setting it to False might break certain Pandas-operations)&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">PyFoam.Wrappers.Pandas</span> <span class="kn">import</span> <span class="n">PyFoamDataFrame</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No pandas-library installed. Returning None&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="k">return</span> <span class="n">PyFoamDataFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getSeries</span><span class="p">(</span><span class="n">reindex</span><span class="o">=</span><span class="n">reindex</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="SpreadsheetData.getSeries"><a class="viewcode-back" href="../../../api/PyFoam.Basics.SpreadsheetData.html#PyFoam.Basics.SpreadsheetData.SpreadsheetData.getSeries">[docs]</a>    <span class="k">def</span> <span class="nf">getSeries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">reindex</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a dictionary of the data-columns in the Series format of pandas</span>
+<span class="sd">        :param: drop duplicate times (setting it to False might break certain Pandas-operations)&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">pandas</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No pandas-library installed. Returning None&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="n">data</span><span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">reindex</span><span class="p">:</span>
+            <span class="n">realindex</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="n">pandas</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">],</span>
+                                      <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">],</span>
+                                      <span class="n">name</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">reindex</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">])</span><span class="o">!=</span><span class="nb">len</span><span class="p">(</span><span class="n">realindex</span><span class="p">):</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_unique</span><span class="o">=</span><span class="bp">True</span>
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="c1"># Newer Pandas versions don&#39;t allow setting this. Just drop duplicates</span>
+                            <span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+                        <span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">reindex_axis</span><span class="p">(</span><span class="n">realindex</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

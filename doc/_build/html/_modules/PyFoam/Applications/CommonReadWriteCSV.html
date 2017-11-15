@@ -1,0 +1,424 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Applications.CommonReadWriteCSV &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="PyFoam" href="../../PyFoam.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../PyFoam.html">PyFoam</a> &raquo;</li>
+      
+    <li>PyFoam.Applications.CommonReadWriteCSV</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for PyFoam.Applications.CommonReadWriteCSV</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Class that implements the common functionality for reading and writing CSV-files</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionGroup</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+
+<span class="kn">from</span> <span class="nn">PyFoam.ThirdParty.six</span> <span class="kn">import</span> <span class="n">print_</span>
+
+<div class="viewcode-block" id="CommonReadWriteCSV"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonReadWriteCSV.html#PyFoam.Applications.CommonReadWriteCSV.CommonReadWriteCSV">[docs]</a><span class="k">class</span> <span class="nc">CommonReadWriteCSV</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; The class implement common functionality</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">validFormats</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;csv&quot;</span><span class="p">,</span><span class="s2">&quot;xls&quot;</span><span class="p">,</span><span class="s2">&quot;xlsx&quot;</span><span class="p">,</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span><span class="s2">&quot;smpl&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="CommonReadWriteCSV.addOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonReadWriteCSV.html#PyFoam.Applications.CommonReadWriteCSV.CommonReadWriteCSV.addOptions">[docs]</a>    <span class="k">def</span> <span class="nf">addOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">calc</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                         <span class="s2">&quot;Calculations&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;Calculations to be performed on the data. Format is &#39;&lt;name&gt;:::&lt;expr&gt;&#39; (three colons should not appear in variable names. This can be modified with --specification-separator). In the expressions there are variables that correspond to the column names. Also a variable &#39;data&#39; that can be subscripted (for columns that are not valid variable names)&quot;</span><span class="p">)</span>
+        <span class="n">calc</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--recalc-columns&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;recalcColumns&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Columns that should be recalculated after reading. Can be specified more than once. In the expression a variable &#39;this&#39; can reference the variable itself&quot;</span><span class="p">)</span>
+        <span class="n">calc</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--regular-expression-for-recalculation&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;regularExpressionRecalc&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name in recalculations is a regular expression that must match the existing names&quot;</span><span class="p">)</span>
+        <span class="n">calc</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--raw-data-add-column&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;rawAddColumns&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Columns that should be added to the data after reading&quot;</span><span class="p">)</span>
+        <span class="n">calc</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--joined-data-add-column&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;joinedAddColumns&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Columns that should be added to the data before writing&quot;</span><span class="p">)</span>
+        <span class="n">calc</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--specification-separator&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;specSeparator&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="s2">&quot;:::&quot;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Separator used for specifications instead of </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">calc</span><span class="p">)</span>
+
+        <span class="n">info</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                         <span class="s2">&quot;Info&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;Information about the data&quot;</span><span class="p">)</span>
+        <span class="n">info</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--print-columns&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;printColums&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print the column names found&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                         <span class="s2">&quot;Data&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;Specification on the data that is read in&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--time-name&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Name of the time column&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--set-names&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;setNames&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Comma-separated list of names to be used (instead of reading the names from the files)&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--column-names&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;columns&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The columns (names) which should be copied to the CSV. All if unset&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--regexp-column-names&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;columnsRegexp&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The column names should be matched as regular expressions&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--skip-header-lines&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;skipHeaderLines&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Number of lines to skip for the header&quot;</span><span class="p">)</span>
+
+        <span class="n">formt</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                           <span class="s2">&quot;Format&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;Specification on the format of the data read and written&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">formt</span><span class="p">)</span>
+        <span class="n">formt</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--write-excel-file&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;writeExcel&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Write to Excel-file instead of plain CSV. Onle works with the python-libraries pandas and xlwt&quot;</span><span class="p">)</span>
+        <span class="n">formt</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--read-excel-file&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;readExcel&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Read from Excel-file instead of plain CSV. Onle works with the python-libraries pandas and xlrd&quot;</span><span class="p">)</span>
+        <span class="n">formt</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--automatic-format&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;automaticFormat&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Determine from the file extension whether the files are CSV, Excel or plain text&quot;</span><span class="p">)</span>
+        <span class="n">formt</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--delimiter&quot;</span><span class="p">,</span>
+                         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;delimiter&quot;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Delimiter to be used between the values. Default: </span><span class="si">%d</span><span class="s2">efault&quot;</span><span class="p">)</span>
+        <span class="n">formt</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--default-read-format&quot;</span><span class="p">,</span>
+                         <span class="n">choices</span><span class="o">=</span><span class="n">CommonReadWriteCSV</span><span class="o">.</span><span class="n">validFormats</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="s2">&quot;csv&quot;</span><span class="p">,</span>
+                         <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;defaultReadFormat&quot;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If --automatic is not used then it is assumed that all input files are of this format. Default is </span><span class="si">%d</span><span class="s2">efault. Valid options are &quot;</span><span class="o">+</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">CommonReadWriteCSV</span><span class="o">.</span><span class="n">validFormats</span><span class="p">))</span>
+
+        <span class="n">colNames</span><span class="o">=</span><span class="n">OptionGroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span>
+                             <span class="s2">&quot;Column names&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;Transformations on the column names before they are written&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_option_group</span><span class="p">(</span><span class="n">colNames</span><span class="p">)</span>
+        <span class="n">colNames</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--write-time-name&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;writeTimeName&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Renaming the time name for the written data&quot;</span><span class="p">)</span>
+        <span class="n">colNames</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--column-name-replacements&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;colNameReplacements&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Replacements in the column names. Format is &#39;orig:::replace&#39;. Can be specified more than once. Instead of ::: the value set with --specification-separator can be used&quot;</span><span class="p">)</span>
+        <span class="n">colNames</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;--column-name-transformation&quot;</span><span class="p">,</span>
+                            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                            <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;colNameTransformation&quot;</span><span class="p">,</span>
+                            <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Transform the column names with a Python lambda-function. Can be specified more than once. For instance &#39;lambda s:s.upper()&#39; transforms the column names to upper case&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">setNames</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">setNames</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="CommonReadWriteCSV.printColumns"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonReadWriteCSV.html#PyFoam.Applications.CommonReadWriteCSV.CommonReadWriteCSV.printColumns">[docs]</a>    <span class="k">def</span> <span class="nf">printColumns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fName</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">printColums</span><span class="p">:</span>
+            <span class="n">delim</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">   &quot;</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Columns in&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">delim</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;&quot;</span><span class="p">]</span><span class="o">+</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">names</span><span class="p">())))</span>
+            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">eliminatedNames</span><span class="p">:</span>
+                <span class="n">print_</span><span class="p">(</span><span class="s2">&quot;Eliminated from&quot;</span><span class="p">,</span><span class="n">fName</span><span class="p">,</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">eliminatedNames</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="CommonReadWriteCSV.recalcColumns"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonReadWriteCSV.html#PyFoam.Applications.CommonReadWriteCSV.CommonReadWriteCSV.recalcColumns">[docs]</a>    <span class="k">def</span> <span class="nf">recalcColumns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__processColumns</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">recalcColumns</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommonReadWriteCSV.rawAddColumns"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonReadWriteCSV.html#PyFoam.Applications.CommonReadWriteCSV.CommonReadWriteCSV.rawAddColumns">[docs]</a>    <span class="k">def</span> <span class="nf">rawAddColumns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__processColumns</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">rawAddColumns</span><span class="p">,</span><span class="n">create</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommonReadWriteCSV.joinedAddColumns"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonReadWriteCSV.html#PyFoam.Applications.CommonReadWriteCSV.CommonReadWriteCSV.joinedAddColumns">[docs]</a>    <span class="k">def</span> <span class="nf">joinedAddColumns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__processColumns</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">joinedAddColumns</span><span class="p">,</span><span class="n">create</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__processColumns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">specs</span><span class="p">,</span><span class="n">create</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">name</span><span class="p">,</span><span class="n">expr</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">specSeparator</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="s2">&quot;can not be split correctly with &#39;:::&#39;:&quot;</span><span class="p">,</span><span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:::&quot;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">create</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">regularExpressionRecalc</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">re</span>
+                <span class="n">rex</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">names</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">rex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                        <span class="n">data</span><span class="o">.</span><span class="n">recalcData</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">expr</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">recalcData</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">expr</span><span class="p">,</span><span class="n">create</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CommonReadWriteCSV.processName"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonReadWriteCSV.html#PyFoam.Applications.CommonReadWriteCSV.CommonReadWriteCSV.processName">[docs]</a>    <span class="k">def</span> <span class="nf">processName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">time</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">writeTimeName</span><span class="p">:</span>
+            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">writeTimeName</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">colNameReplacements</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">orig</span><span class="p">,</span><span class="n">repl</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">specSeparator</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="s2">&quot;can not be split correctly with &#39;:::&#39;:&quot;</span><span class="p">,</span><span class="n">r</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:::&quot;</span><span class="p">))</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">orig</span><span class="p">,</span><span class="n">repl</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">colNameTransformation</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">=</span><span class="nb">eval</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">f</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">name</span></div>
+
+<div class="viewcode-block" id="CommonReadWriteCSV.getDataFormat"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonReadWriteCSV.html#PyFoam.Applications.CommonReadWriteCSV.CommonReadWriteCSV.getDataFormat">[docs]</a>    <span class="k">def</span> <span class="nf">getDataFormat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="n">dataFormat</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">defaultReadFormat</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">automaticFormat</span><span class="p">:</span>
+            <span class="n">ext</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.csv&quot;</span><span class="p">]:</span>
+                <span class="n">dataFormat</span><span class="o">=</span><span class="s2">&quot;csv&quot;</span>
+            <span class="k">elif</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.xls&quot;</span><span class="p">,</span><span class="s2">&quot;.xlsx&quot;</span><span class="p">]:</span>
+                <span class="n">dataFormat</span><span class="o">=</span><span class="s2">&quot;excel&quot;</span>
+            <span class="k">elif</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.txt&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">]:</span>
+                <span class="n">dataFormat</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span>
+            <span class="k">elif</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.xy&quot;</span><span class="p">]:</span>
+                <span class="n">dataFormat</span><span class="o">=</span><span class="s2">&quot;smpl&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dataFormat</span><span class="o">=</span><span class="n">ext</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="n">dataFormat</span></div>
+
+<div class="viewcode-block" id="CommonReadWriteCSV.dataFormatOptions"><a class="viewcode-back" href="../../../api/PyFoam.Applications.CommonReadWriteCSV.html#PyFoam.Applications.CommonReadWriteCSV.CommonReadWriteCSV.dataFormatOptions">[docs]</a>    <span class="k">def</span> <span class="nf">dataFormatOptions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">readExcel</span><span class="p">:</span>
+            <span class="n">dataFormat</span><span class="o">=</span><span class="s2">&quot;excel&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dataFormat</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getDataFormat</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;csvName&quot;</span> <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                 <span class="s2">&quot;txtName&quot;</span> <span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                 <span class="s2">&quot;excelName&quot;</span> <span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">dataFormat</span><span class="o">==</span><span class="s2">&quot;csv&quot;</span><span class="p">:</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;csvName&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">name</span>
+        <span class="k">elif</span> <span class="n">dataFormat</span><span class="o">==</span><span class="s2">&quot;excel&quot;</span><span class="p">:</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;excelName&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">name</span>
+        <span class="k">elif</span> <span class="n">dataFormat</span><span class="o">==</span><span class="s2">&quot;txt&quot;</span><span class="p">:</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;txtName&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">name</span>
+        <span class="k">elif</span> <span class="n">dataFormat</span><span class="o">==</span><span class="s2">&quot;smpl&quot;</span><span class="p">:</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;txtName&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">name</span>
+            <span class="n">options</span><span class="p">[</span><span class="s2">&quot;isSampleFile&quot;</span><span class="p">]</span><span class="o">=</span><span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unsupported format&quot;</span><span class="p">,</span><span class="n">dataFormat</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">options</span></div></div>
+
+<span class="c1"># Should work with Python3 and Python2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

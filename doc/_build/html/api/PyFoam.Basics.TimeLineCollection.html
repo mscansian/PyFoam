@@ -1,0 +1,493 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PyFoam.Basics.TimeLineCollection module &mdash; PyFoam 0.6.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="PyFoam 0.6.6 documentation" href="../index.html"/>
+        <link rel="up" title="PyFoam.Basics package" href="PyFoam.Basics.html"/>
+        <link rel="next" title="PyFoam.Basics.Utilities module" href="PyFoam.Basics.Utilities.html"/>
+        <link rel="prev" title="PyFoam.Basics.TerminalFormatter module" href="PyFoam.Basics.TerminalFormatter.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyFoam
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="PyFoam.html">PyFoam package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="PyFoam.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Applications.html">PyFoam.Applications package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="PyFoam.Basics.html">PyFoam.Basics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Execution.html">PyFoam.Execution package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.IPythonHelpers.html">PyFoam.IPythonHelpers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Infrastructure.html">PyFoam.Infrastructure package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.LogAnalysis.html">PyFoam.LogAnalysis package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Paraview.html">PyFoam.Paraview package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.RunDictionary.html">PyFoam.RunDictionary package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Site.html">PyFoam.Site package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.ThirdParty.html">PyFoam.ThirdParty package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PyFoam.Wrappers.html">PyFoam.Wrappers package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PyFoam.html#module-PyFoam">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyFoam</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">PyFoam</a> &raquo;</li>
+      
+          <li><a href="PyFoam.html">PyFoam package</a> &raquo;</li>
+      
+          <li><a href="PyFoam.Basics.html">PyFoam.Basics package</a> &raquo;</li>
+      
+    <li>PyFoam.Basics.TimeLineCollection module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/PyFoam.Basics.TimeLineCollection.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-PyFoam.Basics.TimeLineCollection">
+<span id="pyfoam-basics-timelinecollection-module"></span><h1>PyFoam.Basics.TimeLineCollection module<a class="headerlink" href="#module-PyFoam.Basics.TimeLineCollection" title="Permalink to this headline">¶</a></h1>
+<p>Collection of array of timelines</p>
+<dl class="class">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.TimeLineCollection.</code><code class="descname">TimeLineCollection</code><span class="sig-paren">(</span><em>deflt=0.0</em>, <em>extendCopy=False</em>, <em>splitThres=None</em>, <em>splitFun=None</em>, <em>noEmptyTime=True</em>, <em>advancedSplit=False</em>, <em>preloadData=None</em>, <em>accumulation='first'</em>, <em>registry=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__module__': 'PyFoam.Basics.TimeLineCollection', '__doc__': None, '__init__': &lt;function TimeLineCollection.__init__&gt;, 'nr': &lt;function TimeLineCollection.nr&gt;, 'getValueNames': &lt;function TimeLineCollection.getValueNames&gt;, 'setAccumulator': &lt;function TimeLineCollection.setAccumulator&gt;, '__dict__': &lt;attribute '__dict__' of 'TimeLineCollection' objects&gt;, 'resetValid': &lt;function TimeLineCollection.resetValid&gt;, 'setTime': &lt;function TimeLineCollection.setTime&gt;, '__weakref__': &lt;attribute '__weakref__' of 'TimeLineCollection' objects&gt;, 'getValues': &lt;function TimeLineCollection.getValues&gt;, 'getLatestData': &lt;function TimeLineCollection.getLatestData&gt;, 'nrValid': &lt;function TimeLineCollection.nrValid&gt;, 'split': &lt;function TimeLineCollection.split&gt;, 'getTimes': &lt;function TimeLineCollection.getTimes&gt;, 'setDefault': &lt;function TimeLineCollection.setDefault&gt;, 'getData': &lt;function TimeLineCollection.getData&gt;, 'setSplitting': &lt;function TimeLineCollection.setSplitting&gt;, 'setExtend': &lt;function TimeLineCollection.setExtend&gt;, 'possibleAccumulations': ['first', 'last', 'min', 'max', 'average', 'sum', 'count'], 'setValue': &lt;function TimeLineCollection.setValue&gt;, 'addSlave': &lt;function TimeLineCollection.addSlave&gt;})</em><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>deflt=0.0</em>, <em>extendCopy=False</em>, <em>splitThres=None</em>, <em>splitFun=None</em>, <em>noEmptyTime=True</em>, <em>advancedSplit=False</em>, <em>preloadData=None</em>, <em>accumulation='first'</em>, <em>registry=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>deflt</strong> &#8211; default value for timelines if none has been defined before</li>
+<li><strong>extendCopy</strong> &#8211; Extends the timeline by cpying the last element</li>
+<li><strong>splitThres</strong> &#8211; Threshold after which the number of points is halved</li>
+<li><strong>splitFun</strong> &#8211; Function that is used for halving. If none is specified the mean function is used</li>
+<li><strong>noEmptyTime</strong> &#8211; if there is no valid entry no data is stored for this time</li>
+<li><strong>advancedSplit</strong> &#8211; Use another split algorithm than one that condenses two values into one</li>
+<li><strong>preloadData</strong> &#8211; a dictionary with a dictionary to initialize the values</li>
+<li><strong>accumulation</strong> &#8211; if more than one value is given at any time-step, how to accumulate them (possible values: &#8220;first&#8221;, &#8220;last&#8221;, &#8220;min&#8221;, &#8220;max&#8221;, &#8220;average&#8221;, &#8220;sum&#8221;,&#8221;count&#8221;)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.TimeLineCollection'</em><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.addSlave">
+<code class="descname">addSlave</code><span class="sig-paren">(</span><em>slave</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.addSlave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.addSlave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a slave time-line-collection</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.getData">
+<code class="descname">getData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.getData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.getData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the whole current data as a SpreadsheetData-object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.getLatestData">
+<code class="descname">getLatestData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.getLatestData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.getLatestData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary with the latest values from all data sets</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.getTimes">
+<code class="descname">getTimes</code><span class="sig-paren">(</span><em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.getTimes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.getTimes" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of the time values</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.getValueNames">
+<code class="descname">getValueNames</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.getValueNames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.getValueNames" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list with the names of the safed values</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.getValues">
+<code class="descname">getValues</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.getValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.getValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a timeline
+:param name: Name of the timeline
+:return: List with the values</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.nr">
+<code class="descname">nr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.nr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.nr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of elements in timelines</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.nrValid">
+<code class="descname">nrValid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.nrValid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.nrValid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function that gets the number of valid values</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.possibleAccumulations">
+<code class="descname">possibleAccumulations</code><em class="property"> = ['first', 'last', 'min', 'max', 'average', 'sum', 'count']</em><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.possibleAccumulations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.resetValid">
+<code class="descname">resetValid</code><span class="sig-paren">(</span><em>val=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.resetValid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.resetValid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function that resets the information whether the last entry is valid</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.setAccumulator">
+<code class="descname">setAccumulator</code><span class="sig-paren">(</span><em>name</em>, <em>accu</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.setAccumulator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.setAccumulator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a special accumulator fopr a timeline
+:param name: Name of the timeline
+:param accu: Name of the accumulator</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.setDefault">
+<code class="descname">setDefault</code><span class="sig-paren">(</span><em>deflt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.setDefault"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.setDefault" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>deflt</strong> &#8211; default value to be used</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.setExtend">
+<code class="descname">setExtend</code><span class="sig-paren">(</span><em>mode</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.setExtend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.setExtend" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mode</strong> &#8211; whether or not to extend the timeline by copying or setting the default value</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.setSplitting">
+<code class="descname">setSplitting</code><span class="sig-paren">(</span><em>splitThres=None</em>, <em>splitFun=None</em>, <em>advancedSplit=False</em>, <em>noEmptyTime=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.setSplitting"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.setSplitting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the parameters for splitting</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.setTime">
+<code class="descname">setTime</code><span class="sig-paren">(</span><em>time</em>, <em>noLock=False</em>, <em>forceAppend=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.setTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.setTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the time. If time is new all the timelines are extended
+:param time: the new current time
+:param noLock: do not acquire the lock that ensures consistent data transmission</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.setValue">
+<code class="descname">setValue</code><span class="sig-paren">(</span><em>name</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.setValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.setValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the value of the last element in a timeline
+:param name: name of the timeline
+:param value: the last element</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLineCollection.split">
+<code class="descname">split</code><span class="sig-paren">(</span><em>array</em>, <em>func</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLineCollection.split"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLineCollection.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes the array smaller by joining every two points
+:param array: the field to split
+:param func: The function to use for joining two points</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLinesRegistry">
+<em class="property">class </em><code class="descclassname">PyFoam.Basics.TimeLineCollection.</code><code class="descname">TimeLinesRegistry</code><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLinesRegistry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Collects references to TimeLineCollection objects</p>
+<dl class="attribute">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__doc__': 'Collects references to TimeLineCollection objects', '__weakref__': &lt;attribute '__weakref__' of 'TimeLinesRegistry' objects&gt;, 'nr': 1, '__module__': 'PyFoam.Basics.TimeLineCollection', 'prepareForTransfer': &lt;function TimeLinesRegistry.prepareForTransfer&gt;, '__init__': &lt;function TimeLinesRegistry.__init__&gt;, 'add': &lt;function TimeLinesRegistry.add&gt;, 'resolveSlaves': &lt;function TimeLinesRegistry.resolveSlaves&gt;, 'clear': &lt;function TimeLinesRegistry.clear&gt;, '__dict__': &lt;attribute '__dict__' of 'TimeLinesRegistry' objects&gt;, 'get': &lt;function TimeLinesRegistry.get&gt;})</em><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLinesRegistry.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.__module__">
+<code class="descname">__module__</code><em class="property"> = 'PyFoam.Basics.TimeLineCollection'</em><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>line</em>, <em>nr=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLinesRegistry.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.add" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLinesRegistry.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>nr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLinesRegistry.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.nr">
+<code class="descname">nr</code><em class="property"> = 1</em><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.nr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.prepareForTransfer">
+<code class="descname">prepareForTransfer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLinesRegistry.prepareForTransfer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.prepareForTransfer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes sure that the data about the timelines is to be transfered via XMLRPC</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.resolveSlaves">
+<code class="descname">resolveSlaves</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#TimeLinesRegistry.resolveSlaves"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.TimeLinesRegistry.resolveSlaves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Looks through all the registered lines and replaces integers with
+the actual registered line</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Basics.TimeLineCollection.allLines">
+<code class="descclassname">PyFoam.Basics.TimeLineCollection.</code><code class="descname">allLines</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#allLines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.allLines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Basics.TimeLineCollection.mean">
+<code class="descclassname">PyFoam.Basics.TimeLineCollection.</code><code class="descname">mean</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#mean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean value of a and b</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="PyFoam.Basics.TimeLineCollection.signedMax">
+<code class="descclassname">PyFoam.Basics.TimeLineCollection.</code><code class="descname">signedMax</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/PyFoam/Basics/TimeLineCollection.html#signedMax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyFoam.Basics.TimeLineCollection.signedMax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Absolute Maximum of a and b with the sign preserved</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PyFoam.Basics.Utilities.html" class="btn btn-neutral float-right" title="PyFoam.Basics.Utilities module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="PyFoam.Basics.TerminalFormatter.html" class="btn btn-neutral" title="PyFoam.Basics.TerminalFormatter module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Bernhard F.W. Gschaider.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
